@@ -28,7 +28,7 @@ const COLLECTIONS = [
   },
   {
     id: "paytch",
-    name: "The Paytch",
+    name: "The PAYTCH",
     shortName: "Paytch",
     markdown: path.join(ROOT, "The Paytch", "MSSP - The Paytch.md"),
     coverFile: path.join(ROOT, "The Paytch", "cover.jpg"),
@@ -40,6 +40,7 @@ const COLLECTIONS = [
     shortName: "Anthology",
     markdown: path.join(ROOT, "The Anthology", "MSSP - The Anthology.md"),
     coverFile: path.join(ROOT, "The Anthology", "cover.jpg"),
+    hoverCoverFile: path.join(ROOT, "The Anthology", "cover2.jpg"),
     accent: "#7fc1ad",
   },
 ];
@@ -187,6 +188,7 @@ function handleApi(requestUrl, response) {
         name: collection.name,
         shortName: collection.shortName,
         coverUrl: `/covers/${collection.id}`,
+        hoverCoverUrl: collection.hoverCoverFile ? `/covers/${collection.id}-hover` : "",
         accent: collection.accent,
         count: stats[collection.id]?.count || 0,
         startDate: stats[collection.id]?.start_date || "",
@@ -255,13 +257,21 @@ const server = http.createServer((request, response) => {
 
   if (requestUrl.pathname.startsWith("/covers/")) {
     const id = requestUrl.pathname.split("/").pop();
-    const collection = COLLECTIONS.find((item) => item.id === id);
+    const isHoverCover = id.endsWith("-hover");
+    const collectionId = isHoverCover ? id.slice(0, -6) : id;
+    const collection = COLLECTIONS.find((item) => item.id === collectionId);
     if (!collection) {
       response.writeHead(404);
       response.end("Not found");
       return;
     }
-    sendFile(response, collection.coverFile, "image/jpeg");
+    const coverFile = isHoverCover ? collection.hoverCoverFile : collection.coverFile;
+    if (!coverFile) {
+      response.writeHead(404);
+      response.end("Not found");
+      return;
+    }
+    sendFile(response, coverFile, "image/jpeg");
     return;
   }
 

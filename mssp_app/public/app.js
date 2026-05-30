@@ -48,8 +48,14 @@ function renderCollections() {
     button.className = `collection-card ${id === "anthology" ? "collection-card--anthology" : ""}`;
     button.type = "button";
     button.style.setProperty("--accent", collection.accent);
+    const hoverCover = collection.hoverCoverUrl
+      ? `<img class="collection-card__cover collection-card__cover--hover" src="${collection.hoverCoverUrl}" alt="">`
+      : "";
     button.innerHTML = `
-      <img class="collection-card__cover" src="${collection.coverUrl}" alt="">
+      <span class="collection-card__art">
+        <img class="collection-card__cover" src="${collection.coverUrl}" alt="">
+        ${hoverCover}
+      </span>
       <span class="collection-card__copy">
         <span class="eyebrow">${formatDateRange(collection)}</span>
         <h2>${collection.name}</h2>
