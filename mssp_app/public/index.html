@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MSSP Anthology</title>
+    <link rel="stylesheet" href="/styles.css">
+  </head>
+  <body>
+    <main class="app" id="app">
+      <section class="launch" id="launchView" aria-label="Collections">
+        <div class="launch__header">
+          <p class="eyebrow">Matt and Shane's Secret Podcast</p>
+          <h1>MSSP Anthology</h1>
+        </div>
+        <div class="collection-grid" id="collectionGrid"></div>
+      </section>
+
+      <section class="library is-hidden" id="libraryView" aria-label="Episodes">
+        <aside class="library__hero" id="heroPanel">
+          <button class="back-button" id="backButton" type="button" aria-label="Back to collections">
+            <span aria-hidden="true">‹</span>
+          </button>
+          <img class="hero-cover" id="heroCover" alt="">
+          <div class="hero-details" id="heroDetails">
+            <span>Select an episode to inspect details.</span>
+          </div>
+        </aside>
+
+        <section class="episode-panel">
+          <div class="panel-top">
+            <div>
+              <p class="eyebrow">Browse</p>
+              <h2 id="panelTitle">Episodes</h2>
+            </div>
+            <label class="search">
+              <span class="search__icon">⌕</span>
+              <input id="searchInput" type="search" autocomplete="off" placeholder="Search title, date, ep">
+            </label>
+          </div>
+
+          <div class="episode-list" id="episodeList" tabindex="0" aria-label="Episode list">
+            <div class="episode-list__spacer" id="listSpacer"></div>
+            <div class="episode-list__items" id="listItems"></div>
+          </div>
+        </section>
+      </section>
+    </main>
+    <div id="global-tooltip" class="global-tooltip"></div>
+    <script src="/app.js"></script>
+  </body>
+</html>
