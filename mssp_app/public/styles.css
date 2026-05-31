@@ -275,7 +275,7 @@ h1 {
 .library {
   display: grid;
   grid-template-columns: minmax(230px, 35vw) minmax(0, 1fr);
-  gap: clamp(18px, 3vw, 38px);
+  gap: 0;
   opacity: 1;
   transform: translateY(0);
   transition: opacity 240ms ease, transform 240ms ease;
@@ -305,28 +305,48 @@ h1 {
   flex-direction: column;
   justify-content: center;
   padding: clamp(18px, 3vw, 34px);
+  border-right: 0;
+  border-radius: 8px 0 0 8px;
 }
 
 .back-button {
   position: absolute;
   top: 16px;
   left: 16px;
-  display: grid;
+  display: flex;
   width: 40px;
   height: 40px;
+  align-items: center;
+  justify-content: center;
   color: var(--text);
   cursor: pointer;
   background: var(--soft);
   border: 1px solid var(--line);
-  border-radius: 999px;
-  place-items: center;
+  border-radius: 8px;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+}
+
+.back-button:hover,
+.back-button:focus-visible {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.32);
+  outline: none;
+}
+
+.back-button:hover {
+  transform: translateY(-1px);
 }
 
 .back-button span {
-  display: block;
-  margin-top: -2px;
-  font-size: 2rem;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  font-size: 1.95rem;
   line-height: 1;
+  transform: translateX(-1px);
 }
 
 .hero-cover {
@@ -384,6 +404,7 @@ h1 {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: hidden;
+  border-radius: 0 8px 8px 0;
 }
 
 .panel-top {
@@ -545,7 +566,7 @@ h1 {
   .library {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
-    gap: 12px;
+    gap: 0;
   }
 
   .library__hero {
@@ -554,6 +575,13 @@ h1 {
     gap: 14px;
     align-items: center;
     padding: 14px 14px 14px 66px;
+    border-right: 1px solid var(--line);
+    border-bottom: 0;
+    border-radius: 8px 8px 0 0;
+  }
+
+  .episode-panel {
+    border-radius: 0 0 8px 8px;
   }
 
   .hero-cover {

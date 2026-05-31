@@ -70,7 +70,7 @@ function parseMarkdownTable(filePath, sourceCollection) {
       paytch,
       episode: row.ep || "",
       title,
-      coverKind: determineCoverKind({ type, paytch, title, sourceCollection, tags }),
+      coverKind: determineCoverKind({ type, paytch, episode: row.ep || "", title, sourceCollection, tags }),
       tags,
       rawLine: line,
     }];
@@ -86,8 +86,8 @@ function normalizeHeader(value) {
 }
 
 function determineCoverKind(entry) {
-  const tagText = `${entry.tags} ${entry.paytch} ${entry.title}`.toUpperCase();
-  if (tagText.includes("PAYTCH") || tagText.includes("PATREON")) return "paytch";
+  const fileLabel = `${entry.type || ""} ${entry.paytch || ""} Ep. ${entry.episode || ""}`;
+  if (/^MSSP(?:OT)?\s+PAYTCH\s+Ep\.\s+\S+/i.test(fileLabel.trim())) return "paytch";
   if ((entry.type || "").toUpperCase() === "MSSPOT") return "old";
   return "new";
 }
