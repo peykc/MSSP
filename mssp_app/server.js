@@ -8,6 +8,7 @@ const ROOT = path.resolve(__dirname, "..");
 const PUBLIC_DIR = path.join(__dirname, "public");
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, "mssp.sqlite");
 const PORT = Number(process.env.PORT || 5177);
+const HOST = process.env.HOST || "0.0.0.0";
 
 const COLLECTIONS = [
   {
@@ -164,7 +165,10 @@ function sendFile(response, filePath, contentType) {
       response.end("Not found");
       return;
     }
-    response.writeHead(200, { "Content-Type": contentType });
+    response.writeHead(200, {
+      "Content-Type": contentType,
+      "Cache-Control": "no-store",
+    });
     response.end(data);
   });
 }
@@ -285,7 +289,8 @@ const server = http.createServer((request, response) => {
   sendFile(response, filePath, contentTypeFor(filePath));
 });
 
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log(`MSSP Anthology is indexing ${total} rows into ${DB_PATH}`);
-  console.log(`Open http://localhost:${PORT}`);
+  console.log(`Open http://127.0.0.1:${PORT}`);
+  console.log(`Listening on http://${HOST}:${PORT}`);
 });

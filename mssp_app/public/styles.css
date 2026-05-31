@@ -219,6 +219,59 @@ h1 {
   white-space: nowrap;
 }
 
+@media (max-aspect-ratio: 7 / 6) {
+  .launch {
+    gap: clamp(12px, 2vh, 22px);
+  }
+
+  h1 {
+    font-size: clamp(2.1rem, 8vw, 4.25rem);
+    line-height: 1;
+  }
+
+  .collection-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, auto);
+    gap: clamp(10px, 1.8vh, 16px);
+    align-content: start;
+  }
+
+  .collection-card,
+  .collection-card--anthology {
+    grid-column: auto;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-content: center;
+    align-items: center;
+    gap: clamp(12px, 3vw, 24px);
+    padding: clamp(10px, 2vw, 16px);
+  }
+
+  .collection-card__art,
+  .collection-card--anthology .collection-card__art {
+    width: clamp(96px, min(30vw, 20vh), 170px);
+    height: clamp(96px, min(30vw, 20vh), 170px);
+    max-width: none;
+    max-height: none;
+    align-self: center;
+  }
+
+  .collection-card__copy,
+  .collection-card--anthology .collection-card__copy {
+    align-self: center;
+    max-height: 100%;
+    padding: 0;
+  }
+
+  .collection-card h2 {
+    font-size: clamp(1.25rem, 4vw, 2rem);
+  }
+
+  .collection-card p {
+    font-size: clamp(0.95rem, 3vw, 1.35rem);
+  }
+}
+
 .library {
   display: grid;
   grid-template-columns: minmax(230px, 35vw) minmax(0, 1fr);
