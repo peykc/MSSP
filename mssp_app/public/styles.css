@@ -249,8 +249,8 @@ h1 {
 
   .collection-card__art,
   .collection-card--anthology .collection-card__art {
-    width: clamp(96px, min(30vw, 20vh), 170px);
-    height: clamp(96px, min(30vw, 20vh), 170px);
+    width: clamp(120px, min(34vw, 24vh), 190px);
+    height: clamp(120px, min(34vw, 24vh), 190px);
     max-width: none;
     max-height: none;
     align-self: center;
