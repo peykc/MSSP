@@ -5,6 +5,7 @@ const heroCover = document.getElementById("heroCover");
 const heroDetails = document.getElementById("heroDetails");
 const panelTitle = document.getElementById("panelTitle");
 const searchInput = document.getElementById("searchInput");
+const coverFilters = document.getElementById("coverFilters");
 const episodeList = document.getElementById("episodeList");
 const listSpacer = document.getElementById("listSpacer");
 const listItems = document.getElementById("listItems");
@@ -17,8 +18,10 @@ const rowCache = new Map();
 let collections = [];
 let activeCollection = null;
 let episodes = [];
+let visibleEpisodes = [];
 let selectedEpisodeId = null;
 let query = "";
+let selectedCoverKinds = new Set();
 
 async function getJson(url) {
   const response = await fetch(url);
@@ -81,6 +84,8 @@ async function openCollection(id) {
   panelTitle.textContent = activeCollection.name;
   searchInput.value = "";
   query = "";
+  selectedCoverKinds = new Set();
+  renderCoverFilters();
   await loadEpisodes();
 }
 
@@ -92,22 +97,83 @@ async function loadEpisodes() {
   episodes = data.episodes;
   rowCache.clear();
   listItems.innerHTML = "";
-  selectedEpisodeId = episodes[0]?.id ?? null;
-  listSpacer.style.height = `${episodes.length * ROW_HEIGHT}px`;
+  applyEpisodeFilters({ resetSelection: true });
   episodeList.scrollTop = 0;
   renderDetails();
   renderVisibleRows();
+}
+
+function getVisibleEpisodes() {
+  if (activeCollection?.id !== "anthology" || selectedCoverKinds.size === 0) return episodes;
+  return episodes.filter((episode) => selectedCoverKinds.has(episode.coverKind));
+}
+
+function applyEpisodeFilters({ resetSelection = false, preserveScroll = false } = {}) {
+  const previousScrollTop = episodeList.scrollTop;
+  const anchorIndex = Math.floor(previousScrollTop / ROW_HEIGHT);
+  const anchorOffset = previousScrollTop - anchorIndex * ROW_HEIGHT;
+  const anchorEpisode = preserveScroll ? visibleEpisodes[anchorIndex] : null;
+
+  visibleEpisodes = getVisibleEpisodes();
+  const selectedIsVisible = visibleEpisodes.some((episode) => episode.id === selectedEpisodeId);
+  if (resetSelection || !selectedIsVisible) {
+    selectedEpisodeId = visibleEpisodes[0]?.id ?? null;
+  }
+  rowCache.clear();
+  listItems.innerHTML = "";
+  listSpacer.style.height = `${visibleEpisodes.length * ROW_HEIGHT}px`;
+
+  if (!preserveScroll) return;
+
+  const anchorNewIndex = anchorEpisode
+    ? visibleEpisodes.findIndex((episode) => episode.id === anchorEpisode.id)
+    : -1;
+  const maxScrollTop = Math.max(0, visibleEpisodes.length * ROW_HEIGHT - episodeList.clientHeight);
+  const nextScrollTop = anchorNewIndex >= 0
+    ? anchorNewIndex * ROW_HEIGHT + anchorOffset
+    : Math.min(previousScrollTop, maxScrollTop);
+  episodeList.scrollTop = Math.max(0, Math.min(nextScrollTop, maxScrollTop));
+  window.MsspAnthology?.dismissGlobalTooltip?.();
+}
+
+function renderCoverFilters() {
+  coverFilters.innerHTML = "";
+  const shouldShow = activeCollection?.id === "anthology";
+  coverFilters.classList.toggle("is-hidden", !shouldShow);
+  if (!shouldShow) return;
+
+  for (const id of ["old", "paytch", "new"]) {
+    const collection = collections.find((item) => item.id === id);
+    if (!collection) continue;
+
+    const button = document.createElement("button");
+    button.className = "cover-filter";
+    button.type = "button";
+    button.setAttribute("aria-pressed", selectedCoverKinds.has(id) ? "true" : "false");
+    button.setAttribute("aria-label", `Toggle ${collection.name}`);
+    button.dataset.kind = id;
+    button.innerHTML = `<img src="${collection.coverUrl}" alt="">`;
+    button.addEventListener("click", () => {
+      if (selectedCoverKinds.has(id)) selectedCoverKinds.delete(id);
+      else selectedCoverKinds.add(id);
+      renderCoverFilters();
+      applyEpisodeFilters({ preserveScroll: true });
+      renderDetails();
+      renderVisibleRows();
+    });
+    coverFilters.append(button);
+  }
 }
 
 function renderVisibleRows() {
   const viewportHeight = episodeList.clientHeight;
   const scrollTop = episodeList.scrollTop;
   const start = Math.max(0, Math.floor(scrollTop / ROW_HEIGHT) - OVERSCAN);
-  const end = Math.min(episodes.length, Math.ceil((scrollTop + viewportHeight) / ROW_HEIGHT) + OVERSCAN);
+  const end = Math.min(visibleEpisodes.length, Math.ceil((scrollTop + viewportHeight) / ROW_HEIGHT) + OVERSCAN);
   const visibleKeys = new Set();
 
   for (let index = start; index < end; index += 1) {
-    const episode = episodes[index];
+    const episode = visibleEpisodes[index];
     const key = episode.id;
     visibleKeys.add(key);
     const row = getMemoizedRow(episode);
@@ -155,7 +221,7 @@ function getMemoizedRow(episode) {
 }
 
 function renderDetails() {
-  const episode = episodes.find((item) => item.id === selectedEpisodeId);
+  const episode = visibleEpisodes.find((item) => item.id === selectedEpisodeId);
   if (!episode) {
     heroCover.src = activeCollection.coverUrl;
     heroCover.alt = `${activeCollection.name} cover`;
@@ -248,8 +314,11 @@ function closeLibrary() {
   libraryView.classList.add("is-hidden");
   launchView.classList.remove("is-hidden");
   episodes = [];
+  visibleEpisodes = [];
+  selectedCoverKinds = new Set();
   rowCache.clear();
   listItems.innerHTML = "";
+  coverFilters.innerHTML = "";
 }
 
 function debounce(fn, wait) {
