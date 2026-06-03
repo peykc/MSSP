@@ -165,13 +165,83 @@ function renderDetails() {
 
   heroCover.src = episode.coverUrl;
   heroCover.alt = `${episode.title || "Selected episode"} cover`;
+  const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
+  const accessLabel = episode.paytch ? "PAYTCH" : "Public";
   heroDetails.innerHTML = `
-    <span class="hero-details__title">${episode.title}</span>
+    <span class="hero-details__heading">
+      <span class="hero-details__heading-inner">
+        <span class="hero-details__episode">${episodeLabel}</span>
+        <span class="hero-details__title">
+          <span class="hero-details__title-text">${episode.title || "Untitled episode"}</span>
+        </span>
+      </span>
+    </span>
+    <span>${episode.type || "MSSP"} - ${accessLabel}</span>
     <span>${episode.date || "Unknown date"}</span>
-    <span>${episode.type || "MSSP"}</span>
-    <span>${episode.paytch ? "PAYTCH" : "Public"}</span>
-    <span>${episode.episode ? `Ep. ${episode.episode}` : "Episode details WIP"}</span>
   `;
+  requestAnimationFrame(updateHeroTitleMarquee);
+}
+
+function updateHeroTitleMarquee() {
+  const title = heroDetails.querySelector(".hero-details__title");
+  const titleText = heroDetails.querySelector(".hero-details__title-text");
+  if (!title || !titleText) return;
+
+  titleText.getAnimations().forEach((animation) => animation.cancel());
+  titleText.style.transform = "";
+  titleText.style.opacity = "";
+  title.classList.remove("is-marquee");
+  title.style.removeProperty("--marquee-distance");
+  title.style.removeProperty("--marquee-duration");
+
+  const distance = titleText.scrollWidth - title.clientWidth;
+  if (distance <= 2) return;
+
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const holdMs = 1000;
+  const fadeMs = 280;
+  const resetMs = 120;
+  const speedPxPerSecond = 42;
+  const scrollMs = Math.max(4200, Math.min(18000, (distance / speedPxPerSecond) * 1000));
+  const duration = holdMs + scrollMs + holdMs + fadeMs + resetMs + fadeMs;
+
+  title.style.setProperty("--marquee-distance", `${distance}px`);
+  title.style.setProperty("--marquee-duration", `${duration}ms`);
+  title.classList.add("is-marquee");
+
+  titleText.animate(
+    [
+      { transform: "translateX(0)", opacity: 1, offset: 0 },
+      { transform: "translateX(0)", opacity: 1, offset: holdMs / duration },
+      {
+        transform: `translateX(${-distance}px)`,
+        opacity: 1,
+        offset: (holdMs + scrollMs) / duration,
+      },
+      {
+        transform: `translateX(${-distance}px)`,
+        opacity: 1,
+        offset: (holdMs + scrollMs + holdMs) / duration,
+      },
+      {
+        transform: `translateX(${-distance}px)`,
+        opacity: 0,
+        offset: (holdMs + scrollMs + holdMs + fadeMs) / duration,
+      },
+      {
+        transform: "translateX(0)",
+        opacity: 0,
+        offset: (holdMs + scrollMs + holdMs + fadeMs + resetMs) / duration,
+      },
+      { transform: "translateX(0)", opacity: 1, offset: 1 },
+    ],
+    {
+      duration,
+      easing: "linear",
+      iterations: Infinity,
+    }
+  );
 }
 
 function closeLibrary() {
@@ -191,7 +261,10 @@ function debounce(fn, wait) {
 }
 
 episodeList.addEventListener("scroll", renderVisibleRows, { passive: true });
-window.addEventListener("resize", renderVisibleRows);
+window.addEventListener("resize", () => {
+  renderVisibleRows();
+  updateHeroTitleMarquee();
+});
 backButton.addEventListener("click", closeLibrary);
 searchInput.addEventListener("input", debounce(async (event) => {
   query = event.target.value.trim();

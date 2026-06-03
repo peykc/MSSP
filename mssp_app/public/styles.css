@@ -383,21 +383,72 @@ h1 {
   gap: 8px;
   padding: 16px 0 0;
   color: var(--muted);
-  text-align: left;
+  text-align: center;
   border-top: 1px solid var(--line);
 }
 
-.hero-details span {
+.hero-details > span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+.hero-details__heading {
+  display: block;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-details__heading-inner {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.hero-details__episode {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 1.2em;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
 .hero-details__title {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  height: 1.2em;
+  overflow: hidden;
+  text-overflow: clip;
   color: var(--text);
   font-size: 1.05rem;
   font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero-details .hero-details__title-text {
+  display: block;
+  font: inherit;
+  line-height: inherit;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  will-change: transform;
 }
 
 .episode-panel {
@@ -562,7 +613,7 @@ h1 {
   opacity: 1;
 }
 
-@media (max-width: 640px) {
+@media (max-aspect-ratio: 7 / 6) {
   .library {
     grid-template-columns: 1fr;
     grid-template-rows: auto minmax(0, 1fr);
@@ -571,13 +622,17 @@ h1 {
 
   .library__hero {
     display: grid;
-    grid-template-columns: 74px minmax(0, 1fr);
-    gap: 14px;
+    grid-template-columns: clamp(118px, 24vw, 168px) minmax(0, 1fr);
+    gap: clamp(14px, 2.8vw, 24px);
     align-items: center;
-    padding: 14px 14px 14px 66px;
+    align-content: center;
+    padding: clamp(14px, 2.4vw, 20px) clamp(14px, 2.8vw, 22px) clamp(14px, 2.4vw, 20px) clamp(68px, 9vw, 86px);
+    overflow: hidden;
+    background: var(--panel);
     border-right: 1px solid var(--line);
     border-bottom: 0;
     border-radius: 8px 8px 0 0;
+    box-shadow: none;
   }
 
   .episode-panel {
@@ -585,15 +640,57 @@ h1 {
   }
 
   .hero-cover {
-    width: 74px;
+    width: 100%;
+    max-width: 168px;
     margin: 0;
+    border-radius: 6px;
+    box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
   }
 
   .hero-details {
-    grid-column: 1 / -1;
+    grid-column: auto;
     width: 100%;
-    margin-top: 4px;
-    padding-top: 12px;
+    margin: 0;
+    gap: 9px;
+    padding: 0;
+    text-align: left;
+    border-top: 0;
+  }
+
+  .hero-details > span {
+    white-space: normal;
+  }
+
+  .hero-details__heading {
+    text-align: left;
+  }
+
+  .hero-details__heading-inner {
+    width: 100%;
+    justify-content: flex-start;
+    margin: 0;
+    gap: 10px;
+  }
+
+  .hero-details__title,
+  .hero-details__title-text {
+    white-space: nowrap;
+  }
+
+  .hero-details__episode {
+    font-size: clamp(1rem, 2vw, 1.18rem);
+  }
+
+  .hero-details > span:not(.hero-details__heading) {
+    color: rgba(255, 255, 255, 0.76);
+    font-size: clamp(0.95rem, 2.2vw, 1.08rem);
+    line-height: 1.24;
+  }
+
+  .hero-details__title {
+    flex: 1 1 auto;
+    margin-bottom: 0;
+    font-size: clamp(1rem, 2vw, 1.18rem);
   }
 
   .panel-top h2 {
