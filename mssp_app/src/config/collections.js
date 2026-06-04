@@ -1,0 +1,56 @@
+const EXPECTED_COUNTS = {
+  anthology: 900,
+  old: 145,
+  new: 361,
+  paytch: 394,
+};
+
+const COLLECTIONS = [
+  {
+    id: "anthology",
+    name: "The Anthology",
+    shortName: "Anthology",
+    coverKind: "anthology",
+    filter: () => true,
+    accent: "#7fc1ad",
+  },
+  {
+    id: "old",
+    name: "The Old Testament",
+    shortName: "Old Test",
+    coverKind: "old",
+    filter: (episode) => episode.series === "MSSPOT" && !episode.isPaytch,
+    accent: "#8da1b8",
+  },
+  {
+    id: "new",
+    name: "The New Testament",
+    shortName: "New Test",
+    coverKind: "new",
+    filter: (episode) => episode.series === "MSSP" && !episode.isPaytch,
+    accent: "#c79457",
+  },
+  {
+    id: "paytch",
+    name: "The PAYTCH",
+    shortName: "Paytch",
+    coverKind: "paytch",
+    filter: (episode) => episode.isPaytch,
+    accent: "#db855f",
+  },
+];
+
+function getCollection(id) {
+  return COLLECTIONS.find((collection) => collection.id === id);
+}
+
+function isKnownCollection(id) {
+  return Boolean(getCollection(id));
+}
+
+module.exports = {
+  COLLECTIONS,
+  EXPECTED_COUNTS,
+  getCollection,
+  isKnownCollection,
+};
