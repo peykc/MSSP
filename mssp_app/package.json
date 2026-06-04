@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "export:data": "node scripts/exportData.js",
     "start": "node server.js"
   }
 }

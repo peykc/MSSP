@@ -1,0 +1,52 @@
+{
+  "generatedAt": "2026-06-04T21:31:18.261Z",
+  "schemaVersion": 1,
+  "sourceFile": "The Anthology/MSSP - The Anthology.md",
+  "total": 900,
+  "collections": [
+    {
+      "id": "anthology",
+      "name": "The Anthology",
+      "shortName": "Anthology",
+      "coverUrl": "/covers/anthology",
+      "hoverCoverUrl": "/covers/anthology-hover",
+      "accent": "#7fc1ad",
+      "count": 900,
+      "startDate": "2016-11-16",
+      "endDate": "2026-05-29"
+    },
+    {
+      "id": "old",
+      "name": "The Old Testament",
+      "shortName": "Old Test",
+      "coverUrl": "/covers/old",
+      "hoverCoverUrl": "",
+      "accent": "#8da1b8",
+      "count": 145,
+      "startDate": "2016-11-16",
+      "endDate": "2019-09-08"
+    },
+    {
+      "id": "new",
+      "name": "The New Testament",
+      "shortName": "New Test",
+      "coverUrl": "/covers/new",
+      "hoverCoverUrl": "",
+      "accent": "#c79457",
+      "count": 361,
+      "startDate": "2019-09-24",
+      "endDate": "2026-05-27"
+    },
+    {
+      "id": "paytch",
+      "name": "The PAYTCH",
+      "shortName": "Paytch",
+      "coverUrl": "/covers/paytch",
+      "hoverCoverUrl": "",
+      "accent": "#db855f",
+      "count": 394,
+      "startDate": "2017-08-14",
+      "endDate": "2026-05-29"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "generatedAt": "2026-06-04T21:31:18.261Z",
+  "schemaVersion": 1,
+  "sourceFile": "The Anthology/MSSP - The Anthology.md",
+  "mode": "static-export",
+  "databaseLoaded": false,
+  "parsedRows": 900,
+  "skippedRows": 0,
+  "counts": {
+    "anthology": 900,
+    "old": 145,
+    "new": 361,
+    "paytch": 394
+  },
+  "warnings": []
+}
