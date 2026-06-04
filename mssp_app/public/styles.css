@@ -301,18 +301,22 @@ h1 {
 
 .library__hero {
   position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
+  display: grid;
+  grid-template-rows: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  justify-items: center;
+  row-gap: clamp(14px, 2.4vh, 24px);
   padding: clamp(18px, 3vw, 34px);
+  overflow: hidden;
   border-right: 0;
   border-radius: 8px 0 0 8px;
 }
 
 .back-button {
-  position: absolute;
-  top: 16px;
-  left: 16px;
+  position: relative;
+  top: auto;
+  left: auto;
+  justify-self: start;
   display: flex;
   width: 40px;
   height: 40px;
@@ -338,21 +342,42 @@ h1 {
 }
 
 .back-button span {
-  display: flex;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-  margin: 0;
-  font-size: 1.95rem;
-  line-height: 1;
-  transform: translateX(-1px);
+  position: relative;
+  width: 16px;
+  height: 16px;
+  font-size: 0;
+  line-height: 0;
+}
+
+.back-button span::before,
+.back-button span::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 16px;
+  height: 3px;
+  content: "";
+  background: currentColor;
+  border-radius: 999px;
+  transform-origin: center;
+}
+
+.back-button span::before {
+  transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.back-button span::after {
+  transform: translate(-50%, -50%) rotate(-45deg);
 }
 
 .hero-cover {
-  width: min(100%, 430px);
+  width: auto;
+  height: 100%;
+  max-width: min(100%, 430px);
+  max-height: 430px;
+  min-height: 0;
   aspect-ratio: 1;
-  margin: 0 auto clamp(22px, 4vh, 34px);
+  margin: 0 auto;
   object-fit: cover;
   border-radius: 8px;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
@@ -379,7 +404,7 @@ h1 {
 .hero-details {
   display: grid;
   width: min(100%, 430px);
-  margin: clamp(18px, 3vh, 28px) auto 0;
+  margin: 0 auto;
   gap: 8px;
   padding: 16px 0 0;
   color: var(--muted);
@@ -473,8 +498,8 @@ h1 {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  margin-left: auto;
-  margin-right: -10px;
+  margin-left: -10px;
+  margin-right: 0;
 }
 
 .cover-filter {
@@ -531,6 +556,7 @@ h1 {
   height: 42px;
   align-items: center;
   gap: 8px;
+  margin-left: auto;
   padding: 0 12px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--line);
@@ -680,16 +706,25 @@ h1 {
   .library__hero {
     display: grid;
     grid-template-columns: clamp(118px, 24vw, 168px) minmax(0, 1fr);
+    grid-template-rows: auto;
     gap: clamp(14px, 2.8vw, 24px);
     align-items: center;
     align-content: center;
-    padding: clamp(14px, 2.4vw, 20px) clamp(14px, 2.8vw, 22px) clamp(14px, 2.4vw, 20px) clamp(68px, 9vw, 86px);
+    justify-items: stretch;
+    padding: clamp(14px, 2.4vw, 20px) clamp(66px, 9vw, 82px) clamp(14px, 2.4vw, 20px) clamp(14px, 2.8vw, 22px);
     overflow: hidden;
     background: var(--panel);
     border-right: 1px solid var(--line);
     border-bottom: 0;
     border-radius: 8px 8px 0 0;
     box-shadow: none;
+  }
+
+  .back-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    left: auto;
   }
 
   .episode-panel {
@@ -699,6 +734,7 @@ h1 {
   .hero-cover {
     width: 100%;
     max-width: 168px;
+    max-height: 168px;
     margin: 0;
     border-radius: 6px;
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
@@ -755,20 +791,30 @@ h1 {
   }
 
   .panel-top {
-    align-items: stretch;
-    flex-direction: column;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     gap: 12px;
     padding: 16px;
   }
 
+  .panel-title {
+    grid-column: 1 / -1;
+  }
+
   .cover-filters {
-    justify-content: flex-start;
+    grid-column: 2;
+    grid-row: 2;
+    justify-content: flex-end;
     margin-left: 0;
     margin-right: 0;
   }
 
   .search {
+    grid-column: 1;
+    grid-row: 2;
     width: 100%;
+    margin-left: 0;
   }
 
   .episode-row {
