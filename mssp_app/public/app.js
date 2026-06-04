@@ -74,14 +74,35 @@ function renderCollections() {
 
 function updateCollectionCoverSizes() {
   const portraitLayout = window.matchMedia("(max-aspect-ratio: 7 / 6)").matches;
+  if (portraitLayout) {
+    const cards = [...collectionGrid.querySelectorAll(".collection-card")];
+    const firstCard = cards[0];
+    if (!firstCard || cards.length === 0) return;
+
+    const gridStyle = window.getComputedStyle(collectionGrid);
+    const cardStyle = window.getComputedStyle(firstCard);
+    const rowGap = parseFloat(gridStyle.rowGap) || 0;
+    const verticalPadding = (parseFloat(cardStyle.paddingTop) || 0)
+      + (parseFloat(cardStyle.paddingBottom) || 0);
+    const horizontalPadding = (parseFloat(cardStyle.paddingLeft) || 0)
+      + (parseFloat(cardStyle.paddingRight) || 0);
+    const rowHeight = (collectionGrid.clientHeight - (rowGap * (cards.length - 1))) / cards.length;
+    const maxByHeight = rowHeight - verticalPadding;
+    const maxByWidth = (firstCard.clientWidth - horizontalPadding) * 0.34;
+    const size = Math.max(64, Math.min(190, maxByHeight, maxByWidth));
+
+    collectionGrid.style.setProperty("--collection-card-cover-size", `${size}px`);
+    for (const card of cards) {
+      card.querySelector(".collection-card__art")?.style.removeProperty("--collection-cover-size");
+    }
+    return;
+  }
+
+  collectionGrid.style.removeProperty("--collection-card-cover-size");
   for (const card of collectionGrid.querySelectorAll(".collection-card:not(.collection-card--anthology)")) {
     const art = card.querySelector(".collection-card__art");
     const copy = card.querySelector(".collection-card__copy");
     if (!art || !copy) continue;
-    if (portraitLayout) {
-      art.style.removeProperty("--collection-cover-size");
-      continue;
-    }
 
     const cardStyle = window.getComputedStyle(card);
     const innerWidth = card.clientWidth

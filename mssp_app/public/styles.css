@@ -250,7 +250,8 @@ h1 {
 
 @media (max-aspect-ratio: 7 / 6) {
   .collection-grid {
-    --collection-card-cover-size: clamp(120px, min(34vw, 24vh), 190px);
+    --collection-card-cover-size: clamp(86px, min(34vw, 15vh), 190px);
+    --collection-card-padding: clamp(10px, 2vw, 16px);
   }
 
   .launch {
@@ -264,7 +265,7 @@ h1 {
 
   .collection-grid {
     grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, auto);
+    grid-template-rows: repeat(4, minmax(0, 1fr));
     gap: clamp(10px, 1.8vh, 16px);
     align-content: start;
   }
@@ -277,7 +278,8 @@ h1 {
     align-content: center;
     align-items: center;
     gap: clamp(12px, 3vw, 24px);
-    padding: clamp(10px, 2vw, 16px);
+    min-height: 0;
+    padding: var(--collection-card-padding);
   }
 
   .collection-card:not(.collection-card--anthology) {
