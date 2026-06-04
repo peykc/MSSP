@@ -1,6 +1,7 @@
 const collectionGrid = document.getElementById("collectionGrid");
 const launchView = document.getElementById("launchView");
 const libraryView = document.getElementById("libraryView");
+const heroPanel = document.getElementById("heroPanel");
 const heroCover = document.getElementById("heroCover");
 const heroDetails = document.getElementById("heroDetails");
 const panelTitle = document.getElementById("panelTitle");
@@ -67,6 +68,33 @@ function renderCollections() {
     `;
     button.addEventListener("click", () => openCollection(collection.id));
     collectionGrid.append(button);
+  }
+  requestAnimationFrame(updateCollectionCoverSizes);
+}
+
+function updateCollectionCoverSizes() {
+  const portraitLayout = window.matchMedia("(max-aspect-ratio: 7 / 6)").matches;
+  for (const card of collectionGrid.querySelectorAll(".collection-card:not(.collection-card--anthology)")) {
+    const art = card.querySelector(".collection-card__art");
+    const copy = card.querySelector(".collection-card__copy");
+    if (!art || !copy) continue;
+    if (portraitLayout) {
+      art.style.removeProperty("--collection-cover-size");
+      continue;
+    }
+
+    const cardStyle = window.getComputedStyle(card);
+    const innerWidth = card.clientWidth
+      - parseFloat(cardStyle.paddingLeft)
+      - parseFloat(cardStyle.paddingRight);
+    const innerHeight = card.clientHeight
+      - parseFloat(cardStyle.paddingTop)
+      - parseFloat(cardStyle.paddingBottom);
+    const copyHeight = copy.offsetHeight;
+    const copyPaddingTop = parseFloat(window.getComputedStyle(copy).paddingTop) || 0;
+    const availableHeight = innerHeight - copyHeight - copyPaddingTop;
+    const size = Math.max(72, Math.min(innerWidth, availableHeight));
+    art.style.setProperty("--collection-cover-size", `${size}px`);
   }
 }
 
@@ -245,7 +273,33 @@ function renderDetails() {
     <span>${episode.type || "MSSP"} - ${accessLabel}</span>
     <span>${episode.date || "Unknown date"}</span>
   `;
+  requestAnimationFrame(updateHeroCoverSize);
   requestAnimationFrame(updateHeroTitleMarquee);
+}
+
+function updateHeroCoverSize() {
+  if (!heroPanel || !heroCover) return;
+
+  if (window.matchMedia("(max-aspect-ratio: 7 / 6)").matches) {
+    heroPanel.style.removeProperty("--hero-cover-size");
+    return;
+  }
+
+  const panelStyle = window.getComputedStyle(heroPanel);
+  const panelWidth = heroPanel.clientWidth
+    - parseFloat(panelStyle.paddingLeft)
+    - parseFloat(panelStyle.paddingRight);
+  const panelHeight = heroPanel.clientHeight
+    - parseFloat(panelStyle.paddingTop)
+    - parseFloat(panelStyle.paddingBottom);
+  const detailsStyle = window.getComputedStyle(heroDetails);
+  const detailsHeight = heroDetails.offsetHeight
+    + parseFloat(detailsStyle.marginTop)
+    + parseFloat(detailsStyle.marginBottom);
+  const rowGap = parseFloat(panelStyle.rowGap) || 0;
+  const availableHeight = panelHeight - backButton.offsetHeight - detailsHeight - rowGap * 2;
+  const size = Math.max(72, Math.min(430, panelWidth, availableHeight));
+  heroPanel.style.setProperty("--hero-cover-size", `${size}px`);
 }
 
 function updateHeroTitleMarquee() {
@@ -331,7 +385,9 @@ function debounce(fn, wait) {
 
 episodeList.addEventListener("scroll", renderVisibleRows, { passive: true });
 window.addEventListener("resize", () => {
+  updateCollectionCoverSizes();
   renderVisibleRows();
+  updateHeroCoverSize();
   updateHeroTitleMarquee();
 });
 backButton.addEventListener("click", closeLibrary);

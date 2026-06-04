@@ -13,6 +13,12 @@
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  :root {
+    --page-scale: 1;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -45,6 +51,7 @@ input {
 .app {
   width: calc(100vw / var(--page-scale));
   height: calc(100vh / var(--page-scale));
+  height: calc(100dvh / var(--page-scale));
   padding: clamp(18px, 3vw, 40px);
   transform: scale(var(--page-scale));
   transform-origin: top left;
@@ -127,6 +134,10 @@ h1 {
   outline: none;
 }
 
+.collection-card:not(.collection-card--anthology) {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
 .collection-card--anthology {
   grid-column: 1 / -1;
   grid-template-columns: minmax(0, auto) minmax(0, 1fr);
@@ -139,12 +150,13 @@ h1 {
 .collection-card__art {
   position: relative;
   display: block;
-  width: auto;
-  height: 100%;
+  width: min(100%, clamp(110px, min(15vw, 24vh), 190px));
+  height: auto;
   max-width: 100%;
   aspect-ratio: 1;
   min-height: 0;
   justify-self: center;
+  align-self: center;
 }
 
 .collection-card__cover {
@@ -152,9 +164,26 @@ h1 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  background: transparent;
   border-radius: 6px;
   box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
   transition: filter 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.collection-card:not(.collection-card--anthology) .collection-card__art {
+  width: var(--collection-cover-size, 100%);
+  height: var(--collection-cover-size, auto);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+}
+
+.collection-card:not(.collection-card--anthology) .collection-card__cover {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: transparent;
 }
 
 .collection-card--anthology .collection-card__art {
@@ -220,6 +249,10 @@ h1 {
 }
 
 @media (max-aspect-ratio: 7 / 6) {
+  .collection-grid {
+    --collection-card-cover-size: clamp(120px, min(34vw, 24vh), 190px);
+  }
+
   .launch {
     gap: clamp(12px, 2vh, 22px);
   }
@@ -239,7 +272,7 @@ h1 {
   .collection-card,
   .collection-card--anthology {
     grid-column: auto;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: var(--collection-card-cover-size) minmax(0, 1fr);
     grid-template-rows: auto;
     align-content: center;
     align-items: center;
@@ -247,13 +280,24 @@ h1 {
     padding: clamp(10px, 2vw, 16px);
   }
 
+  .collection-card:not(.collection-card--anthology) {
+    grid-template-rows: auto;
+  }
+
   .collection-card__art,
-  .collection-card--anthology .collection-card__art {
-    width: clamp(120px, min(34vw, 24vh), 190px);
-    height: clamp(120px, min(34vw, 24vh), 190px);
+  .collection-card--anthology .collection-card__art,
+  .collection-card:not(.collection-card--anthology) .collection-card__art {
+    width: var(--collection-card-cover-size);
+    height: var(--collection-card-cover-size);
     max-width: none;
     max-height: none;
     align-self: center;
+    justify-self: center;
+  }
+
+  .collection-card__cover,
+  .collection-card:not(.collection-card--anthology) .collection-card__cover {
+    object-fit: cover;
   }
 
   .collection-card__copy,
@@ -269,6 +313,64 @@ h1 {
 
   .collection-card p {
     font-size: clamp(0.95rem, 3vw, 1.35rem);
+  }
+}
+
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  .app {
+    padding: clamp(12px, 2vw, 24px);
+  }
+
+  .launch {
+    gap: clamp(10px, 2vh, 18px);
+  }
+
+  h1 {
+    font-size: clamp(2.2rem, 5.4vw, 4rem);
+  }
+
+  .collection-grid {
+    grid-template-rows: minmax(0, 0.78fr) minmax(0, 1fr);
+    gap: clamp(12px, 1.8vw, 18px);
+  }
+
+  .collection-card {
+    padding: clamp(10px, 1.6vw, 14px);
+  }
+
+  .collection-card:not(.collection-card--anthology) .collection-card__art {
+    width: var(--collection-cover-size, 100%);
+    height: var(--collection-cover-size, auto);
+  }
+
+  .collection-card h2 {
+    font-size: clamp(1rem, 2.4vw, 1.45rem);
+  }
+
+  .collection-card p {
+    font-size: clamp(0.85rem, 1.9vw, 1.05rem);
+  }
+
+  .library {
+    grid-template-columns: minmax(220px, 31vw) minmax(0, 1fr);
+  }
+
+  .library__hero {
+    grid-template-rows: 40px minmax(0, 1fr) auto auto minmax(0, 1fr);
+    row-gap: 0;
+    padding: clamp(14px, 2.2vw, 22px);
+  }
+
+  .hero-cover {
+    width: var(--hero-cover-size, min(100%, 430px));
+    height: var(--hero-cover-size, min(100%, 430px));
+    max-width: 100%;
+    max-height: 430px;
+  }
+
+  .hero-details {
+    gap: 6px;
+    padding-top: 10px;
   }
 }
 
@@ -302,10 +404,10 @@ h1 {
 .library__hero {
   position: relative;
   display: grid;
-  grid-template-rows: 40px minmax(0, 1fr) auto;
+  grid-template-rows: 40px minmax(0, 1fr) auto auto minmax(0, 1fr);
   align-items: center;
   justify-items: center;
-  row-gap: clamp(14px, 2.4vh, 24px);
+  row-gap: 0;
   padding: clamp(18px, 3vw, 34px);
   overflow: hidden;
   border-right: 0;
@@ -314,6 +416,7 @@ h1 {
 
 .back-button {
   position: relative;
+  grid-row: 1;
   top: auto;
   left: auto;
   justify-self: start;
@@ -371,14 +474,17 @@ h1 {
 }
 
 .hero-cover {
-  width: auto;
-  height: 100%;
-  max-width: min(100%, 430px);
+  grid-row: 3;
+  width: var(--hero-cover-size, min(100%, 430px));
+  height: var(--hero-cover-size, min(100%, 430px));
+  max-width: 100%;
   max-height: 430px;
   min-height: 0;
   aspect-ratio: 1;
   margin: 0 auto;
-  object-fit: cover;
+  align-self: end;
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.18);
   border-radius: 8px;
   box-shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
   animation: coverLand 360ms cubic-bezier(.2,.8,.2,1);
@@ -402,9 +508,11 @@ h1 {
 }
 
 .hero-details {
+  grid-row: 4;
   display: grid;
   width: min(100%, 430px);
-  margin: 0 auto;
+  margin: 12px auto 0;
+  align-self: start;
   gap: 8px;
   padding: 16px 0 0;
   color: var(--muted);
@@ -732,15 +840,19 @@ h1 {
   }
 
   .hero-cover {
+    grid-row: auto;
     width: 100%;
+    height: auto;
     max-width: 168px;
     max-height: 168px;
+    aspect-ratio: 1;
     margin: 0;
     border-radius: 6px;
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
   }
 
   .hero-details {
+    grid-row: auto;
     grid-column: auto;
     width: 100%;
     margin: 0;
