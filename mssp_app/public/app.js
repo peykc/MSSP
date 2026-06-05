@@ -24,12 +24,6 @@ let selectedEpisodeId = null;
 let query = "";
 let selectedCoverKinds = new Set();
 
-async function getJson(url) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Request failed: ${response.status}`);
-  return response.json();
-}
-
 function formatCount(count) {
   return `${count.toLocaleString()} episode${count === 1 ? "" : "s"}`;
 }
@@ -139,10 +133,10 @@ async function openCollection(id) {
 }
 
 async function loadEpisodes() {
-  const url = new URL("/api/episodes", window.location.origin);
-  url.searchParams.set("collection", activeCollection.id);
-  if (query) url.searchParams.set("q", query);
-  const data = await getJson(url);
+  const data = await window.MsspApiClient.getEpisodes({
+    collection: activeCollection.id,
+    query,
+  });
   episodes = data.episodes;
   rowCache.clear();
   listItems.innerHTML = "";
@@ -546,7 +540,8 @@ function initGlobalTooltip() {
 
 (async function init() {
   initGlobalTooltip();
-  const data = await getJson("/api/collections");
+  const data = await window.MsspApiClient.getCollections();
+  console.info("[MSSP] Data mode:", window.MsspApiClient.getMode());
   collections = data.collections;
   renderCollections();
 })();

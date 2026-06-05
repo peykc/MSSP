@@ -49,6 +49,7 @@ function main() {
   };
 
   fs.mkdirSync(DATA_DIR, { recursive: true });
+  copyCoverAssets();
   for (const [fileName, payload] of Object.entries(payloads)) {
     const filePath = path.join(DATA_DIR, fileName);
     fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
@@ -74,7 +75,7 @@ function toStaticEpisode(episode) {
     title: episode.title,
     collectionKind: episode.collectionKind,
     coverKind: episode.coverKind,
-    coverUrl: `/covers/${episode.coverKind}`,
+    coverUrl: staticCoverUrl(episode.coverKind),
   };
 }
 
@@ -87,13 +88,29 @@ function toStaticCollection(collection, episodes) {
     id: collection.id,
     name: collection.name,
     shortName: collection.shortName,
-    coverUrl: `/covers/${collection.coverKind}`,
-    hoverCoverUrl: cover.hoverFile ? `/covers/${collection.coverKind}-hover` : "",
+    coverUrl: staticCoverUrl(collection.coverKind),
+    hoverCoverUrl: cover.hoverFile ? staticCoverUrl(`${collection.coverKind}-hover`) : "",
     accent: collection.accent,
     count: matchingEpisodes.length,
     startDate: dates[0] || "",
     endDate: dates[dates.length - 1] || "",
   };
+}
+
+function copyCoverAssets() {
+  const coversDir = path.join(PUBLIC_DIR, "assets", "covers");
+  fs.mkdirSync(coversDir, { recursive: true });
+
+  for (const [kind, cover] of Object.entries(COVERS)) {
+    fs.copyFileSync(cover.file, path.join(coversDir, `${kind}.jpg`));
+    if (cover.hoverFile) {
+      fs.copyFileSync(cover.hoverFile, path.join(coversDir, `${kind}-hover.jpg`));
+    }
+  }
+}
+
+function staticCoverUrl(kind) {
+  return `/assets/covers/${kind}.jpg`;
 }
 
 function deriveCounts(episodes) {
