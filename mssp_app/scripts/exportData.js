@@ -110,7 +110,7 @@ function copyCoverAssets() {
 }
 
 function staticCoverUrl(kind) {
-  return `/assets/covers/${kind}.jpg`;
+  return `./assets/covers/${kind}.jpg`;
 }
 
 function deriveCounts(episodes) {

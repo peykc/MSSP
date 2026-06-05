@@ -8,8 +8,8 @@ const EXPECTED_COUNTS = {
 const COLLECTIONS = [
   {
     id: "anthology",
-    name: "The Anthology",
-    shortName: "Anthology",
+    name: "The Holy Trinity",
+    shortName: "Holy Trinity",
     coverKind: "anthology",
     filter: () => true,
     accent: "#7fc1ad",
@@ -33,7 +33,7 @@ const COLLECTIONS = [
   {
     id: "paytch",
     name: "The PAYTCH",
-    shortName: "Paytch",
+    shortName: "PAYTCH",
     coverKind: "paytch",
     filter: (episode) => episode.isPaytch,
     accent: "#db855f",

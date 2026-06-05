@@ -102,17 +102,17 @@
   }
 
   function loadStaticCollections() {
-    collectionsPromise ||= fetchJson("/data/collections.json");
+    collectionsPromise ||= fetchJson("./data/collections.json");
     return collectionsPromise;
   }
 
   function loadStaticEpisodes() {
-    episodesPromise ||= fetchJson("/data/episodes.json");
+    episodesPromise ||= fetchJson("./data/episodes.json");
     return episodesPromise;
   }
 
   function loadStaticHealth() {
-    healthPromise ||= fetchJson("/data/health.json");
+    healthPromise ||= fetchJson("./data/health.json");
     return healthPromise;
   }
 
