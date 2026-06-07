@@ -4,6 +4,7 @@ import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
 import { createLibraryView } from "./libraryView.js";
+import { registerServiceWorker } from "./pwa.js";
 import { initSearch } from "./search.js";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js";
@@ -16,6 +17,7 @@ function getApiClient() {
 }
 
 async function init() {
+  registerServiceWorker();
   const apiClient = getApiClient();
   const state = createAppState();
   const dismissGlobalTooltip = initGlobalTooltip();
