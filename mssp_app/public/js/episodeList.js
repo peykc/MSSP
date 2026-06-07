@@ -1,5 +1,19 @@
+import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
+
 const ROW_HEIGHT = 64;
 const OVERSCAN = 8;
+
+const LOCK_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M7 9V7a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h1Zm2 0h6V7a3 3 0 0 0-6 0v2Zm3 4a2 2 0 0 1 1.18 3.62L14 20h-4l.82-3.38A2 2 0 0 1 12 13Z"></path>
+  </svg>
+`;
+
+const PLAY_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24">
+    <path d="m7 4 12 8-12 8V4Z"></path>
+  </svg>
+`;
 
 export function createEpisodeList({
   dom,
@@ -67,14 +81,21 @@ export function createEpisodeList({
   }
 
   function getMemoizedRow(episode) {
-    if (rowCache.has(episode.id)) return rowCache.get(episode.id);
+    if (rowCache.has(episode.id)) {
+      const row = rowCache.get(episode.id);
+      updatePlayButton(row.querySelector(".episode-row__play"), episode);
+      return row;
+    }
 
     const row = document.createElement("div");
     row.className = "episode-row";
     row.dataset.id = episode.id;
     row.innerHTML = `
-      <button class="episode-row__select" type="button">
+      <button class="episode-row__cover" type="button">
         <img src="${episode.coverUrl}" alt="">
+      </button>
+      <button class="episode-row__play" type="button"></button>
+      <button class="episode-row__select" type="button">
         <span class="episode-row__main">
           <span class="episode-row__line">
             <span class="episode-row__episode"></span>
@@ -83,31 +104,42 @@ export function createEpisodeList({
         </span>
         <span class="episode-row__date"></span>
       </button>
-      <button class="episode-row__play" type="button"></button>
     `;
     const title = episode.title || "Untitled episode";
     const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
     const titleEl = row.querySelector(".episode-row__title");
+    const coverButton = row.querySelector(".episode-row__cover");
     const selectButton = row.querySelector(".episode-row__select");
     const playButton = row.querySelector(".episode-row__play");
     row.querySelector(".episode-row__episode").textContent = episodeLabel;
     titleEl.textContent = title;
     row.querySelector(".episode-row__date").textContent = episode.date || "";
-    playButton.textContent = episode.paytch === "PAYTCH" ? "RSS" : "▶";
-    playButton.setAttribute(
-      "aria-label",
-      episode.paytch === "PAYTCH"
-        ? `Connect Patreon RSS for ${title}`
-        : `Open player for ${title}`
-    );
-    selectButton.addEventListener("click", () => {
+    updatePlayButton(playButton, episode);
+    coverButton.setAttribute("aria-label", `Select ${title}`);
+    const selectEpisode = () => {
       state.selectedEpisodeId = episode.id;
       renderDetails();
       renderVisibleRows();
-    });
+    };
+    coverButton.addEventListener("click", selectEpisode);
+    selectButton.addEventListener("click", selectEpisode);
     playButton.addEventListener("click", (event) => onPlayRequest(episode, event.currentTarget));
     rowCache.set(episode.id, row);
     return row;
+  }
+
+  function updatePlayButton(playButton, episode) {
+    const title = episode.title || "Untitled episode";
+    const sourceStatus = getSourceStatus(episode);
+    const isLocked = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED;
+    playButton.innerHTML = isLocked ? LOCK_ICON : PLAY_ICON;
+    playButton.classList.toggle("is-locked", isLocked);
+    playButton.setAttribute(
+      "aria-label",
+      isLocked
+        ? `Connect Patreon RSS for ${title}`
+        : `Open player for ${title}`
+    );
   }
 
   return {

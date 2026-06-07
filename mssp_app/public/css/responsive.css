@@ -238,13 +238,25 @@
   .episode-row {
     left: 8px;
     right: 8px;
-    grid-template-columns: minmax(0, 1fr) 40px;
-    padding: 0 5px 0 0;
+    grid-template-columns: 44px 36px minmax(0, 1fr);
+    gap: 7px;
+    padding: 0 8px 0 10px;
   }
 
   .episode-row__select {
-    grid-template-columns: 44px minmax(0, 1fr) minmax(72px, auto);
-    padding: 8px 5px 8px 10px;
+    grid-template-columns: minmax(0, 1fr) minmax(72px, auto);
+    padding: 8px 0;
+  }
+
+  .episode-row__cover,
+  .episode-row__cover img {
+    width: 44px;
+    height: 44px;
+  }
+
+  .episode-row__play {
+    width: 34px;
+    height: 34px;
   }
 
   .episode-row__date {

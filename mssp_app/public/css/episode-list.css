@@ -21,11 +21,11 @@
   left: 10px;
   right: 10px;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 42px;
+  grid-template-columns: 46px 38px minmax(0, 1fr);
   height: var(--row);
   align-items: center;
-  gap: 13px;
-  padding: 0 6px 0 0;
+  gap: 8px;
+  padding: 0 10px 0 12px;
   color: var(--text);
   background: transparent;
   border: 1px solid transparent;
@@ -42,12 +42,12 @@
 
 .episode-row__select {
   display: grid;
-  grid-template-columns: 46px minmax(0, 1fr) minmax(78px, auto);
+  grid-template-columns: minmax(0, 1fr) minmax(78px, auto);
   height: 100%;
   align-items: center;
   gap: 13px;
   min-width: 0;
-  padding: 8px 6px 8px 12px;
+  padding: 8px 0;
   color: var(--text);
   cursor: pointer;
   text-align: left;
@@ -55,13 +55,25 @@
   border: 0;
 }
 
+.episode-row__cover {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
 .episode-row__select:focus-visible,
+.episode-row__cover:focus-visible,
 .episode-row__play:focus-visible {
   outline: 1px solid rgba(255, 255, 255, 0.42);
   outline-offset: -2px;
 }
 
-.episode-row__select img {
+.episode-row__cover img {
   width: 46px;
   height: 46px;
   object-fit: cover;
@@ -75,13 +87,12 @@
   height: 34px;
   align-items: center;
   justify-content: center;
-  justify-self: end;
   padding: 0;
   color: rgba(255, 255, 255, 0.78);
   cursor: pointer;
   background: var(--soft);
   border: 1px solid var(--line);
-  border-radius: 50%;
+  border-radius: 8px;
   font-size: 0.66rem;
   font-weight: 800;
 }
@@ -89,6 +100,22 @@
 .episode-row__play:hover {
   color: var(--text);
   background: rgba(255, 255, 255, 0.14);
+}
+
+.episode-row__play svg {
+  width: 17px;
+  height: 17px;
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.episode-row__play.is-locked svg {
+  width: 18px;
+  height: 18px;
+  stroke: none;
 }
 
 .episode-row__main {
