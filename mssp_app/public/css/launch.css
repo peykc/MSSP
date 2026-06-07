@@ -1,0 +1,185 @@
+.launch {
+  display: grid;
+  grid-template-rows: min-content minmax(0, 1fr);
+  gap: clamp(14px, 3vh, 34px);
+  align-items: stretch;
+  max-width: 1180px;
+  margin: 0 auto;
+}
+
+.launch__header {
+  align-self: start;
+}
+
+.eyebrow {
+  margin: 0 0 8px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+h1,
+h2,
+p {
+  margin-top: 0;
+}
+
+h1 {
+  margin-bottom: 0;
+  font-size: clamp(1.8rem, min(5.35vw, 10vh), 4.25rem);
+  line-height: 0.98;
+  letter-spacing: 0;
+}
+
+.collection-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: clamp(14px, 2vw, 22px);
+  height: 100%;
+  min-height: 0;
+  align-self: stretch;
+}
+
+.collection-card {
+  display: grid;
+  grid-template-rows: auto auto;
+  align-content: start;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: clamp(10px, 1.5vw, 14px);
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.018);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 8px;
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.collection-card:hover,
+.collection-card:focus-visible {
+  transform: translateY(-4px);
+  background: rgba(255, 255, 255, 0.11);
+  border-color: rgba(255, 255, 255, 0.32);
+  outline: none;
+}
+
+.collection-card:not(.collection-card--anthology) {
+  grid-template-rows: minmax(0, 1fr) auto;
+}
+
+.collection-card--anthology {
+  grid-column: 1 / -1;
+  grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+  grid-template-rows: auto;
+  gap: clamp(16px, 3vw, 34px);
+  align-items: stretch;
+  align-content: center;
+}
+
+.collection-card__art {
+  position: relative;
+  display: block;
+  width: min(100%, clamp(110px, min(15vw, 24vh), 190px));
+  height: auto;
+  max-width: 100%;
+  aspect-ratio: 1;
+  min-height: 0;
+  justify-self: center;
+  align-self: center;
+}
+
+.collection-card__cover {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: transparent;
+  border-radius: 6px;
+  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
+  transition: filter 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.collection-card:not(.collection-card--anthology) .collection-card__art {
+  width: var(--collection-cover-size, 100%);
+  height: var(--collection-cover-size, auto);
+  max-width: 100%;
+  max-height: 100%;
+  aspect-ratio: 1;
+}
+
+.collection-card:not(.collection-card--anthology) .collection-card__cover {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  background: transparent;
+}
+
+.collection-card--anthology .collection-card__art {
+  width: auto;
+  height: 100%;
+  max-width: min(32vw, 100%);
+  max-height: 100%;
+  align-self: stretch;
+}
+
+.collection-card__cover--hover {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.collection-card--anthology:hover .collection-card__cover--hover,
+.collection-card--anthology:focus .collection-card__cover--hover,
+.collection-card--anthology:focus-visible .collection-card__cover--hover {
+  opacity: 1;
+}
+
+.collection-card:not(.collection-card--anthology) .collection-card__cover {
+  filter: grayscale(1) saturate(0.18) brightness(0.88);
+}
+
+.collection-card:not(.collection-card--anthology):hover .collection-card__cover,
+.collection-card:not(.collection-card--anthology):focus .collection-card__cover,
+.collection-card:not(.collection-card--anthology):focus-visible .collection-card__cover {
+  filter: grayscale(0) saturate(1) brightness(1);
+}
+
+.collection-card__copy {
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding-top: 12px;
+}
+
+.collection-card--anthology .collection-card__copy {
+  align-self: center;
+  max-height: 100%;
+  padding: 0;
+}
+
+.collection-card h2 {
+  margin: 0 0 2px;
+  font-size: clamp(1.05rem, 1.8vw, 1.8rem);
+  letter-spacing: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-card p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--muted);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+

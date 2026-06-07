@@ -1,0 +1,15 @@
+.app {
+  width: calc(100vw / var(--page-scale));
+  height: calc(100vh / var(--page-scale));
+  height: calc(100dvh / var(--page-scale));
+  padding: clamp(18px, 3vw, 40px);
+  transform: scale(var(--page-scale));
+  transform-origin: top left;
+}
+
+.launch,
+.library {
+  height: 100%;
+  min-height: 0;
+}
+

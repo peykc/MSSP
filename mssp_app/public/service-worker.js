@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v1";
+const CACHE_VERSION = "mssp-v2";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -9,7 +9,16 @@ const SHELL_PATHS = [
   "./",
   "./index.html",
   "./site.webmanifest",
-  "./styles.css?v=launch-art-ios-measured",
+  "./css/base.css",
+  "./css/layout.css",
+  "./css/launch.css",
+  "./css/library.css",
+  "./css/episode-list.css",
+  "./css/episode-details.css",
+  "./css/filters.css",
+  "./css/tooltip.css",
+  "./css/responsive.css",
+  "./css/utilities.css",
   "./js/apiClient.js?v=static-first-data",
   "./js/main.js?v=frontend-module-split",
   "./js/collectionsView.js",

@@ -1,0 +1,57 @@
+.cover-filters {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-left: -10px;
+  margin-right: 0;
+}
+
+.cover-filter {
+  display: flex;
+  flex: 0 0 46px;
+  width: 46px;
+  height: 46px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  overflow: hidden;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  contain: layout paint;
+  line-height: 0;
+  transition: none;
+}
+
+.cover-filter:hover,
+.cover-filter:focus-visible {
+  outline: none;
+}
+
+.cover-filter[aria-pressed="true"] {
+  background: transparent;
+  box-shadow: none;
+}
+
+.cover-filter img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 5px;
+  opacity: 0.54;
+  filter: grayscale(1) saturate(0.12) brightness(0.7);
+  pointer-events: none;
+  transition: none;
+}
+
+.cover-filter:hover img,
+.cover-filter:focus-visible img,
+.cover-filter[aria-pressed="true"] img {
+  opacity: 1;
+  filter: grayscale(0) saturate(1) brightness(1);
+}
+

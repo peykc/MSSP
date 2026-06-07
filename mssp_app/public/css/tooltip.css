@@ -1,0 +1,26 @@
+.global-tooltip {
+  position: fixed;
+  z-index: 2147483645;
+  max-width: min(520px, calc(100vw - 20px));
+  padding: 14px 17px;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.48;
+  text-align: center;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  pointer-events: none;
+  opacity: 0;
+  background: rgba(38, 36, 35, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 6px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+  backdrop-filter: blur(22px);
+  transition: opacity 0.12s ease;
+}
+
+.global-tooltip.visible {
+  opacity: 1;
+}
+

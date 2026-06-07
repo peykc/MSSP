@@ -1,0 +1,111 @@
+.hero-cover {
+  grid-row: 3;
+  width: var(--hero-cover-size, min(100%, 430px));
+  height: var(--hero-cover-size, min(100%, 430px));
+  max-width: 100%;
+  max-height: 430px;
+  min-height: 0;
+  aspect-ratio: 1;
+  margin: 0 auto;
+  align-self: end;
+  object-fit: contain;
+  background: rgba(0, 0, 0, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 26px 80px rgba(0, 0, 0, 0.42);
+  animation: coverLand 360ms cubic-bezier(.2,.8,.2,1);
+}
+
+@keyframes coverLand {
+  from {
+    opacity: 0.25;
+    transform: scale(0.78) translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.panel-top h2 {
+  margin-bottom: 8px;
+  font-size: clamp(1.55rem, 3vw, 2.8rem);
+  line-height: 1;
+}
+
+.hero-details {
+  grid-row: 4;
+  display: grid;
+  width: min(100%, 430px);
+  margin: 12px auto 0;
+  align-self: start;
+  gap: 8px;
+  padding: 16px 0 0;
+  color: var(--muted);
+  text-align: center;
+  border-top: 1px solid var(--line);
+}
+
+.hero-details > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hero-details__heading {
+  display: block;
+  justify-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  text-align: center;
+  overflow: hidden;
+}
+
+.hero-details__heading-inner {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  gap: 8px;
+  overflow: hidden;
+}
+
+.hero-details__episode {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  height: 1.2em;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1.05rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.hero-details__title {
+  display: flex;
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 100%;
+  align-items: center;
+  height: 1.2em;
+  overflow: hidden;
+  text-overflow: clip;
+  color: var(--text);
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.hero-details .hero-details__title-text {
+  display: block;
+  font: inherit;
+  line-height: inherit;
+  max-width: none;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: nowrap;
+  will-change: transform;
+}
+
