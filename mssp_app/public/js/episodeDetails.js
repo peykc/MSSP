@@ -1,4 +1,4 @@
-export function createEpisodeDetails({ dom, state }) {
+export function createEpisodeDetails({ dom, state, onPlayRequest }) {
   function renderDetails() {
     const episode = state.visibleEpisodes.find((item) => item.id === state.selectedEpisodeId);
     if (!episode) {
@@ -23,7 +23,14 @@ export function createEpisodeDetails({ dom, state }) {
       </span>
       <span>${episode.type || "MSSP"} - ${accessLabel}</span>
       <span>${episode.date || "Unknown date"}</span>
+      <button class="episode-details__play" type="button">
+        ${episode.paytch === "PAYTCH" ? "Connect Patreon RSS to play" : "Open player"}
+      </button>
     `;
+    dom.heroDetails.querySelector(".episode-details__play").addEventListener(
+      "click",
+      (event) => onPlayRequest(episode, event.currentTarget)
+    );
     requestAnimationFrame(updateHeroCoverSize);
     requestAnimationFrame(updateHeroTitleMarquee);
   }

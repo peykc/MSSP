@@ -4,6 +4,8 @@ import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
 import { createLibraryView } from "./libraryView.js";
+import { createPlayerState } from "./player/playerState.js";
+import { createPlayerView } from "./player/playerView.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initSearch } from "./search.js";
 import { createAppState } from "./state.js";
@@ -21,15 +23,21 @@ async function init() {
   const apiClient = getApiClient();
   const state = createAppState();
   const dismissGlobalTooltip = initGlobalTooltip();
-  const episodeDetails = createEpisodeDetails({ dom, state });
+  const playerState = createPlayerState();
+  createPlayerView({ dom, playerState });
+  const queueCache = new Map();
+
+  let episodeList;
+  const episodeDetails = createEpisodeDetails({ dom, state, onPlayRequest: requestPlay });
 
   let coverFilters;
-  const episodeList = createEpisodeList({
+  episodeList = createEpisodeList({
     dom,
     state,
     getVisibleEpisodes: () => coverFilters.getVisibleEpisodes(),
     renderDetails: episodeDetails.renderDetails,
     dismissGlobalTooltip,
+    onPlayRequest: requestPlay,
   });
 
   coverFilters = createCoverFilters({
@@ -73,6 +81,23 @@ async function init() {
   console.info("[MSSP] Data mode:", apiClient.getMode());
   state.collections = data.collections;
   collectionsView.renderCollections();
+  await playerState.restore(apiClient);
+
+  async function requestPlay(episode) {
+    state.selectedEpisodeId = episode.id;
+    episodeDetails.renderDetails();
+    episodeList.renderVisibleRows();
+
+    const collectionId = state.activeCollection?.id || episode.collectionKind || "anthology";
+    let queue = queueCache.get(collectionId);
+    if (!queue) {
+      const result = await apiClient.getEpisodes({ collection: collectionId, query: "" });
+      queue = result.episodes;
+      queueCache.set(collectionId, queue);
+    }
+
+    playerState.loadEpisode({ episode, collectionId, queue, isExpanded: false });
+  }
 }
 
 init().catch((error) => {

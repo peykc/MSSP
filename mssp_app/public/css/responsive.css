@@ -238,8 +238,13 @@
   .episode-row {
     left: 8px;
     right: 8px;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    padding: 0 5px 0 0;
+  }
+
+  .episode-row__select {
     grid-template-columns: 44px minmax(0, 1fr) minmax(72px, auto);
-    padding: 8px 10px;
+    padding: 8px 5px 8px 10px;
   }
 
   .episode-row__date {

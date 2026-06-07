@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="./css/tooltip.css">
     <link rel="stylesheet" href="./css/responsive.css">
     <link rel="stylesheet" href="./css/utilities.css">
+    <link rel="stylesheet" href="./css/player.css">
   </head>
   <body>
     <main class="app" id="app">
@@ -65,6 +66,48 @@
         </section>
       </section>
     </main>
+    <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
+    <section class="full-player" id="fullPlayer" role="dialog" aria-modal="true" aria-labelledby="fullPlayerTitle" tabindex="-1" hidden>
+      <button class="full-player__collapse" id="fullPlayerCollapse" type="button" aria-label="Collapse full player">
+        <span aria-hidden="true">⌄</span>
+      </button>
+      <img class="full-player__cover" id="fullPlayerCover" alt="">
+      <div class="full-player__copy">
+        <p class="full-player__eyebrow" id="fullPlayerEyebrow"></p>
+        <h2 class="full-player__title" id="fullPlayerTitle"></h2>
+        <p class="full-player__meta" id="fullPlayerMeta"></p>
+      </div>
+      <div class="full-player__status" role="status">
+        <strong id="fullPlayerStatus"></strong>
+        <span id="fullPlayerStatusDetail"></span>
+      </div>
+      <div class="full-player__timeline" aria-label="Playback timeline unavailable">
+        <span>00:00</span>
+        <input type="range" min="0" max="0" value="0" disabled aria-label="Playback position unavailable">
+        <span>00:00</span>
+      </div>
+      <div class="full-player__controls">
+        <button id="playerPrevious" type="button" aria-label="Previous episode">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <button class="full-player__play" id="playerPlay" type="button" aria-label="Playback unavailable" disabled>
+          <span aria-hidden="true">▶</span>
+        </button>
+        <button id="playerNext" type="button" aria-label="Next episode">
+          <span aria-hidden="true">›</span>
+        </button>
+      </div>
+    </section>
+    <section class="mini-player" id="miniPlayer" aria-label="Current episode" hidden>
+      <button class="mini-player__expand" id="miniPlayerExpand" type="button" aria-label="Expand full player">
+        <img id="miniPlayerCover" alt="">
+        <span class="mini-player__copy">
+          <strong id="miniPlayerTitle"></strong>
+          <span id="miniPlayerStatus"></span>
+        </span>
+        <span class="mini-player__chevron" aria-hidden="true">⌃</span>
+      </button>
+    </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
     <script type="module" src="./js/main.js?v=frontend-module-split"></script>

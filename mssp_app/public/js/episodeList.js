@@ -7,6 +7,7 @@ export function createEpisodeList({
   getVisibleEpisodes,
   renderDetails,
   dismissGlobalTooltip,
+  onPlayRequest,
 }) {
   const rowCache = new Map();
 
@@ -68,31 +69,43 @@ export function createEpisodeList({
   function getMemoizedRow(episode) {
     if (rowCache.has(episode.id)) return rowCache.get(episode.id);
 
-    const row = document.createElement("button");
+    const row = document.createElement("div");
     row.className = "episode-row";
-    row.type = "button";
     row.dataset.id = episode.id;
     row.innerHTML = `
-      <img src="${episode.coverUrl}" alt="">
-      <span class="episode-row__main">
-        <span class="episode-row__line">
-          <span class="episode-row__episode"></span>
-          <span class="episode-row__title"></span>
+      <button class="episode-row__select" type="button">
+        <img src="${episode.coverUrl}" alt="">
+        <span class="episode-row__main">
+          <span class="episode-row__line">
+            <span class="episode-row__episode"></span>
+            <span class="episode-row__title"></span>
+          </span>
         </span>
-      </span>
-      <span class="episode-row__date"></span>
+        <span class="episode-row__date"></span>
+      </button>
+      <button class="episode-row__play" type="button"></button>
     `;
     const title = episode.title || "Untitled episode";
     const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
     const titleEl = row.querySelector(".episode-row__title");
+    const selectButton = row.querySelector(".episode-row__select");
+    const playButton = row.querySelector(".episode-row__play");
     row.querySelector(".episode-row__episode").textContent = episodeLabel;
     titleEl.textContent = title;
     row.querySelector(".episode-row__date").textContent = episode.date || "";
-    row.addEventListener("click", () => {
+    playButton.textContent = episode.paytch === "PAYTCH" ? "RSS" : "▶";
+    playButton.setAttribute(
+      "aria-label",
+      episode.paytch === "PAYTCH"
+        ? `Connect Patreon RSS for ${title}`
+        : `Open player for ${title}`
+    );
+    selectButton.addEventListener("click", () => {
       state.selectedEpisodeId = episode.id;
       renderDetails();
       renderVisibleRows();
     });
+    playButton.addEventListener("click", (event) => onPlayRequest(episode, event.currentTarget));
     rowCache.set(episode.id, row);
     return row;
   }
