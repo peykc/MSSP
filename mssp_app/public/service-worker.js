@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v23";
+const CACHE_VERSION = "mssp-v24";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -98,7 +98,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   if (DATA_URLS.has(url.href)) {
-    event.respondWith(staleWhileRevalidate(event));
+    event.respondWith(networkFirstData(request));
     return;
   }
 
@@ -124,18 +124,15 @@ async function cacheFirstNavigation() {
   return fetch(resolveUrl("./index.html"));
 }
 
-async function staleWhileRevalidate(event) {
+async function networkFirstData(request) {
   const cache = await caches.open(DATA_CACHE);
-  const cached = await cache.match(event.request);
-  const refresh = fetch(event.request).then(async (response) => {
-    if (response.ok) await cache.put(event.request, response.clone());
+  try {
+    const response = await fetch(request, { cache: "no-store" });
+    if (response.ok) await cache.put(request, response.clone());
     return response;
-  });
-
-  if (cached) {
-    event.waitUntil(refresh.catch(() => undefined));
-    return cached;
+  } catch (error) {
+    const cached = await cache.match(request);
+    if (cached) return cached;
+    throw error;
   }
-
-  return refresh;
 }
