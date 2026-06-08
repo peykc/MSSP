@@ -1,16 +1,16 @@
 {
-  "generatedAt": "2026-06-05T15:45:39.950Z",
+  "generatedAt": "2026-06-08T15:27:09.624Z",
   "schemaVersion": 1,
-  "sourceFile": "The Holy Trinity/MSSP - The Holy Trinity.md",
+  "sourceFile": "data/The Holy Trinity/MSSP - The Holy Trinity.md",
   "mode": "static-export",
   "databaseLoaded": false,
-  "parsedRows": 900,
+  "parsedRows": 897,
   "skippedRows": 0,
   "counts": {
-    "anthology": 900,
+    "anthology": 897,
     "old": 145,
-    "new": 361,
-    "paytch": 394
+    "new": 360,
+    "paytch": 392
   },
   "warnings": []
 }

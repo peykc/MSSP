@@ -125,7 +125,6 @@
 | 2019-02-11 | MSSPOT | PAYTCH | 116 | PATREON 4 Featuring GERBIEZ |
 | 2019-02-18 | MSSPOT |  | 117 | O_Contact |
 | 2019-02-18 | MSSPOT | PAYTCH | 117 | Patreon EPPIE 5 |
-| 2019-02-25 | MSSPOT | PAYTCH | 118 | ep 118 moved to patreon. 2 hawt for public consumption |
 | 2019-02-26 | MSSPOT |  | 118 | The Lazarus Cast |
 | 2019-03-04 | MSSPOT |  | 119 | Stone Cold_s Bastard |
 | 2019-03-04 | MSSPOT | PAYTCH | 119 | Billy and Spud seek revenge on HATERZ |
@@ -176,8 +175,8 @@
 | 2019-10-09 | MSSP |  | 150 | Twizted Azz Jokerz |
 | 2019-10-09 | MSSP | PAYTCH | 150 | Quick paytch |
 | 2019-10-13 | MSSP | PAYTCH | EX | Ya F#cked it 10.06.19 |
-| 2019-10-14 | MSSP | PAYTCH | 151 | Torso in the Mail Cont'd |
 | 2019-10-15 | MSSP |  | 151 | Torso in the Mail |
+| 2019-10-15 | MSSP | PAYTCH | 151 | Torso in the Mail Cont'd |
 | 2019-10-30 | MSSP |  | 152 | Bag Daddy Down |
 | 2019-10-30 | MSSP | PAYTCH | 152 | BILL AND SPUD PATREON CONTINUATION |
 | 2019-11-07 | MSSP | PAYTCH | EX | w Blyz and a secret DAWG |
@@ -206,7 +205,7 @@
 | 2020-01-20 | MSSP |  | 164 | Santa Maria |
 | 2020-01-20 | MSSP | PAYTCH | 164 | Santa Maria (cont'd) |
 | 2020-01-28 | MSSP | PAYTCH | EX | HarderCore History Pt 3- T.F. Meagher |
-| 2020-01-29 | MSSP |  |165 | The ALL NEW Chevy Ted Cruze |
+| 2020-01-29 | MSSP |  | 165 | The ALL NEW Chevy Ted Cruze |
 | 2020-02-04 | MSSP |  | 166 | The Scotty Defense |
 | 2020-02-04 | MSSP | PAYTCH | 166 | Patreon Exclusive-B.M.B |
 | 2020-02-14 | MSSP |  | 167 | The Church of Sacred Dawgology |
@@ -254,8 +253,8 @@
 | 2020-06-24 | MSSP |  | 302 | Dog Girl |
 | 2020-06-29 | MSSP | PAYTCH | EX | Psych Naw Ep 5 |
 | 2020-06-29 | MSSP | PAYTCH | EX | Psych Naw ep 6 |
-| 2020-06-30 | MSSP | PAYTCH | 303 | Stuck at the Track |
 | 2020-07-01 | MSSP |  | 303 | Stuck at the track |
+| 2020-07-01 | MSSP | PAYTCH | 303 | Stuck at the Track |
 | 2020-07-03 | MSSP | PAYTCH | EX | Hostile Social Manipulation |
 | 2020-07-07 | MSSP |  | 304 | Green Skins and Vampires |
 | 2020-07-08 | MSSP | PAYTCH | 304 | Green Skins and Vampires |
@@ -265,26 +264,26 @@
 | 2020-07-15 | MSSP |  | EX | PuppyGirlJenna |
 | 2020-07-21 | MSSP |  | 306 | Spuddoula |
 | 2020-07-21 | MSSP | PAYTCH | 306 | Spuddoula |
-| 2020-07-29 | MSSP | PAYTCH | 307 | Shat Gazi |
 | 2020-07-30 | MSSP |  | 307 | Shatgazi vid |
+| 2020-07-30 | MSSP | PAYTCH | 307 | Shat Gazi |
 | 2020-08-05 | MSSP |  | 308 | Love in Australia |
 | 2020-08-05 | MSSP | PAYTCH | 308 | Love in Australia |
 | 2020-08-05 | MSSP | PAYTCH | EX | Psych Naw Ep 8 |
-| 2020-08-11 | MSSP | PAYTCH | 309 | Homosapiens |
 | 2020-08-12 | MSSP |  | 309 | Homosapiens |
+| 2020-08-12 | MSSP | PAYTCH | 309 | Homosapiens |
 | 2020-08-14 | MSSP | PAYTCH | EX | America 2.0 |
 | 2020-08-14 | MSSP | PAYTCH | EX | Psych Naw 9 |
 | 2020-08-18 | MSSP |  | 310 | RIP Cleveland |
 | 2020-08-18 | MSSP | PAYTCH | 310 | RIP Cleveland |
-| 2020-08-24 | MSSP | PAYTCH | 311 | USA 2.0 |
 | 2020-08-25 | MSSP |  | 311 | USA 2.0 PAYTCH |
+| 2020-08-25 | MSSP | PAYTCH | 311 | USA 2.0 |
 | 2020-09-02 | MSSP |  | 312 | Fat Attack |
 | 2020-09-02 | MSSP | PAYTCH | 312 | Fat Attack |
 | 2020-09-09 | MSSP |  | 313 | Return of the Stoner Dads |
 | 2020-09-09 | MSSP | PAYTCH | 313 | Return of the Stoner Dads |
 | 2020-09-11 | MSSP |  | 314 | Sam and Shane's Secret Doug-cast |
-| 2020-09-15 | MSSP | PAYTCH | 315 | Hype Beasts |
 | 2020-09-16 | MSSP |  | 315 | Hype Beasts |
+| 2020-09-16 | MSSP | PAYTCH | 315 | Hype Beasts |
 | 2020-09-23 | MSSP |  | 316 | Johnny Hollywood |
 | 2020-09-23 | MSSP | PAYTCH | 316 | Johnny Hollywood |
 | 2020-09-28 | MSSP | PAYTCH | EX | The Fart that Killed |
@@ -296,29 +295,29 @@
 | 2020-10-14 | MSSP | PAYTCH | 319 | CBDhab |
 | 2020-10-20 | MSSP |  | 320 | Horse Tail |
 | 2020-10-20 | MSSP | PAYTCH | EX | Live Cast- Helium |
-| 2020-10-27 | MSSP | PAYTCH | 321 | Shrek 1 |
 | 2020-10-28 | MSSP |  | 321 | Shrek 1 |
+| 2020-10-28 | MSSP | PAYTCH | 321 | Shrek 1 |
 | 2020-11-04 | MSSP |  | 322 | 2020 Presidential Livestream |
 | 2020-11-09 | MSSP | PAYTCH | 322 | Election Night Live Stream |
-| 2020-11-09 | MSSP | PAYTCH | 323 | 40 More Days |
 | 2020-11-10 | MSSP |  | 323 | 40 More Days |
-| 2020-11-18 | MSSP | PAYTCH | 324 | Drenched |
+| 2020-11-10 | MSSP | PAYTCH | 323 | 40 More Days |
 | 2020-11-19 | MSSP |  | 324 | DRENCHED |
-| 2020-11-24 | MSSP | PAYTCH | 325 | Defending our Democracy |
+| 2020-11-19 | MSSP | PAYTCH | 324 | Drenched |
 | 2020-11-25 | MSSP |  | 325 | Defending our Democracy |
-| 2020-12-01 | MSSP | PAYTCH | 326 | Before and after |
+| 2020-11-25 | MSSP | PAYTCH | 325 | Defending our Democracy |
 | 2020-12-02 | MSSP |  | 326 | Before and Afters |
-| 2020-12-08 | MSSP | PAYTCH | 327 | Hetero male Adoption ft wood man |
+| 2020-12-02 | MSSP | PAYTCH | 326 | Before and after |
 | 2020-12-09 | MSSP |  | 327 | Hetero Male Adoption |
-| 2020-12-14 | MSSP | PAYTCH | 328 | Undercover Homeless |
+| 2020-12-09 | MSSP | PAYTCH | 327 | Hetero male Adoption ft wood man |
 | 2020-12-15 | MSSP |  | 328 | Undercover Homeless |
-| 2020-12-22 | MSSP | PAYTCH | 329 | God Rules |
+| 2020-12-15 | MSSP | PAYTCH | 328 | Undercover Homeless |
 | 2020-12-23 | MSSP |  | 329 | God Rules |
+| 2020-12-23 | MSSP | PAYTCH | 329 | God Rules |
 | 2020-12-29 | MSSP | PAYTCH | EX | HarderCore History- Mario ''Motts'' Tonelli, Notre Dame, and the horrors of Bataan |
 | 2020-12-30 | MSSP |  | 330 | The Wedge |
 | 2021-01-07 | MSSP | PAYTCH | EX | Speed running |
-| 2021-01-13 | MSSP | PAYTCH | 331 | Stolen Valor |
 | 2021-01-14 | MSSP |  | 331 | Stolen Valor |
+| 2021-01-14 | MSSP | PAYTCH | 331 | Stolen Valor |
 | 2021-01-19 | MSSP | PAYTCH | EX | Night Stalker |
 | 2021-01-20 | MSSP |  | EX | Night Stalker |
 | 2021-01-26 | MSSP |  | 332 | Diamond Heist |
@@ -409,9 +408,9 @@
 | 2021-11-11 | MSSP | PAYTCH | EX | Skankfest 2021 |
 | 2021-11-17 | MSSP |  | 371 | ... UGH |
 | 2021-11-24 | MSSP | PAYTCH | EX | Solo Pod- EGB |
+| 2021-11-29 | MSSP |  | 372 | Matt and Shane's Copyright Safe Podcast |
 | 2021-11-29 | MSSP | PAYTCH | 372 | Ep 327 paytch audio |
 | 2021-12-02 | MSSP | PAYTCH | EX | Solo pod- Emergency Vibe-check |
-| 2021-12-03 | MSSP |  | 372 | Matt and Shane's Copyright Safe Podcast |
 | 2021-12-07 | MSSP |  | 373 | Strictly Business (feat. Chris O'Connor) |
 | 2021-12-07 | MSSP | PAYTCH | 373 | Strictly Business |
 | 2021-12-14 | MSSP |  | 374 | Willard Smith |
@@ -422,8 +421,8 @@
 | 2021-12-30 | MSSP |  | 376 | The Sponge (feat. Chris O'Connor & Tommy Pope) |
 | 2022-01-05 | MSSP |  | 377 | The Plague |
 | 2022-01-05 | MSSP | PAYTCH | 377 | The Plague |
+| 2022-01-13 | MSSP |  | 378 | Jeep Ka Ping (feat. Tim Butterly & Sidney Gantt) |
 | 2022-01-13 | MSSP | PAYTCH | 378 | Jeep Ka-Ping |
-| 2022-01-18 | MSSP |  | 378 | Jeep Ka Ping (feat. Tim Butterly & Sidney Gantt) |
 | 2022-01-18 | MSSP |  | 379 | Hogs Gone Wild (feat. Tommy Pope) |
 | 2022-01-19 | MSSP | PAYTCH | 379 | Hogs Gone Wild |
 | 2022-01-26 | MSSP |  | 380 | Lobster Man (feat. Francis Ellis) |
@@ -451,8 +450,8 @@
 | 2022-04-05 | MSSP | PAYTCH | 390 | Spiderman Jump |
 | 2022-04-12 | MSSP |  | 391 | Supa Gremlin |
 | 2022-04-13 | MSSP | PAYTCH | 391 | Supa Gremlin |
-| 2022-04-19 | MSSP | PAYTCH | 392 | Suss AI |
 | 2022-04-21 | MSSP |  | 392 | Suss Al (feat. Lemaire Lee & Andy Malafarina) |
+| 2022-04-21 | MSSP | PAYTCH | 392 | Suss AI |
 | 2022-04-27 | MSSP |  | 393 | The Presidents (feat. Louis C.K.) |
 | 2022-04-27 | MSSP | PAYTCH | 393 | The Presidents |
 | 2022-05-04 | MSSP |  | 393.2 | The Presidents - Part Two (feat. Louis C.K.) |
@@ -759,9 +758,9 @@
 | 2025-02-20 | MSSP |  | 547 | The Bourguignon Shuffle (feat. James McCann) |
 | 2025-02-20 | MSSP | PAYTCH | 547 | The Bourguinon Shuffle |
 | 2025-02-26 | MSSP |  | 548 | Bowl of Meat (feat. Kevin Ryan & H. Foley) |
-| 2025-02-27 | MSSP | PAYTCH | 548 | The Mysterious Mr. Nakamoto ft. Benjamin Wallace |
-| 2025-03-06 | MSSP | PAYTCH | 549 | White Elmo |
+| 2025-02-27 | MSSP | PAYTCH | EX | The Mysterious Mr. Nakamoto ft. Benjamin Wallace |
 | 2025-03-07 | MSSP |  | 549 | White Elmo (feat. Big Jay Oakerson) |
+| 2025-03-07 | MSSP | PAYTCH | 549 | White Elmo |
 | 2025-03-13 | MSSP |  | 550 | Blazer Tag |
 | 2025-03-14 | MSSP | PAYTCH | 550 | BLAZER TAG FT KURT METZGER |
 | 2025-03-18 | MSSP |  | 551 | BullDoggin' (feat. Nate Marshall) |
@@ -799,7 +798,7 @@
 | 2025-07-02 | MSSP | PAYTCH | 566 | Destroying the Ark |
 | 2025-07-11 | MSSP |  | 567 | Say Cheese |
 | 2025-07-11 | MSSP | PAYTCH | 567 | Say Cheese |
-| 2025-07-16 | MSSP | PAYTCH | 568 | Conquistador Pt 2 |
+| 2025-07-16 | MSSP | PAYTCH | EX | Conquistador Pt 2 |
 | 2025-07-21 | MSSP |  | 568 | Hollywood Night Cast |
 | 2025-07-24 | MSSP |  | 569 | A Derosa Garden (feat. Joe Derosa) |
 | 2025-07-24 | MSSP | PAYTCH | 569 | A Derosa Garden |
@@ -817,13 +816,12 @@
 | 2025-09-04 | MSSP |  | 575 | Black Seed Fart Max (feat. Nate Marshall & Egan Robinson) |
 | 2025-09-04 | MSSP | PAYTCH | 575 | Black Seed Fart Max (with Conquistador chapter 4 talk) |
 | 2025-09-10 | MSSP |  | 576 | Crack Mobile (feat. Joe List & Nate Marshall) |
-| 2025-09-10 | MSSP |  | 576 | CRACK MOBILE PAYTCH ｜ Cortez |
-| 2025-09-10 | MSSP | PAYTCH | 576 | Conquistador chapters 5 and 6 |
+| 2025-09-10 | MSSP | PAYTCH | EX | Conquistador chapters 5 and 6 |
 | 2025-09-19 | MSSP |  | 577 | Bags On You (feat. Adam Eget) |
 | 2025-09-19 | MSSP | PAYTCH | 577 | Bags on you |
 | 2025-09-25 | MSSP |  | 578 | Post-Negativity (feat. Shawn Gardini) |
 | 2025-09-25 | MSSP | PAYTCH | 578 | Post-Negativity |
-| 2025-09-30 | MSSP | PAYTCH | 579 | MSSB (matt, spud, swim, bill) |
+| 2025-09-30 | MSSP | PAYTCH | EX | MSSB (matt, spud, swim, bill) |
 | 2025-10-01 | MSSP |  | 579 | Crumb & The Hutt (feat. Joe Derosa & Lemaire Lee) |
 | 2025-10-11 | MSSP |  | 580 | Skrilla (The 67 God) |
 | 2025-10-11 | MSSP | PAYTCH | 580 | Skrilla |
@@ -834,13 +832,13 @@
 | 2025-10-31 | MSSP |  | 583 | Ice Cream Dream (feat. James McCann) |
 | 2025-10-31 | MSSP | PAYTCH | 583 | Ice Cream Dream |
 | 2025-11-04 | MSSP |  | 584 | The Buzz Man (feat. Marcus King) |
-| 2025-11-05 | MSSP | PAYTCH | 584 | Conquistador chap 7-9 |
+| 2025-11-05 | MSSP | PAYTCH | EX | Conquistador chap 7-9 |
 | 2025-11-13 | MSSP |  | 585 | Son of a Governor |
 | 2025-11-13 | MSSP | PAYTCH | 585 | UFC GAMING TOURNAMENT |
 | 2025-11-20 | MSSP |  | 586 | Shift Work (feat. Nate Marshall) |
 | 2025-11-20 | MSSP | PAYTCH | 586 | Shift Work |
 | 2025-11-26 | MSSP |  | 587 | PHIL (feat. Steve Gerben & Chris O'Connor) |
-| 2025-11-26 | MSSP | PAYTCH | 587 | Conquistador pt 5 ft Nate and Nick |
+| 2025-11-26 | MSSP | PAYTCH | EX | Conquistador pt 5 ft Nate and Nick |
 | 2025-12-04 | MSSP |  | 588 | Horse Life (feat. Lemaire Lee & Nate Marshall) |
 | 2025-12-04 | MSSP | PAYTCH | 588 | Conquistador part 6 (Final) |
 | 2025-12-12 | MSSP |  | 589 | Broke Mind Virus |
@@ -850,46 +848,46 @@
 | 2025-12-23 | MSSP |  | 591 | M-A DOUBLE HOCKEY STICKS (Mall) |
 | 2025-12-23 | MSSP | PAYTCH | 591 | M A Double Hockey Sticks (MALL) |
 | 2025-12-31 | MSSP |  | 592 | 2025： A Year in Review |
-| 2026-01-06 | MSSP | PAYTCH | 592 | ten minute blast |
+| 2026-01-06 | MSSP | PAYTCH | EX | ten minute blast |
 | 2026-01-08 | MSSP |  | 593 | Nollywood (feat. Ben Avery & Kevin Iso) |
 | 2026-01-08 | MSSP | PAYTCH | EX | Ten Minute Blast - Omakase (sushi) |
 | 2026-01-09 | MSSP | PAYTCH | 593 | Nollywood |
 | 2026-01-12 | MSSP | PAYTCH | EX | Ten minute blast coffee |
 | 2026-01-14 | MSSP |  | 594 | Gooniverse (feat. Steve Gerben & Billy) |
 | 2026-01-17 | MSSP | PAYTCH | 594 | Gooniverse ft Dan, St. Germain and Nate |
-| 2026-01-21 | MSSP | PAYTCH | 595 | The man who saves the world |
 | 2026-01-21 | MSSP | PAYTCH | EX | Gargoyles Inc. |
 | 2026-01-22 | MSSP |  | 595 | The Man Who Saves The World？ (feat. Gabe Polsky) |
+| 2026-01-22 | MSSP | PAYTCH | 595 | The man who saves the world |
 | 2026-01-30 | MSSP |  | 596 | 4-Man Jamboree Slam (feat. Ian Fidance, Ehsan Ahmad, Tim Butterly) |
 | 2026-01-30 | MSSP | PAYTCH | 596 | 4 MAN JAMBOREE SLAM |
 | 2026-02-05 | MSSP |  | 597 | Fart Goggles (feat. Luis J. Gomez & Lemaire Lee) |
 | 2026-02-05 | MSSP | PAYTCH | 597 | Fart Goggles |
 | 2026-02-12 | MSSP |  | 598 | Night Shadow (feat. Dan Soder, Chris O'Connor, Billy) |
-| 2026-02-12 | MSSP | PAYTCH | 598 | Ten Minute Blast Ft Nate Marshall |
 | 2026-02-12 | MSSP | PAYTCH | EX | River of Darkness pt 1 |
+| 2026-02-12 | MSSP | PAYTCH | EX | Ten Minute Blast Ft Nate Marshall |
 | 2026-02-20 | MSSP |  | 599 | Weed Wench (feat. Nate Marshall & Lemaire Lee) |
 | 2026-02-26 | MSSP |  | 600 | Hedonic Treadmill (feat. Joe List & Steve Rannazzisi) |
-| 2026-02-26 | MSSP | PAYTCH | 599 | Hedonic Treadmill |
-| 2026-02-28 | MSSP | PAYTCH | 600 | River of Darkness PT II |
+| 2026-02-26 | MSSP | PAYTCH | 600 | Hedonic Treadmill |
+| 2026-02-28 | MSSP | PAYTCH | EX | River of Darkness PT II |
 | 2026-03-04 | MSSP |  | 601 | Gen Z Whiteboy (feat. Devan Costa & Conner McNutt) |
 | 2026-03-04 | MSSP | PAYTCH | 601 | Joel McHale zoom chill |
-| 2026-03-04 | MSSP | PAYTCH | 602 | Ten minute blast-Rollerblade racing and Modern Morality |
+| 2026-03-04 | MSSP | PAYTCH | EX | Ten minute blast-Rollerblade racing and Modern Morality |
 | 2026-03-06 | MSSP |  | 602 | Future Man (feat. Kevin Ashton) |
 | 2026-03-12 | MSSP |  | 603 | GEY DOT COM (feat. Tim Butterly & Mike Rainey) |
-| 2026-03-12 | MSSP | PAYTCH | 603 | River of Darkness part 3 |
+| 2026-03-12 | MSSP | PAYTCH | EX | River of Darkness part 3 |
 | 2026-03-20 | MSSP |  | 604 | Tyler Gerben (feat. Steve Gerben, Dan Soder, Billy & Spud) |
 | 2026-03-25 | MSSP |  | 605 | Arctic Cannibalism (feat. Buddy Levy) |
-| 2026-03-25 | MSSP | PAYTCH | 605 | River of Darkness Pt 4 (final) |
+| 2026-03-25 | MSSP | PAYTCH | EX | River of Darkness Pt 4 (final) |
 | 2026-04-03 | MSSP |  | 606 | Leadership |
 | 2026-04-03 | MSSP | PAYTCH | 606 | LEADERSHIP |
 | 2026-04-07 | MSSP |  | 607 | All Guys Welcome (feat. Sam Tallent & Shawn Gardini) |
 | 2026-04-13 | MSSP |  | 608 | WrestleMania (feat. Cody Rhodes) |
-| 2026-04-13 | MSSP | PAYTCH | 607 | WRESTLEMANIA |
+| 2026-04-13 | MSSP | PAYTCH | 608 | WRESTLEMANIA |
 | 2026-04-15 | MSSP |  | 609 | Mega Heider (feat. Corey Heider & Nate Marshall) |
-| 2026-04-22 | MSSP | PAYTCH | 608 | PRAYED UP |
+| 2026-04-22 | MSSP | PAYTCH | EX | PRAYED UP |
 | 2026-04-25 | MSSP |  | 610 | The Bewick's Wren (feat. James Mccann) |
 | 2026-04-29 | MSSP |  | 611 | Goblin AKA Nick |
-| 2026-04-30 | MSSP | PAYTCH | 611 | The Fall of Rome - Rubicon |
+| 2026-04-30 | MSSP | PAYTCH | EX | The Fall of Rome - Rubicon |
 | 2026-05-01 | MSSP |  | 612 | Night Gator (feat. Charles Blyzniuk) |
 | 2026-05-07 | MSSP |  | 613 | Solar System Part 1 (feat. Nate Marshall) |
 | 2026-05-07 | MSSP | PAYTCH | 612 | SOLAR SYSTEM PART 2 (Mercury and Venus) |
@@ -899,4 +897,3 @@
 | 2026-05-20 | MSSP |  | 615 | Slim Goodie (feat. Sheryl Underwood) |
 | 2026-05-20 | MSSP | PAYTCH | 615 | SLIM GOODIE |
 | 2026-05-27 | MSSP |  | 616 | The Four Heavens (feat. David Stuart) |
-| 2026-05-29 | MSSP | PAYTCH | 617 | IRISH GOOD MORNING |
