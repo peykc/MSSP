@@ -5,7 +5,7 @@ The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by r
 - `MSSP` (The New Testament), 
 - `PAYTCH` (Patreon).
 
-## THE 10 COMMANDMENTS
+## The Ten Commmandments
 1. Preserve the listening order.
 2. Use official numbers when they exist.
 3. Infer missing numbers only from supported continuity.
