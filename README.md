@@ -1,12 +1,15 @@
 # MSSP Archive / The Holy Trinity
 
-The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by release/listening order across `MSSPOT` (The Old Testament), `MSSP` (The New Testament), and `PAYTCH` (Patreon).
+The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by release/listening order across... 
+- `MSSPOT` (The Old Testament), 
+- `MSSP` (The New Testament), 
+- `PAYTCH` (Patreon).
 
 ## 10 Commandments of The Holy Trinity
 1. Preserve the listening order.
 2. Use official numbers when they exist.
 3. Infer missing numbers only from supported continuity.
-4. Do not back-count from later jumps.
+4. Source audio ethically without hosting or reproducing it.
 5. Keep MSSPOT, MSSP, and PAYTCH identities visible.
 6. Place PAYTCH by chronology, not assumption.
 7. Attach PAYTCH numbers only when the parent relationship is real.
