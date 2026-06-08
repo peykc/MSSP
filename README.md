@@ -1,4 +1,8 @@
-# MSSP Archive / The Holy Trinity
+# MSSP The Complete Collection
+
+###### A fan-made chronological index preserving the release history of MSSP. Public episodes stream from public sources. PAYTCH playback requires your own private RSS feed. No paid audio is hosted or redistributed.
+
+## The Holy Trinity
 
 The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by release/listening order across... 
 - `MSSPOT` (The Old Testament), 
@@ -16,5 +20,3 @@ The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by r
 8. Use decimals for extra parts in the same episode family.
 9. Use EX for standalone/off-cycle releases.
 10. Keep the archive reproducible, auditable, and ready for metadata/player use.
-
-###### A fan-made chronological index preserving the release history of MSSP. Public episodes stream from public sources. PAYTCH playback requires your own private RSS feed. No paid audio is hosted or redistributed.
