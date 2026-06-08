@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v24";
+const CACHE_VERSION = "mssp-v25";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -28,11 +28,13 @@ const SHELL_PATHS = [
   "./js/episodeList.js",
   "./js/filters.js",
   "./js/libraryView.js",
+  "./js/player/audioController.js",
   "./js/player/playerState.js",
   "./js/player/playerView.js",
   "./js/player/sourceStatus.js",
   "./js/pwa.js",
   "./js/search.js",
+  "./js/sources/publicSources.js",
   "./js/state.js",
   "./js/tooltip.js",
   "./js/utils.js",
@@ -53,6 +55,7 @@ const DATA_PATHS = [
   "./data/collections.json",
   "./data/episodes.json",
   "./data/health.json",
+  "./data/sources.public.json",
 ];
 
 const resolveUrl = (path) => new URL(path, BASE).href;
@@ -91,6 +94,8 @@ self.addEventListener("fetch", (event) => {
   const url = new URL(request.url);
   if (url.origin !== BASE.origin || !url.href.startsWith(BASE.href)) return;
   if (url.pathname.startsWith(new URL("./api/", BASE).pathname)) return;
+  if (request.destination === "audio" || request.destination === "video") return;
+  if (/\.(mp3|m4a|aac|ogg|opus|wav|flac|mp4|webm)$/i.test(url.pathname)) return;
 
   if (request.mode === "navigate" && NAVIGATION_PATHS.has(url.pathname)) {
     event.respondWith(cacheFirstNavigation());

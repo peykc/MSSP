@@ -1,0 +1,1167 @@
+{
+  "generatedAt": "2026-06-08T17:49:33.678Z",
+  "schemaVersion": 1,
+  "sourceBaseUrl": "https://mssp.pkcollection.net",
+  "sources": {
+    "global-000001-msspot-public-1-inaugral-business": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-11-16 MSSPOT Ep. 1 - Inaugral Business.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-11-16%20MSSPOT%20Ep.%201%20-%20Inaugral%20Business.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000002-msspot-public-2-mudslingin": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-11-22 MSSPOT Ep. 2 - Mudslingin_.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-11-22%20MSSPOT%20Ep.%202%20-%20Mudslingin_.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000003-msspot-public-3-somehow-still-on-top-somehow-still-winning": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-11-29 MSSPOT Ep. 3 - Somehow still on top, somehow still winning.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-11-29%20MSSPOT%20Ep.%203%20-%20Somehow%20still%20on%20top%2C%20somehow%20still%20winning.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000004-msspot-public-4-cross-fit-dudes": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-12-06 MSSPOT Ep. 4 - Cross-Fit Dudes.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-12-06%20MSSPOT%20Ep.%204%20-%20Cross-Fit%20Dudes.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000005-msspot-public-5-trump-and-kanye-the-ultimate-alliance": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-12-13 MSSPOT Ep. 5 - Trump and Kanye, The Ultimate Alliance.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-12-13%20MSSPOT%20Ep.%205%20-%20Trump%20and%20Kanye%2C%20The%20Ultimate%20Alliance.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000006-msspot-public-6-mtv-s-new-years-resolutions": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-12-20 MSSPOT Ep. 6 - MTV_s New Years Resolutions.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-12-20%20MSSPOT%20Ep.%206%20-%20MTV_s%20New%20Years%20Resolutions.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000007-msspot-public-7-rip-carrie-fisher-you-were-a-babe": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2016-12-27 MSSPOT Ep. 7 - RIP Carrie Fisher You were a babe.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2016-12-27%20MSSPOT%20Ep.%207%20-%20RIP%20Carrie%20Fisher%20You%20were%20a%20babe.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000008-msspot-public-8-cumming-into-2017": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-01-04 MSSPOT Ep. 8 - Cumming into 2017.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-01-04%20MSSPOT%20Ep.%208%20-%20Cumming%20into%202017.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000009-msspot-public-9-the-cast-still-lives-still-reigns-supreme": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-01-11 MSSPOT Ep. 9 - The Cast still lives, still reigns supreme.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-01-11%20MSSPOT%20Ep.%209%20-%20The%20Cast%20still%20lives%2C%20still%20reigns%20supreme.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000010-msspot-public-10-the-obamabiden-canada-conspiracy": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-01-17 MSSPOT Ep. 10 - The ObamaBiden Canada Conspiracy.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-01-17%20MSSPOT%20Ep.%2010%20-%20The%20ObamaBiden%20Canada%20Conspiracy.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000011-msspot-public-11-special-guest-dan-soder": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-01-24 MSSPOT Ep. 11 - Special Guest Dan Soder.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-01-24%20MSSPOT%20Ep.%2011%20-%20Special%20Guest%20Dan%20Soder.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000012-msspot-public-12-boy-scouts-with-special-guest-rich-vos": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-01-31 MSSPOT Ep. 12 - Boy Scouts---with special guest Rich Vos!.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-01-31%20MSSPOT%20Ep.%2012%20-%20Boy%20Scouts---with%20special%20guest%20Rich%20Vos!.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000013-msspot-public-13-how-can-we-not-talk-about-family": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-02-07 MSSPOT Ep. 13 - How can we not talk about family.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-02-07%20MSSPOT%20Ep.%2013%20-%20How%20can%20we%20not%20talk%20about%20family.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000014-msspot-public-14-a-better-effort-from-all-of-you": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-02-15 MSSPOT Ep. 14 - A better effort from all of you....mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-02-15%20MSSPOT%20Ep.%2014%20-%20A%20better%20effort%20from%20all%20of%20you....mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000015-msspot-public-15-milo-mania": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-02-21 MSSPOT Ep. 15 - Milo-mania!.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-02-21%20MSSPOT%20Ep.%2015%20-%20Milo-mania!.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000016-msspot-public-16-my-dog-is-not-gay": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-02-28 MSSPOT Ep. 16 - My dog is not gay.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-02-28%20MSSPOT%20Ep.%2016%20-%20My%20dog%20is%20not%20gay.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000017-msspot-public-17-blizzards-and-the-bachelor": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-03-07 MSSPOT Ep. 17 - Blizzards and the Bachelor.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-03-07%20MSSPOT%20Ep.%2017%20-%20Blizzards%20and%20the%20Bachelor.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000018-msspot-public-18-the-oxygen-network": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-03-16 MSSPOT Ep. 18 - The Oxygen Network.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-03-16%20MSSPOT%20Ep.%2018%20-%20The%20Oxygen%20Network.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000019-msspot-public-19-dick-renaissance": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-03-21 MSSPOT Ep. 19 - Dick Renaissance.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-03-21%20MSSPOT%20Ep.%2019%20-%20Dick%20Renaissance.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000020-msspot-public-20-song-of-songs": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-03-28 MSSPOT Ep. 20 - Song of Songs.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-03-28%20MSSPOT%20Ep.%2020%20-%20Song%20of%20Songs.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000021-msspot-public-21-alt-right-fred": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-04-04 MSSPOT Ep. 21 - Alt-Right Fred.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-04-04%20MSSPOT%20Ep.%2021%20-%20Alt-Right%20Fred.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000022-msspot-public-22-we-are-the-lions": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-04-11 MSSPOT Ep. 22 - We Are the Lions.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-04-11%20MSSPOT%20Ep.%2022%20-%20We%20Are%20the%20Lions.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000023-msspot-public-23-the-night-cast-vol-1": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-04-19 MSSPOT Ep. 23 - The Night Cast (vol 1).mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-04-19%20MSSPOT%20Ep.%2023%20-%20The%20Night%20Cast%20(vol%201).mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000024-msspot-public-24-a-secret-within-a-secret": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-04-26 MSSPOT Ep. 24 - A Secret within a secret.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-04-26%20MSSPOT%20Ep.%2024%20-%20A%20Secret%20within%20a%20secret.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000025-msspot-public-25-sodom-and-gomorrah": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-05-03 MSSPOT Ep. 25 - Sodom and Gomorrah.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-05-03%20MSSPOT%20Ep.%2025%20-%20Sodom%20and%20Gomorrah.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000026-msspot-public-26-clap-back": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-05-10 MSSPOT Ep. 26 - Clap Back.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-05-10%20MSSPOT%20Ep.%2026%20-%20Clap%20Back.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000027-msspot-public-27-q": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-05-17 MSSPOT Ep. 27 - Q+.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-05-17%20MSSPOT%20Ep.%2027%20-%20Q%2B.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000028-msspot-public-28-set-life": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-05-24 MSSPOT Ep. 28 - Set Life.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-05-24%20MSSPOT%20Ep.%2028%20-%20Set%20Life.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000029-msspot-public-29-to-catch-a-prophet": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-05-31 MSSPOT Ep. 29 - To Catch a Prophet.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-05-31%20MSSPOT%20Ep.%2029%20-%20To%20Catch%20a%20Prophet.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000030-msspot-public-30-tokyo-partners": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-06-07 MSSPOT Ep. 30 - Tokyo Partners.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-06-07%20MSSPOT%20Ep.%2030%20-%20Tokyo%20Partners.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000031-msspot-public-31-femmes-and-supremmes": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-06-14 MSSPOT Ep. 31 - Femmes and Supremmes.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-06-14%20MSSPOT%20Ep.%2031%20-%20Femmes%20and%20Supremmes.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000032-msspot-public-32-liza-slesh": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-06-19 MSSPOT Ep. 32 - Liza Slesh.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-06-19%20MSSPOT%20Ep.%2032%20-%20Liza%20Slesh.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000033-msspot-public-33-shit-night": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-06-28 MSSPOT Ep. 33 - Shit Night.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-06-28%20MSSPOT%20Ep.%2033%20-%20Shit%20Night.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000034-msspot-public-34-hardcore-history": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-07-06 MSSPOT Ep. 34 - Hardcore History.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-07-06%20MSSPOT%20Ep.%2034%20-%20Hardcore%20History.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000035-msspot-public-35-the-secret-life-of-morons": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-07-12 MSSPOT Ep. 35 - The Secret Life of Morons.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-07-12%20MSSPOT%20Ep.%2035%20-%20The%20Secret%20Life%20of%20Morons.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000036-msspot-public-36-the-rocky-shores-of-reality": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-07-19 MSSPOT Ep. 36 - The Rocky Shores of Reality.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-07-19%20MSSPOT%20Ep.%2036%20-%20The%20Rocky%20Shores%20of%20Reality.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000037-msspot-public-37-sound-hound": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-07-24 MSSPOT Ep. 37 - Sound hound.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-07-24%20MSSPOT%20Ep.%2037%20-%20Sound%20hound.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000038-msspot-public-38-dong-wax": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-08-02 MSSPOT Ep. 38 - Dong Wax.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-08-02%20MSSPOT%20Ep.%2038%20-%20Dong%20Wax.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000039-msspot-public-39-friday-night-lights": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-08-09 MSSPOT Ep. 39 - Friday Night Lights.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-08-09%20MSSPOT%20Ep.%2039%20-%20Friday%20Night%20Lights.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000040-msspot-public-40-live-cast-8-11-17-part-1": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-08-14 MSSPOT Ep. 40 - Live Cast 8.11.17 part 1.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-08-14%20MSSPOT%20Ep.%2040%20-%20Live%20Cast%208.11.17%20part%201.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000042-msspot-public-41-butt-stuff": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-08-16 MSSPOT Ep. 41 - Butt Stuff.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-08-16%20MSSPOT%20Ep.%2041%20-%20Butt%20Stuff.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000043-msspot-public-42-we-re-smart-now": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-08-23 MSSPOT Ep. 42 - We_re Smart Now.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-08-23%20MSSPOT%20Ep.%2042%20-%20We_re%20Smart%20Now.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000044-msspot-public-43-racist-werewolf": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-08-30 MSSPOT Ep. 43 - Racist Werewolf.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-08-30%20MSSPOT%20Ep.%2043%20-%20Racist%20Werewolf.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000045-msspot-public-44-michael-myers": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-09-06 MSSPOT Ep. 44 - Michael Myers.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-09-06%20MSSPOT%20Ep.%2044%20-%20Michael%20Myers.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000046-msspot-public-45-pewdie-pie": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-09-13 MSSPOT Ep. 45 - Pewdie Pie.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-09-13%20MSSPOT%20Ep.%2045%20-%20Pewdie%20Pie.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000047-msspot-public-46-the-other-sister": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-09-20 MSSPOT Ep. 46 - The Other Sister.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-09-20%20MSSPOT%20Ep.%2046%20-%20The%20Other%20Sister.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000048-msspot-public-47-the-almighty-knee": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-09-27 MSSPOT Ep. 47 - The Almighty Knee.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-09-27%20MSSPOT%20Ep.%2047%20-%20The%20Almighty%20Knee.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000049-msspot-public-48-our-first-black-guest": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-10-03 MSSPOT Ep. 48 - Our First Black Guest.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-10-03%20MSSPOT%20Ep.%2048%20-%20Our%20First%20Black%20Guest.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000050-msspot-public-49-war-of-the-roses": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-10-11 MSSPOT Ep. 49 - War of the Roses.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-10-11%20MSSPOT%20Ep.%2049%20-%20War%20of%20the%20Roses.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000051-msspot-public-50-bert-s-guide-to-surviving-prison": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-10-12 MSSPOT Ep. 50 - Bert_s Guide to Surviving Prison.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-10-12%20MSSPOT%20Ep.%2050%20-%20Bert_s%20Guide%20to%20Surviving%20Prison.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000052-msspot-public-52-dog-park-etiquette": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-10-25 MSSPOT Ep. 52 - Dog Park Etiquette.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-10-25%20MSSPOT%20Ep.%2052%20-%20Dog%20Park%20Etiquette.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000053-msspot-public-53-a-spooky-wooky-ween": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-11-01 MSSPOT Ep. 53 - A Spooky Wooky _Ween.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-11-01%20MSSPOT%20Ep.%2053%20-%20A%20Spooky%20Wooky%20_Ween.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000054-msspot-public-54-i-m-crumming": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-11-08 MSSPOT Ep. 54 - I_m Crumming.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-11-08%20MSSPOT%20Ep.%2054%20-%20I_m%20Crumming.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000055-msspot-public-55-fapgate": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-11-15 MSSPOT Ep. 55 - Fapgate.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-11-15%20MSSPOT%20Ep.%2055%20-%20Fapgate.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000056-msspot-public-56-live-castaddressing-the-haterz": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-11-29 MSSPOT Ep. 56 - Live Castaddressing the haterz.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-11-29%20MSSPOT%20Ep.%2056%20-%20Live%20Castaddressing%20the%20haterz.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000057-msspot-public-57-the-48-laws-of-lauer": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-12-06 MSSPOT Ep. 57 - The 48 Laws of Lauer.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-12-06%20MSSPOT%20Ep.%2057%20-%20The%2048%20Laws%20of%20Lauer.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000058-msspot-public-58-quintessential": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-12-13 MSSPOT Ep. 58 - Quintessential.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-12-13%20MSSPOT%20Ep.%2058%20-%20Quintessential.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000059-msspot-public-59-triggered-by-star-wars": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-12-20 MSSPOT Ep. 59 - Triggered by Star Wars.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-12-20%20MSSPOT%20Ep.%2059%20-%20Triggered%20by%20Star%20Wars.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000060-msspot-public-60-no-breaks": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2017-12-27 MSSPOT Ep. 60 - No Breaks.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2017-12-27%20MSSPOT%20Ep.%2060%20-%20No%20Breaks.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000061-msspot-public-61-new-year-s-rezzolutions": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-01-03 MSSPOT Ep. 61 - New Year_s Rezzolutions.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-01-03%20MSSPOT%20Ep.%2061%20-%20New%20Year_s%20Rezzolutions.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000062-msspot-public-62-golden-cousins": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-01-09 MSSPOT Ep. 62 - Golden Cousins.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-01-09%20MSSPOT%20Ep.%2062%20-%20Golden%20Cousins.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000063-msspot-public-63-matt-and-shane-s-catholic-podcast": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-01-16 MSSPOT Ep. 63 - Matt and Shane_s Catholic Podcast.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-01-16%20MSSPOT%20Ep.%2063%20-%20Matt%20and%20Shane_s%20Catholic%20Podcast.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000064-msspot-public-64-the-danish-submarine": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-01-24 MSSPOT Ep. 64 - The Danish Submarine.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-01-24%20MSSPOT%20Ep.%2064%20-%20The%20Danish%20Submarine.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000065-msspot-public-65-grammy-s-so-male": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-01-31 MSSPOT Ep. 65 - Grammy_s So Male.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-01-31%20MSSPOT%20Ep.%2065%20-%20Grammy_s%20So%20Male.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000066-msspot-public-66-gimme-a-juicer": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-02-07 MSSPOT Ep. 66 - Gimme a Juicer.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-02-07%20MSSPOT%20Ep.%2066%20-%20Gimme%20a%20Juicer.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000067-msspot-public-67-the-storm-card": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-02-14 MSSPOT Ep. 67 - The Storm Card.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-02-14%20MSSPOT%20Ep.%2067%20-%20The%20Storm%20Card.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000068-msspot-public-68-the-creation-of-knowledge": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-02-21 MSSPOT Ep. 68 - The Creation of Knowledge.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-02-21%20MSSPOT%20Ep.%2068%20-%20The%20Creation%20of%20Knowledge.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000069-msspot-public-69-manhoodcanada-com": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-02-27 MSSPOT Ep. 69 - ManhoodCanada.Com.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-02-27%20MSSPOT%20Ep.%2069%20-%20ManhoodCanada.Com.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000070-msspot-public-70-eastwood-s-wet-dream": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-03-07 MSSPOT Ep. 70 - Eastwood_s Wet Dream.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-03-07%20MSSPOT%20Ep.%2070%20-%20Eastwood_s%20Wet%20Dream.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000071-msspot-public-71-army-hammer": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-03-14 MSSPOT Ep. 71 - Army Hammer.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-03-14%20MSSPOT%20Ep.%2071%20-%20Army%20Hammer.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000072-msspot-public-72-interview-with-a-front-man": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-03-21 MSSPOT Ep. 72 - Interview With a Front Man.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-03-21%20MSSPOT%20Ep.%2072%20-%20Interview%20With%20a%20Front%20Man.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000073-msspot-public-73-the-great-debate": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-03-28 MSSPOT Ep. 73 - The Great Debate.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-03-28%20MSSPOT%20Ep.%2073%20-%20The%20Great%20Debate.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000074-msspot-public-74-the-epic-saga": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-04-04 MSSPOT Ep. 74 - The Epic Saga.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-04-04%20MSSPOT%20Ep.%2074%20-%20The%20Epic%20Saga.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000075-msspot-public-75-the-curious-case-of-male-circumcision": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-04-08 MSSPOT Ep. 75 - The Curious Case of Male Circumcision.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-04-08%20MSSPOT%20Ep.%2075%20-%20The%20Curious%20Case%20of%20Male%20Circumcision.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000076-msspot-public-76-the-t-castle": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-04-11 MSSPOT Ep. 76 - The T Castle.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-04-11%20MSSPOT%20Ep.%2076%20-%20The%20T%20Castle.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000077-msspot-public-77-crap-top-recording": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-04-18 MSSPOT Ep. 77 - Crap-Top Recording.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-04-18%20MSSPOT%20Ep.%2077%20-%20Crap-Top%20Recording.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000078-msspot-public-78-children-of-the-bread": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-04-25 MSSPOT Ep. 78 - Children of the Bread.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-04-25%20MSSPOT%20Ep.%2078%20-%20Children%20of%20the%20Bread.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000079-msspot-public-79-pimp-hoggz-n-double-saws": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-05-02 MSSPOT Ep. 79 - PiMp$, Hoggz, N Double Saws.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-05-02%20MSSPOT%20Ep.%2079%20-%20PiMp%24%2C%20Hoggz%2C%20N%20Double%20Saws.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000080-msspot-public-80-nukes-on-nukes-on-nukes": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-05-09 MSSPOT Ep. 80 - Nukes on Nukes on Nukes.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-05-09%20MSSPOT%20Ep.%2080%20-%20Nukes%20on%20Nukes%20on%20Nukes.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000081-msspot-public-81-the-morning-blowout": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-05-16 MSSPOT Ep. 81 - The Morning Blowout.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-05-16%20MSSPOT%20Ep.%2081%20-%20The%20Morning%20Blowout.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000082-msspot-public-82-ideological-laser-tag": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-05-23 MSSPOT Ep. 82 - Ideological Laser Tag.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-05-23%20MSSPOT%20Ep.%2082%20-%20Ideological%20Laser%20Tag.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000083-msspot-public-83-locker-room-talk-of-yore": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-05-30 MSSPOT Ep. 83 - Locker Room Talk of Yore.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-05-30%20MSSPOT%20Ep.%2083%20-%20Locker%20Room%20Talk%20of%20Yore.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000084-msspot-public-84-big-snoring-poppas": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-06-06 MSSPOT Ep. 84 - Big Snoring Poppas.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-06-06%20MSSPOT%20Ep.%2084%20-%20Big%20Snoring%20Poppas.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000085-msspot-public-85-kang-on-top": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-06-14 MSSPOT Ep. 85 - Kang on Top.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-06-14%20MSSPOT%20Ep.%2085%20-%20Kang%20on%20Top.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000086-msspot-public-86-double-stanky": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-06-22 MSSPOT Ep. 86 - Double Stanky.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-06-22%20MSSPOT%20Ep.%2086%20-%20Double%20Stanky.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000087-msspot-public-87-gargoyle-attack": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-06-29 MSSPOT Ep. 87 - Gargoyle Attack.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-06-29%20MSSPOT%20Ep.%2087%20-%20Gargoyle%20Attack.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000088-msspot-public-88-new-low": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-07-10 MSSPOT Ep. 88 - New Low.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-07-10%20MSSPOT%20Ep.%2088%20-%20New%20Low.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000089-msspot-public-89-bad-dog-park": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-07-22 MSSPOT Ep. 89 - Bad Dog Park.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-07-22%20MSSPOT%20Ep.%2089%20-%20Bad%20Dog%20Park.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000090-msspot-public-90-trying-2-wrangle-mah-b-tch": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-07-24 MSSPOT Ep. 90 - Trying 2 Wrangle Mah B!tch.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-07-24%20MSSPOT%20Ep.%2090%20-%20Trying%202%20Wrangle%20Mah%20B!tch.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000091-msspot-public-91-red-scare": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-07-31 MSSPOT Ep. 91 - Red Scare.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-07-31%20MSSPOT%20Ep.%2091%20-%20Red%20Scare.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000092-msspot-public-92-lights-camera-action": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-08-08 MSSPOT Ep. 92 - Lights, Camera, Action.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-08-08%20MSSPOT%20Ep.%2092%20-%20Lights%2C%20Camera%2C%20Action.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000096-msspot-public-93-patreon-live-cast-3": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-08-25 MSSPOT Ep. 93 - (Patreon) LIVE CAST #3.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-08-25%20MSSPOT%20Ep.%2093%20-%20(Patreon)%20LIVE%20CAST%20%233.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000097-msspot-public-94-saurian-greed": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-08-25 MSSPOT Ep. 94 - Saurian Greed.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-08-25%20MSSPOT%20Ep.%2094%20-%20Saurian%20Greed.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000098-msspot-public-95-the-naughty-universe": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-09-04 MSSPOT Ep. 95 - The Naughty Universe.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-09-04%20MSSPOT%20Ep.%2095%20-%20The%20Naughty%20Universe.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000099-msspot-public-96-the-shat-revelations": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-09-11 MSSPOT Ep. 96 - The Shat Revelations.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-09-11%20MSSPOT%20Ep.%2096%20-%20The%20Shat%20Revelations.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000100-msspot-public-97-feel-da-luh": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-09-18 MSSPOT Ep. 97 - Feel Da Luh.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-09-18%20MSSPOT%20Ep.%2097%20-%20Feel%20Da%20Luh.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000101-msspot-public-98-ka-pow": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-09-25 MSSPOT Ep. 98 - Ka-Pow!.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-09-25%20MSSPOT%20Ep.%2098%20-%20Ka-Pow!.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000102-msspot-public-99-the-great-divide": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-10-09 MSSPOT Ep. 99 - The Great Divide.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-10-09%20MSSPOT%20Ep.%2099%20-%20The%20Great%20Divide.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000103-msspot-public-100-triple-diggies": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-10-16 MSSPOT Ep. 100 - Triple Diggies.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-10-16%20MSSPOT%20Ep.%20100%20-%20Triple%20Diggies.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000104-msspot-public-101-bombs-over-blackface": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-10-26 MSSPOT Ep. 101 - Bombs over Blackface.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-10-26%20MSSPOT%20Ep.%20101%20-%20Bombs%20over%20Blackface.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000105-msspot-public-102-the-captain-s-code": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-11-05 MSSPOT Ep. 102 - The Captain_s Code.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-11-05%20MSSPOT%20Ep.%20102%20-%20The%20Captain_s%20Code.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000106-msspot-public-103-voting-stickers": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-11-06 MSSPOT Ep. 103 - Voting Stickers.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-11-06%20MSSPOT%20Ep.%20103%20-%20Voting%20Stickers.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000107-msspot-public-104-erotic-reflection": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-11-17 MSSPOT Ep. 104 - Erotic Reflection.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-11-17%20MSSPOT%20Ep.%20104%20-%20Erotic%20Reflection.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000108-msspot-public-105-the-concrete-pit": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-11-19 MSSPOT Ep. 105 - The Concrete Pit.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-11-19%20MSSPOT%20Ep.%20105%20-%20The%20Concrete%20Pit.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000109-msspot-public-106-gerbie-s-grool": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-11-27 MSSPOT Ep. 106 - Gerbie_s Grool.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-11-27%20MSSPOT%20Ep.%20106%20-%20Gerbie_s%20Grool.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000110-msspot-public-107-noooo": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-12-03 MSSPOT Ep. 107 - Noooo!.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-12-03%20MSSPOT%20Ep.%20107%20-%20Noooo!.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000111-msspot-public-108-dfs": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-12-10 MSSPOT Ep. 108 - DFS.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-12-10%20MSSPOT%20Ep.%20108%20-%20DFS.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000112-msspot-public-109-sky-world": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-12-20 MSSPOT Ep. 109 - Sky World.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-12-20%20MSSPOT%20Ep.%20109%20-%20Sky%20World.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000113-msspot-public-110-sexxxual-hitman": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2018-12-29 MSSPOT Ep. 110 - Sexxxual Hitman.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2018-12-29%20MSSPOT%20Ep.%20110%20-%20Sexxxual%20Hitman.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000114-msspot-public-111-wounded": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-01-04 MSSPOT Ep. 111 - Wounded.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-01-04%20MSSPOT%20Ep.%20111%20-%20Wounded.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000115-msspot-public-112-sad-stories": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-01-15 MSSPOT Ep. 112 - Sad Stories.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-01-15%20MSSPOT%20Ep.%20112%20-%20Sad%20Stories.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000117-msspot-public-113-daemons": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-01-20 MSSPOT Ep. 113 - Daemons.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-01-20%20MSSPOT%20Ep.%20113%20-%20Daemons.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000119-msspot-public-114-shreddin-gnar": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-01-28 MSSPOT Ep. 114 - Shreddin_ Gnar.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-01-28%20MSSPOT%20Ep.%20114%20-%20Shreddin_%20Gnar.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000121-msspot-public-115-nicean-secrets": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-02-05 MSSPOT Ep. 115 - Nicean Secrets.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-02-05%20MSSPOT%20Ep.%20115%20-%20Nicean%20Secrets.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000122-msspot-public-116-classified": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-02-11 MSSPOT Ep. 116 - Classified.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-02-11%20MSSPOT%20Ep.%20116%20-%20Classified.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000124-msspot-public-117-o-contact": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-02-18 MSSPOT Ep. 117 - O_Contact.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-02-18%20MSSPOT%20Ep.%20117%20-%20O_Contact.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000126-msspot-public-118-the-lazarus-cast": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-02-26 MSSPOT Ep. 118 - The Lazarus Cast.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-02-26%20MSSPOT%20Ep.%20118%20-%20The%20Lazarus%20Cast.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000127-msspot-public-119-stone-cold-s-bastard": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-03-04 MSSPOT Ep. 119 - Stone Cold_s Bastard.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-03-04%20MSSPOT%20Ep.%20119%20-%20Stone%20Cold_s%20Bastard.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000129-msspot-public-120-h-e-d-d": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-03-07 MSSPOT Ep. 120 - H.E.D.D..mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-03-07%20MSSPOT%20Ep.%20120%20-%20H.E.D.D..mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000131-msspot-public-121-wolf-stats": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-03-19 MSSPOT Ep. 121 - Wolf Stats.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-03-19%20MSSPOT%20Ep.%20121%20-%20Wolf%20Stats.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000132-msspot-public-122-saudi-chicken-prince": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-03-26 MSSPOT Ep. 122 - Saudi Chicken Prince.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-03-26%20MSSPOT%20Ep.%20122%20-%20Saudi%20Chicken%20Prince.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000133-msspot-public-123-b-i-g-s-i-s-t-e-r": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-04-01 MSSPOT Ep. 123 - B.I.G. S.I.S.T.E.R..mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-04-01%20MSSPOT%20Ep.%20123%20-%20B.I.G.%20S.I.S.T.E.R..mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000134-msspot-public-124-g-pass": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-04-10 MSSPOT Ep. 124 - G-Pass.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-04-10%20MSSPOT%20Ep.%20124%20-%20G-Pass.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000135-msspot-public-125-who-had-em": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-04-16 MSSPOT Ep. 125 - Who Had _Em.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-04-16%20MSSPOT%20Ep.%20125%20-%20Who%20Had%20_Em.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000137-msspot-public-126-swapcast-w-ya-f-cked-it": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-04-22 MSSPOT Ep. 126 - SWAPCAST W Ya F#cked It.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-04-22%20MSSPOT%20Ep.%20126%20-%20SWAPCAST%20W%20Ya%20F%23cked%20It.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000139-msspot-public-127-vision-of-love": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-05-01 MSSPOT Ep. 127 - Vision of Love.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-05-01%20MSSPOT%20Ep.%20127%20-%20Vision%20of%20Love.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000140-msspot-public-128-r-i-p-orlando-bloom": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-05-08 MSSPOT Ep. 128 - R.I.P. Orlando Bloom.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-05-08%20MSSPOT%20Ep.%20128%20-%20R.I.P.%20Orlando%20Bloom.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000141-msspot-public-129-a-new-fool": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-05-14 MSSPOT Ep. 129 - A New Fool.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-05-14%20MSSPOT%20Ep.%20129%20-%20A%20New%20Fool.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000142-msspot-public-130-double-donger": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-05-21 MSSPOT Ep. 130 - Double Donger.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-05-21%20MSSPOT%20Ep.%20130%20-%20Double%20Donger.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000144-msspot-public-131-the-poors": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-05-29 MSSPOT Ep. 131 - The Poors.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-05-29%20MSSPOT%20Ep.%20131%20-%20The%20Poors.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000146-msspot-public-132-gerbies-in-space": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-06-04 MSSPOT Ep. 132 - Gerbies In Space.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-06-04%20MSSPOT%20Ep.%20132%20-%20Gerbies%20In%20Space.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000148-msspot-public-133-stuck": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-06-11 MSSPOT Ep. 133 - STUCK.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-06-11%20MSSPOT%20Ep.%20133%20-%20STUCK.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000150-msspot-public-134-canadian-parade": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-06-17 MSSPOT Ep. 134 - Canadian Parade.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-06-17%20MSSPOT%20Ep.%20134%20-%20Canadian%20Parade.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000152-msspot-public-135-can-t-cuck-this": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-06-26 MSSPOT Ep. 135 - Can_t Cuck This.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-06-26%20MSSPOT%20Ep.%20135%20-%20Can_t%20Cuck%20This.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000155-msspot-public-136-live-the-stand-w-nick-mullen": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-07-02 MSSPOT Ep. 136 - Live @ The Stand w Nick Mullen.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-07-02%20MSSPOT%20Ep.%20136%20-%20Live%20%40%20The%20Stand%20w%20Nick%20Mullen.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000156-msspot-public-137-the-war-room": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-07-08 MSSPOT Ep. 137 - The War Room.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-07-08%20MSSPOT%20Ep.%20137%20-%20The%20War%20Room.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000157-msspot-public-138-geezer-league": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-07-17 MSSPOT Ep. 138 - Geezer League.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-07-17%20MSSPOT%20Ep.%20138%20-%20Geezer%20League.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000158-msspot-public-139-the-grid-of-interaction": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-07-22 MSSPOT Ep. 139 - The Grid of Interaction.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-07-22%20MSSPOT%20Ep.%20139%20-%20The%20Grid%20of%20Interaction.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000159-msspot-public-140-within-the-walls-of-the-kremlin": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-07-31 MSSPOT Ep. 140 - Within the Walls of the Kremlin.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-07-31%20MSSPOT%20Ep.%20140%20-%20Within%20the%20Walls%20of%20the%20Kremlin.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000160-msspot-public-141-awash-in-propagander": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-08-05 MSSPOT Ep. 141 - Awash in Propagander.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-08-05%20MSSPOT%20Ep.%20141%20-%20Awash%20in%20Propagander.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000162-msspot-public-142-war-room-ii-pt-1": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-08-15 MSSPOT Ep. 142 - War Room II-Pt 1.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-08-15%20MSSPOT%20Ep.%20142%20-%20War%20Room%20II-Pt%201.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000164-msspot-public-143-everything-is-fcking-asshoe": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-08-22 MSSPOT Ep. 143 - Everything is Fcking Asshoe!!!.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-08-22%20MSSPOT%20Ep.%20143%20-%20Everything%20is%20Fcking%20Asshoe!!!.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000165-msspot-public-144-a-i-is-racist": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-08-26 MSSPOT Ep. 144 - A.I. is Racist.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-08-26%20MSSPOT%20Ep.%20144%20-%20A.I.%20is%20Racist.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000166-msspot-public-146-live-from-shane-s-parent-s-basement": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-09-03 MSSPOT Ep. 146 - Live from Shane_s Parent_s Basement.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-09-03%20MSSPOT%20Ep.%20146%20-%20Live%20from%20Shane_s%20Parent_s%20Basement.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    },
+    "global-000167-msspot-public-147-ephemerality": {
+      "sourceType": "r2_audio",
+      "objectKey": "msspot/2019-09-08 MSSPOT Ep. 147 - Ephemerality.mp3",
+      "url": "https://mssp.pkcollection.net/msspot/2019-09-08%20MSSPOT%20Ep.%20147%20-%20Ephemerality.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "Old Testament archival mirror"
+    }
+  }
+}

@@ -266,6 +266,13 @@ body.has-player .app {
 
 .full-player__timeline input {
   width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.full-player__timeline input:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
 }
 
 .full-player__controls {

@@ -10,7 +10,7 @@ export const PLAYBACK_STATUSES = Object.freeze({
   PAUSED: "paused",
 });
 
-export function createPlayerState() {
+export function createPlayerState({ getPublicSourceForEpisode = () => null } = {}) {
   const listeners = new Set();
   const state = {
     selectedEpisode: null,
@@ -19,6 +19,10 @@ export function createPlayerState() {
     isExpanded: false,
     playbackStatus: PLAYBACK_STATUSES.UNAVAILABLE,
     sourceStatus: null,
+    source: null,
+    currentTime: 0,
+    duration: 0,
+    playbackError: "",
   };
 
   function getState() {
@@ -54,13 +58,39 @@ export function createPlayerState() {
   }
 
   function loadEpisode({ episode, collectionId, queue, isExpanded = state.isExpanded }) {
+    const source = getPublicSourceForEpisode(episode);
     state.selectedEpisode = episode;
     state.collectionId = collectionId;
     state.queue = sortQueue(queue);
     state.isExpanded = Boolean(isExpanded);
-    state.playbackStatus = PLAYBACK_STATUSES.UNAVAILABLE;
-    state.sourceStatus = getSourceStatus(episode);
+    state.source = source;
+    state.sourceStatus = getSourceStatus(episode, source);
+    state.playbackStatus = source ? PLAYBACK_STATUSES.READY : PLAYBACK_STATUSES.UNAVAILABLE;
+    state.currentTime = 0;
+    state.duration = 0;
+    state.playbackError = "";
     persist();
+    notify();
+  }
+
+  function setQueue(queue) {
+    state.queue = sortQueue(queue);
+    notify();
+  }
+
+  function setPlaybackStatus(playbackStatus) {
+    state.playbackStatus = playbackStatus;
+    notify();
+  }
+
+  function setPlaybackError(message) {
+    state.playbackError = String(message || "");
+    notify();
+  }
+
+  function setTimeline({ currentTime, duration }) {
+    state.currentTime = Number.isFinite(currentTime) ? currentTime : 0;
+    state.duration = Number.isFinite(duration) ? duration : 0;
     notify();
   }
 
@@ -124,6 +154,10 @@ export function createPlayerState() {
     loadEpisode,
     restore,
     setExpanded,
+    setPlaybackError,
+    setPlaybackStatus,
+    setQueue,
+    setTimeline,
     step,
     subscribe,
   };

@@ -1,4 +1,6 @@
-export function createEpisodeDetails({ dom, state, onPlayRequest }) {
+import { SOURCE_STATUSES } from "./player/sourceStatus.js";
+
+export function createEpisodeDetails({ dom, state, onPlayRequest, getSourceStatusForEpisode }) {
   function renderDetails() {
     const episode = state.visibleEpisodes.find((item) => item.id === state.selectedEpisodeId);
     if (!episode) {
@@ -12,6 +14,12 @@ export function createEpisodeDetails({ dom, state, onPlayRequest }) {
     dom.heroCover.alt = `${episode.title || "Selected episode"} cover`;
     const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
     const accessLabel = episode.paytch ? "PAYTCH" : "Public";
+    const sourceStatus = getSourceStatusForEpisode(episode);
+    const actionLabel = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED
+      ? "Connect Patreon RSS to play"
+      : sourceStatus.id === SOURCE_STATUSES.READY
+        ? "Play episode"
+        : "Open player";
     dom.heroDetails.innerHTML = `
       <span class="hero-details__heading">
         <span class="hero-details__heading-inner">
@@ -24,7 +32,7 @@ export function createEpisodeDetails({ dom, state, onPlayRequest }) {
       <span>${episode.type || "MSSP"} - ${accessLabel}</span>
       <span>${episode.date || "Unknown date"}</span>
       <button class="episode-details__play" type="button">
-        ${episode.paytch === "PAYTCH" ? "Connect Patreon RSS to play" : "Open player"}
+        ${actionLabel}
       </button>
     `;
     dom.heroDetails.querySelector(".episode-details__play").addEventListener(

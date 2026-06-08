@@ -12,7 +12,14 @@ const PLAY_ICON = `
   </svg>
 `;
 
-export function createPlayerView({ dom, playerState }) {
+const PAUSE_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24">
+    <path d="M7 5h3v14H7V5Z"></path>
+    <path d="M14 5h3v14h-3V5Z"></path>
+  </svg>
+`;
+
+export function createPlayerView({ dom, playerState, audioController, onStep }) {
   let restoreFocusTo = null;
   let wasExpanded = false;
 
@@ -36,6 +43,7 @@ export function createPlayerView({ dom, playerState }) {
     dom.miniPlayerCover.alt = "";
     dom.miniPlayerTitle.textContent = `${episodeLabel} - ${episode.title || "Untitled episode"}`;
     dom.miniPlayerStatus.textContent = source.label;
+    dom.miniPlayer.style.setProperty("--mini-player-progress", `${getProgressPercent(state)}%`);
 
     dom.fullPlayerCover.src = episode.coverUrl;
     dom.fullPlayerCover.alt = `${episode.title || "Selected episode"} cover`;
@@ -43,12 +51,22 @@ export function createPlayerView({ dom, playerState }) {
     dom.fullPlayerTitle.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.date || "Unknown date"} · ${accessLabel}`;
     dom.fullPlayerStatus.textContent = source.label;
-    dom.fullPlayerStatusDetail.textContent = source.detail;
+    dom.fullPlayerStatusDetail.textContent = state.playbackError || source.detail;
     dom.playerPrevious.disabled = !queuePosition.hasPrevious;
     dom.playerNext.disabled = !queuePosition.hasNext;
     dom.miniPlayerPrevious.disabled = !queuePosition.hasPrevious;
     dom.miniPlayerNext.disabled = !queuePosition.hasNext;
-    dom.miniPlayerPlay.disabled = state.playbackStatus === "unavailable";
+    dom.miniPlayerPlay.disabled = !isPlayable(state);
+    dom.playerPlay.disabled = !isPlayable(state);
+    dom.playerTimeline.disabled = !isPlayable(state) || !state.duration;
+    dom.playerTimeline.max = String(Math.max(0, state.duration || 0));
+    dom.playerTimeline.value = String(Math.min(state.currentTime || 0, state.duration || 0));
+    dom.playerTimelineStart.textContent = formatTime(state.currentTime);
+    dom.playerTimelineEnd.textContent = formatTime(state.duration);
+    dom.playerTimeline.setAttribute(
+      "aria-label",
+      isPlayable(state) ? "Playback position" : "Playback position unavailable"
+    );
     renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackStatus);
     renderPlaybackControl(dom.playerPlay, source, state.playbackStatus);
     setExpandedUi(state.isExpanded);
@@ -67,7 +85,7 @@ export function createPlayerView({ dom, playerState }) {
   function renderPlaybackControl(button, source, playbackStatus) {
     const isLocked = source.id === SOURCE_STATUSES.RSS_REQUIRED;
     const isPlaying = playbackStatus === "playing";
-    button.innerHTML = isLocked ? LOCK_ICON : PLAY_ICON;
+    button.innerHTML = isLocked ? LOCK_ICON : isPlaying ? PAUSE_ICON : PLAY_ICON;
     button.classList.toggle("is-locked", isLocked);
     button.setAttribute(
       "aria-label",
@@ -119,10 +137,13 @@ export function createPlayerView({ dom, playerState }) {
   dom.miniPlayerExpand.addEventListener("click", (event) => expand(event.currentTarget));
   dom.fullPlayerCollapse.addEventListener("click", collapse);
   dom.playerBackdrop.addEventListener("click", collapse);
-  dom.playerPrevious.addEventListener("click", () => playerState.step(-1));
-  dom.playerNext.addEventListener("click", () => playerState.step(1));
-  dom.miniPlayerPrevious.addEventListener("click", () => playerState.step(-1));
-  dom.miniPlayerNext.addEventListener("click", () => playerState.step(1));
+  dom.playerPrevious.addEventListener("click", () => onStep(-1));
+  dom.playerNext.addEventListener("click", () => onStep(1));
+  dom.miniPlayerPrevious.addEventListener("click", () => onStep(-1));
+  dom.miniPlayerNext.addEventListener("click", () => onStep(1));
+  dom.playerPlay.addEventListener("click", () => audioController.toggle());
+  dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
+  dom.playerTimeline.addEventListener("input", (event) => audioController.seek(event.currentTarget.value));
   document.addEventListener("keydown", trapFocus);
   playerState.subscribe(render);
 
@@ -130,4 +151,20 @@ export function createPlayerView({ dom, playerState }) {
     collapse,
     expand,
   };
+}
+
+function isPlayable(state) {
+  return Boolean(state.source?.url) && state.sourceStatus?.id === SOURCE_STATUSES.READY;
+}
+
+function getProgressPercent(state) {
+  if (!state.duration) return 0;
+  return Math.max(0, Math.min(100, (state.currentTime / state.duration) * 100));
+}
+
+function formatTime(seconds) {
+  const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
+  const minutes = Math.floor(totalSeconds / 60);
+  const remainder = totalSeconds % 60;
+  return `${minutes}:${String(remainder).padStart(2, "0")}`;
 }

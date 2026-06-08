@@ -50,7 +50,7 @@ jobs:
         run: python ../data/organizefilepath.py
 
       - name: Export static data
-        run: npm run export:data
+        run: npm run export:all
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3

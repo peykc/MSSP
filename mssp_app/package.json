@@ -4,6 +4,8 @@
   "private": true,
   "scripts": {
     "export:data": "node scripts/exportData.js",
+    "export:sources": "node scripts/exportPublicSources.js",
+    "export:all": "npm run export:data && npm run export:sources",
     "start": "node server.js"
   }
 }

@@ -4,10 +4,13 @@ import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
 import { createLibraryView } from "./libraryView.js";
+import { createAudioController } from "./player/audioController.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
+import { getSourceStatus } from "./player/sourceStatus.js";
 import { registerServiceWorker } from "./pwa.js";
 import { initSearch } from "./search.js";
+import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js";
 
@@ -23,12 +26,20 @@ async function init() {
   const apiClient = getApiClient();
   const state = createAppState();
   const dismissGlobalTooltip = initGlobalTooltip();
-  const playerState = createPlayerState();
-  createPlayerView({ dom, playerState });
+  await loadPublicSources();
+  const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
+  const playerState = createPlayerState({ getPublicSourceForEpisode });
+  const audioController = createAudioController({ playerState });
+  createPlayerView({ dom, playerState, audioController, onStep: stepPlayer });
   const queueCache = new Map();
 
   let episodeList;
-  const episodeDetails = createEpisodeDetails({ dom, state, onPlayRequest: requestPlay });
+  const episodeDetails = createEpisodeDetails({
+    dom,
+    state,
+    onPlayRequest: requestPlay,
+    getSourceStatusForEpisode,
+  });
 
   let coverFilters;
   episodeList = createEpisodeList({
@@ -38,6 +49,7 @@ async function init() {
     renderDetails: episodeDetails.renderDetails,
     dismissGlobalTooltip,
     onPlayRequest: requestPlay,
+    getSourceStatusForEpisode,
   });
 
   coverFilters = createCoverFilters({
@@ -90,13 +102,31 @@ async function init() {
 
     const collectionId = state.activeCollection?.id || episode.collectionKind || "anthology";
     let queue = queueCache.get(collectionId);
+    if (!queue && state.activeCollection?.id === collectionId && !state.query) {
+      queue = state.episodes;
+      queueCache.set(collectionId, queue);
+    }
+
+    playerState.loadEpisode({ episode, collectionId, queue: queue || [], isExpanded: false });
+    void audioController.loadSelected({ autoplay: Boolean(getPublicSourceForEpisode(episode)) });
+
     if (!queue) {
       const result = await apiClient.getEpisodes({ collection: collectionId, query: "" });
       queue = result.episodes;
       queueCache.set(collectionId, queue);
+      if (
+        playerState.getState().selectedEpisode?.episodeKey === episode.episodeKey
+        && playerState.getState().collectionId === collectionId
+      ) {
+        playerState.setQueue(queue);
+      }
     }
+  }
 
-    playerState.loadEpisode({ episode, collectionId, queue, isExpanded: false });
+  function stepPlayer(offset) {
+    const episode = playerState.step(offset);
+    if (!episode) return;
+    audioController.loadSelected({ autoplay: false });
   }
 }
 

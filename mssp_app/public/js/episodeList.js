@@ -1,4 +1,4 @@
-import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
+import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 
 const ROW_HEIGHT = 64;
 const OVERSCAN = 8;
@@ -22,6 +22,7 @@ export function createEpisodeList({
   renderDetails,
   dismissGlobalTooltip,
   onPlayRequest,
+  getSourceStatusForEpisode,
 }) {
   const rowCache = new Map();
 
@@ -134,15 +135,18 @@ export function createEpisodeList({
 
   function updatePlayButton(playButton, episode) {
     const title = episode.title || "Untitled episode";
-    const sourceStatus = getSourceStatus(episode);
+    const sourceStatus = getSourceStatusForEpisode(episode);
     const isLocked = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED;
+    const isReady = sourceStatus.id === SOURCE_STATUSES.READY;
     playButton.innerHTML = isLocked ? LOCK_ICON : PLAY_ICON;
     playButton.classList.toggle("is-locked", isLocked);
     playButton.setAttribute(
       "aria-label",
       isLocked
         ? `Connect Patreon RSS for ${title}`
-        : `Open player for ${title}`
+        : isReady
+          ? `Play ${title}`
+          : `Open player for ${title}`
     );
   }
 
