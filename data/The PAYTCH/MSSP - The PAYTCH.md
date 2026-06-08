@@ -80,7 +80,6 @@
 | 2020-08-14 | MSSP | PAYTCH | EX | America 2.0 |
 | 2020-08-14 | MSSP | PAYTCH | EX | Psych Naw 9 |
 | 2020-08-18 | MSSP | PAYTCH | 310 | RIP Cleveland |
-| 2020-08-25 | MSSP | PAYTCH | 311 | USA 2.0 |
 | 2020-09-02 | MSSP | PAYTCH | 312 | Fat Attack |
 | 2020-09-09 | MSSP | PAYTCH | 313 | Return of the Stoner Dads |
 | 2020-09-16 | MSSP | PAYTCH | 315 | Hype Beasts |
