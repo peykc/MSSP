@@ -17,9 +17,9 @@ The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by r
 2. Use official numbers when they exist.
 3. Infer missing numbers only from supported continuity.
 4. Source audio ethically without hosting or reproducing it.
-5. Keep MSSPOT, MSSP, and PAYTCH identities visible.
-6. Place PAYTCH by chronology, not assumption.
-7. Attach PAYTCH numbers only when the parent relationship is real.
+5. Keep `MSSPOT`, `MSSP`, and `PAYTCH` identities visible.
+6. Place `PAYTCH` by chronology, not assumption.
+7. Attach `PAYTCH` numbers only when the parent relationship is real.
 8. Use decimals for extra parts in the same episode family.
-9. Use EX for standalone/off-cycle releases.
+9. Use `EX` for standalone/off-cycle releases.
 10. Keep the archive reproducible, auditable, and ready for metadata/player use.
