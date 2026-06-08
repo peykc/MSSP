@@ -1,0 +1,50 @@
+name: Refresh collection data
+
+on:
+  push:
+    branches: ["main"]
+    paths:
+      - "data/The Holy Trinity/MSSP - The Holy Trinity.txt"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "refresh-data-${{ github.ref }}"
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Refresh collection files
+        run: python data/organizefilepath.py
+
+      - name: Commit refreshed data
+        shell: bash
+        run: |
+          git add -- data/
+
+          if git diff --cached --quiet; then
+            echo "Collection data is already up to date."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          refresh_date="$(TZ=America/New_York date +%F)"
+          git commit -m "${refresh_date} Refresh"
+          git push origin "HEAD:${GITHUB_REF_NAME}"
