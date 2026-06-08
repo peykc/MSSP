@@ -11,4 +11,4 @@
 9. Use EX for standalone/off-cycle releases.
 10. Keep the archive reproducible, auditable, and ready for metadata/player use.
 
-A fan-made chronological anthology index preserving the release history of MSSP. Public episodes stream from public sources. PAYTCH playback requires your own private RSS feed. No paid audio is hosted or redistributed.
+###### A fan-made chronological anthology index preserving the release history of MSSP. Public episodes stream from public sources. PAYTCH playback requires your own private RSS feed. No paid audio is hosted or redistributed.
