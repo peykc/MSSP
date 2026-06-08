@@ -5,14 +5,14 @@
 
 ###### A fan-made chronological index preserving the release history of MSSP. Public episodes stream from public sources. PAYTCH playback requires your own private RSS feed. No paid audio is hosted or redistributed.
 
-## The Holy Trinity
+## <img width="20" height="20" alt="favicon-32x32" src="https://github.com/user-attachments/assets/44be4d9f-5236-4a2c-9b83-a68f76b3d635" /> The Holy Trinity
 
 The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by release/listening order across... 
 - `MSSPOT` (The Old Testament), 
 - `MSSP` (The New Testament), 
 - `PAYTCH` (Patreon).
 
-## The Ten Commandments
+##  The Ten Commandments
 1. Preserve the listening order.
 2. Use official numbers when they exist.
 3. Infer missing numbers only from supported continuity.
