@@ -34,7 +34,6 @@
   transition: background 150ms ease, border-color 150ms ease;
 }
 
-.episode-row:hover,
 .episode-row.is-selected {
   background: rgba(255, 255, 255, 0.075);
   border-color: rgba(255, 255, 255, 0.1);
@@ -144,6 +143,13 @@
   color: var(--text);
   flex: 1 1 auto;
   font-weight: 780;
+}
+
+.episode-row__title-text {
+  display: block;
+  width: max-content;
+  min-width: 100%;
+  will-change: transform;
 }
 
 .episode-row__episode {

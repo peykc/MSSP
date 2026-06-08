@@ -174,7 +174,7 @@ body.has-player .app {
   z-index: 120;
   display: grid;
   grid-template-rows: auto minmax(120px, 1fr) auto auto auto auto;
-  width: min(100%, 720px);
+  width: 100%;
   max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
   margin: 0 auto;
   gap: clamp(14px, 2vh, 22px);

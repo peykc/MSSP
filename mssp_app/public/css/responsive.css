@@ -136,7 +136,7 @@
 
   .back-button {
     position: absolute;
-    top: 16px;
+    top: 0px;
     right: 16px;
     left: auto;
   }

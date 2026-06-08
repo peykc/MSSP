@@ -70,7 +70,9 @@ export function createEpisodeList({
       visibleKeys.add(key);
       const row = getMemoizedRow(episode);
       row.style.transform = `translateY(${index * ROW_HEIGHT}px)`;
-      row.classList.toggle("is-selected", episode.id === state.selectedEpisodeId);
+      const isSelected = episode.id === state.selectedEpisodeId;
+      row.classList.toggle("is-selected", isSelected);
+      updateRowTitleMarquee(row, isSelected);
       if (row.parentElement !== dom.listItems) dom.listItems.append(row);
     }
 
@@ -99,7 +101,9 @@ export function createEpisodeList({
         <span class="episode-row__main">
           <span class="episode-row__line">
             <span class="episode-row__episode"></span>
-            <span class="episode-row__title"></span>
+            <span class="episode-row__title">
+              <span class="episode-row__title-text"></span>
+            </span>
           </span>
         </span>
         <span class="episode-row__date"></span>
@@ -107,7 +111,7 @@ export function createEpisodeList({
     `;
     const title = episode.title || "Untitled episode";
     const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
-    const titleEl = row.querySelector(".episode-row__title");
+    const titleEl = row.querySelector(".episode-row__title-text");
     const coverButton = row.querySelector(".episode-row__cover");
     const selectButton = row.querySelector(".episode-row__select");
     const playButton = row.querySelector(".episode-row__play");
@@ -140,6 +144,56 @@ export function createEpisodeList({
         ? `Connect Patreon RSS for ${title}`
         : `Open player for ${title}`
     );
+  }
+
+  function updateRowTitleMarquee(row, isSelected) {
+    const title = row.querySelector(".episode-row__title");
+    const titleText = row.querySelector(".episode-row__title-text");
+    if (!title || !titleText) return;
+
+    if (!isSelected) {
+      stopRowTitleMarquee(title, titleText);
+      return;
+    }
+
+    requestAnimationFrame(() => {
+      if (!row.classList.contains("is-selected")) return;
+      const distance = titleText.scrollWidth - title.clientWidth;
+      const marqueeKey = `${title.clientWidth}:${titleText.scrollWidth}`;
+      if (distance <= 2 || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        stopRowTitleMarquee(title, titleText);
+        return;
+      }
+      if (title.dataset.marqueeKey === marqueeKey && titleText.getAnimations().length) return;
+
+      stopRowTitleMarquee(title, titleText);
+      title.dataset.marqueeKey = marqueeKey;
+      const holdMs = 1000;
+      const fadeMs = 280;
+      const resetMs = 120;
+      const speedPxPerSecond = 42;
+      const scrollMs = Math.max(4200, Math.min(18000, (distance / speedPxPerSecond) * 1000));
+      const duration = holdMs + scrollMs + holdMs + fadeMs + resetMs + fadeMs;
+      titleText.animate(
+        [
+          { transform: "translateX(0)", opacity: 1, offset: 0 },
+          { transform: "translateX(0)", opacity: 1, offset: holdMs / duration },
+          { transform: `translateX(${-distance}px)`, opacity: 1, offset: (holdMs + scrollMs) / duration },
+          { transform: `translateX(${-distance}px)`, opacity: 1, offset: (holdMs + scrollMs + holdMs) / duration },
+          { transform: `translateX(${-distance}px)`, opacity: 0, offset: (holdMs + scrollMs + holdMs + fadeMs) / duration },
+          { transform: "translateX(0)", opacity: 0, offset: (holdMs + scrollMs + holdMs + fadeMs + resetMs) / duration },
+          { transform: "translateX(0)", opacity: 1, offset: 1 },
+        ],
+        { duration, easing: "linear", iterations: Infinity }
+      );
+    });
+  }
+
+  function stopRowTitleMarquee(title, titleText) {
+    titleText.getAnimations().forEach((animation) => animation.cancel());
+    titleText.style.transform = "";
+    titleText.style.opacity = "";
+    delete title.dataset.marqueeKey;
   }
 
   return {

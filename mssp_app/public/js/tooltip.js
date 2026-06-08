@@ -92,6 +92,7 @@ export function initGlobalTooltip() {
     if (!el) return;
     if (el.nodeType === Node.TEXT_NODE) el = el.parentElement;
     if (!el || el.nodeType !== Node.ELEMENT_NODE) return;
+    if (el.closest(".episode-row")) return;
 
     let targetEl = el.closest("[data-tip]");
     let tipText = targetEl ? targetEl.getAttribute("data-tip") : null;
