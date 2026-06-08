@@ -1,3 +1,6 @@
+# MSSP Archive / The Holy Trinity
+
+The Holy Trinity is a fan-made chronological anthology index for Matt and Shane's Secret Podcast, organized by release/listening order across MSSPOT, MSSP, and PAYTCH.
 
 ## 10 Commandments of The Holy Trinity
 1. Preserve the listening order.
