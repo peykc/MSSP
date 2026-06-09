@@ -5,12 +5,15 @@ const AUTOPLAY_STORAGE_KEY = "mssp:playerAutoplay:v1";
 const SCHEMA_VERSION = 1;
 
 export const PLAYBACK_STATUSES = Object.freeze({
+  IDLE: "idle",
   UNAVAILABLE: "unavailable",
   READY: "ready",
   LOADING: "loading",
   BUFFERING: "buffering",
   PLAYING: "playing",
   PAUSED: "paused",
+  ENDED: "ended",
+  AUTOPLAY_PENDING: "autoplay_pending",
   ERROR: "error",
 });
 
@@ -21,13 +24,14 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     collectionId: null,
     queue: [],
     isExpanded: false,
-    playbackStatus: PLAYBACK_STATUSES.UNAVAILABLE,
+    playbackStatus: PLAYBACK_STATUSES.IDLE,
     sourceStatus: null,
     source: null,
     currentTime: 0,
     duration: 0,
     playbackError: "",
     autoplayEnabled: readAutoplayPreference(),
+    autoplayCountdown: 0,
   };
 
   function getState() {
@@ -74,6 +78,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     state.currentTime = 0;
     state.duration = 0;
     state.playbackError = "";
+    state.autoplayCountdown = 0;
     persist();
     notify();
   }
@@ -85,6 +90,9 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
 
   function setPlaybackStatus(playbackStatus) {
     state.playbackStatus = playbackStatus;
+    if (playbackStatus !== PLAYBACK_STATUSES.AUTOPLAY_PENDING) {
+      state.autoplayCountdown = 0;
+    }
     notify();
   }
 
@@ -96,6 +104,12 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
   function setAutoplayEnabled(enabled) {
     state.autoplayEnabled = Boolean(enabled);
     persistAutoplayPreference(state.autoplayEnabled);
+    notify();
+  }
+
+  function setAutoplayPending(countdown) {
+    state.autoplayCountdown = Math.max(0, Number(countdown) || 0);
+    state.playbackStatus = PLAYBACK_STATUSES.AUTOPLAY_PENDING;
     notify();
   }
 
@@ -165,6 +179,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     loadEpisode,
     restore,
     setAutoplayEnabled,
+    setAutoplayPending,
     setExpanded,
     setPlaybackError,
     setPlaybackStatus,

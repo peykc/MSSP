@@ -96,8 +96,8 @@ function getAlbum(episode) {
 function getArtwork(episode) {
   const base = document.baseURI || window.location.href;
   return [
-    { src: new URL(episode.coverUrl, base).href, type: "image/jpeg" },
-    { src: new URL("./android-chrome-192x192.png", base).href, sizes: "192x192", type: "image/png" },
+    { src: new URL("./assets/media-session/old-512.jpg", base).href, sizes: "512x512", type: "image/jpeg" },
+    { src: new URL("./assets/media-session/old-192.jpg", base).href, sizes: "192x192", type: "image/jpeg" },
     { src: new URL("./android-chrome-512x512.png", base).href, sizes: "512x512", type: "image/png" },
   ];
 }

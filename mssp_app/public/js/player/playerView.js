@@ -19,7 +19,7 @@ const PAUSE_ICON = `
   </svg>
 `;
 
-export function createPlayerView({ dom, playerState, audioController, onStep }) {
+export function createPlayerView({ dom, playerState, audioController, onStep, onAutoplayChange }) {
   let restoreFocusTo = null;
   let wasExpanded = false;
 
@@ -88,7 +88,7 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
 
   function renderPlaybackControl(button, source, playbackStatus) {
     const isLocked = source.id === SOURCE_STATUSES.RSS_REQUIRED;
-    const isPlaying = playbackStatus === "playing";
+    const isPlaying = playbackStatus === "playing" || playbackStatus === "autoplay_pending";
     button.innerHTML = isLocked ? LOCK_ICON : isPlaying ? PAUSE_ICON : PLAY_ICON;
     button.classList.toggle("is-locked", isLocked);
     button.setAttribute(
@@ -149,7 +149,7 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
   dom.playerTimeline.addEventListener("input", (event) => audioController.seek(event.currentTarget.value));
   dom.playerAutoplay.addEventListener("change", (event) => {
-    playerState.setAutoplayEnabled(event.currentTarget.checked);
+    onAutoplayChange(event.currentTarget.checked);
   });
   document.addEventListener("keydown", trapFocus);
   playerState.subscribe(render);
@@ -167,6 +167,12 @@ function isPlayable(state) {
 function getPlaybackLabel(state) {
   if (state.playbackStatus === "loading") return "Loading audio...";
   if (state.playbackStatus === "buffering") return "Buffering...";
+  if (state.playbackStatus === "playing") return "Playing";
+  if (state.playbackStatus === "paused") return "Paused";
+  if (state.playbackStatus === "ended") return "Episode finished";
+  if (state.playbackStatus === "autoplay_pending") {
+    return `Next episode starting in ${state.autoplayCountdown || 1}...`;
+  }
   if (state.playbackStatus === "error") return "Unable to play audio. Tap Play to retry.";
   return state.sourceStatus.label;
 }
