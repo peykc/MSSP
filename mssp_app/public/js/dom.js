@@ -33,6 +33,7 @@ export const dom = {
   playerTimeline: getRequiredElement("playerTimeline"),
   playerTimelineStart: getRequiredElement("playerTimelineStart"),
   playerTimelineEnd: getRequiredElement("playerTimelineEnd"),
+  playerAutoplay: getRequiredElement("playerAutoplay"),
   playerPrevious: getRequiredElement("playerPrevious"),
   playerPlay: getRequiredElement("playerPlay"),
   playerNext: getRequiredElement("playerNext"),

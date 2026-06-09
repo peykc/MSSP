@@ -1,32 +1,59 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 
-export function createAudioController({ playerState }) {
+export function createAudioController({ playerState, onEnded }) {
   const audio = new Audio();
   audio.preload = "metadata";
   audio.crossOrigin = "anonymous";
   let loadedEpisodeKey = null;
+  let playbackIntent = false;
 
-  audio.addEventListener("loadedmetadata", updateTimeline);
+  audio.addEventListener("loadstart", () => {
+    if (playbackIntent) playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING);
+  });
+  audio.addEventListener("loadedmetadata", () => {
+    updateTimeline();
+    if (!playbackIntent) playerState.setPlaybackStatus(PLAYBACK_STATUSES.READY);
+  });
   audio.addEventListener("durationchange", updateTimeline);
   audio.addEventListener("timeupdate", updateTimeline);
+  audio.addEventListener("waiting", markBuffering);
+  audio.addEventListener("stalled", markBuffering);
   audio.addEventListener("play", () => playerState.setPlaybackStatus(PLAYBACK_STATUSES.PLAYING));
   audio.addEventListener("pause", () => {
-    if (playerState.getState().playbackStatus !== PLAYBACK_STATUSES.UNAVAILABLE) {
+    if (
+      playerState.getState().playbackStatus !== PLAYBACK_STATUSES.UNAVAILABLE
+      && playerState.getState().playbackStatus !== PLAYBACK_STATUSES.ERROR
+      && !audio.ended
+    ) {
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
     }
   });
   audio.addEventListener("ended", () => {
+    playbackIntent = false;
     updateTimeline();
     playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
+    onEnded?.();
   });
   audio.addEventListener("error", () => {
-    playerState.setPlaybackError("Audio could not be loaded from the public source.");
+    const hadPlaybackIntent = playbackIntent;
+    playbackIntent = false;
+    if (!hadPlaybackIntent) {
+      playerState.setPlaybackStatus(
+        playerState.getState().source?.url
+          ? PLAYBACK_STATUSES.READY
+          : PLAYBACK_STATUSES.UNAVAILABLE
+      );
+      return;
+    }
+    playerState.setPlaybackStatus(PLAYBACK_STATUSES.ERROR);
+    playerState.setPlaybackError("Unable to play audio. Tap Play to retry.");
   });
 
-  function loadSelected({ autoplay = false } = {}) {
+  function loadSelected({ playbackIntent: shouldPlay = false } = {}) {
     const state = playerState.getState();
     const episode = state.selectedEpisode;
     const source = state.source;
+    playbackIntent = Boolean(shouldPlay);
 
     if (!episode || !source?.url) {
       clearAudio();
@@ -34,27 +61,33 @@ export function createAudioController({ playerState }) {
     }
 
     if (loadedEpisodeKey !== episode.episodeKey) {
-      audio.pause();
+      resetAudio();
       loadedEpisodeKey = episode.episodeKey;
       audio.src = source.url;
       audio.load();
       playerState.setTimeline({ currentTime: 0, duration: 0 });
       playerState.setPlaybackError("");
-      playerState.setPlaybackStatus(PLAYBACK_STATUSES.READY);
+      playerState.setPlaybackStatus(playbackIntent ? PLAYBACK_STATUSES.LOADING : PLAYBACK_STATUSES.READY);
     }
 
-    return autoplay ? play() : Promise.resolve(true);
+    return playbackIntent ? play() : Promise.resolve(true);
   }
 
   async function play() {
     const state = playerState.getState();
     if (!state.source?.url) return false;
-    if (loadedEpisodeKey !== state.selectedEpisode?.episodeKey) loadSelected();
+    playbackIntent = true;
+    playerState.setPlaybackError("");
+    if (loadedEpisodeKey !== state.selectedEpisode?.episodeKey) {
+      return loadSelected({ playbackIntent: true });
+    }
+    playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING);
 
     try {
       await audio.play();
       return true;
     } catch (error) {
+      playbackIntent = false;
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
       playerState.setPlaybackError("Press Play to start audio.");
       console.warn("[MSSP] Audio playback did not start.", error);
@@ -63,6 +96,7 @@ export function createAudioController({ playerState }) {
   }
 
   function pause() {
+    playbackIntent = false;
     audio.pause();
   }
 
@@ -78,12 +112,25 @@ export function createAudioController({ playerState }) {
     updateTimeline();
   }
 
+  function seekBy(offset) {
+    seek(audio.currentTime + Number(offset || 0));
+  }
+
   function clearAudio() {
-    audio.pause();
+    playbackIntent = false;
+    resetAudio();
     loadedEpisodeKey = null;
+    playerState.setTimeline({ currentTime: 0, duration: 0 });
+  }
+
+  function resetAudio() {
+    audio.pause();
     audio.removeAttribute("src");
     audio.load();
-    playerState.setTimeline({ currentTime: 0, duration: 0 });
+  }
+
+  function markBuffering() {
+    if (playbackIntent) playerState.setPlaybackStatus(PLAYBACK_STATUSES.BUFFERING);
   }
 
   function updateTimeline() {
@@ -98,6 +145,7 @@ export function createAudioController({ playerState }) {
     pause,
     play,
     seek,
+    seekBy,
     toggle,
   };
 }

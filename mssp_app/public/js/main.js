@@ -5,6 +5,7 @@ import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
 import { createLibraryView } from "./libraryView.js";
 import { createAudioController } from "./player/audioController.js";
+import { createMediaSessionController } from "./player/mediaSessionController.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
 import { getSourceStatus } from "./player/sourceStatus.js";
@@ -29,8 +30,9 @@ async function init() {
   await loadPublicSources();
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode });
-  const audioController = createAudioController({ playerState });
+  const audioController = createAudioController({ playerState, onEnded: handleEnded });
   createPlayerView({ dom, playerState, audioController, onStep: stepPlayer });
+  createMediaSessionController({ playerState, audioController, onStep: stepPlayer });
   const queueCache = new Map();
 
   let episodeList;
@@ -108,7 +110,7 @@ async function init() {
     }
 
     playerState.loadEpisode({ episode, collectionId, queue: queue || [], isExpanded: false });
-    void audioController.loadSelected({ autoplay: Boolean(getPublicSourceForEpisode(episode)) });
+    void audioController.loadSelected({ playbackIntent: Boolean(getPublicSourceForEpisode(episode)) });
 
     if (!queue) {
       const result = await apiClient.getEpisodes({ collection: collectionId, query: "" });
@@ -126,7 +128,11 @@ async function init() {
   function stepPlayer(offset) {
     const episode = playerState.step(offset);
     if (!episode) return;
-    audioController.loadSelected({ autoplay: false });
+    audioController.loadSelected({ playbackIntent: playerState.getState().autoplayEnabled });
+  }
+
+  function handleEnded() {
+    if (playerState.getState().autoplayEnabled) stepPlayer(1);
   }
 }
 

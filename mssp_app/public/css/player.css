@@ -173,7 +173,7 @@ body.has-player .app {
   left: 0;
   z-index: 120;
   display: grid;
-  grid-template-rows: auto minmax(120px, 1fr) auto auto auto auto;
+  grid-template-rows: auto minmax(120px, 1fr) auto auto auto auto auto;
   width: 100%;
   max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
   margin: 0 auto;
@@ -273,6 +273,23 @@ body.has-player .app {
 .full-player__timeline input:disabled {
   cursor: not-allowed;
   opacity: 0.46;
+}
+
+.full-player__autoplay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.full-player__autoplay input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--accent);
+  cursor: pointer;
 }
 
 .full-player__controls {

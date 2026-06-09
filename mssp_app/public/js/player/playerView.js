@@ -42,7 +42,7 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
     dom.miniPlayerCover.src = episode.coverUrl;
     dom.miniPlayerCover.alt = "";
     dom.miniPlayerTitle.textContent = `${episodeLabel} - ${episode.title || "Untitled episode"}`;
-    dom.miniPlayerStatus.textContent = source.label;
+    dom.miniPlayerStatus.textContent = getPlaybackLabel(state);
     dom.miniPlayer.style.setProperty("--mini-player-progress", `${getProgressPercent(state)}%`);
 
     dom.fullPlayerCover.src = episode.coverUrl;
@@ -50,8 +50,11 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
     dom.fullPlayerEyebrow.textContent = `${episode.type || "MSSP"} ${accessLabel} ${episodeLabel}`;
     dom.fullPlayerTitle.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.date || "Unknown date"} · ${accessLabel}`;
-    dom.fullPlayerStatus.textContent = source.label;
-    dom.fullPlayerStatusDetail.textContent = state.playbackError || source.detail;
+    const playbackLabel = getPlaybackLabel(state);
+    dom.fullPlayerStatus.textContent = playbackLabel;
+    dom.fullPlayerStatusDetail.textContent = state.playbackError && state.playbackError !== playbackLabel
+      ? state.playbackError
+      : source.detail;
     dom.playerPrevious.disabled = !queuePosition.hasPrevious;
     dom.playerNext.disabled = !queuePosition.hasNext;
     dom.miniPlayerPrevious.disabled = !queuePosition.hasPrevious;
@@ -67,6 +70,7 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
       "aria-label",
       isPlayable(state) ? "Playback position" : "Playback position unavailable"
     );
+    dom.playerAutoplay.checked = state.autoplayEnabled;
     renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackStatus);
     renderPlaybackControl(dom.playerPlay, source, state.playbackStatus);
     setExpandedUi(state.isExpanded);
@@ -144,6 +148,9 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
   dom.playerPlay.addEventListener("click", () => audioController.toggle());
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
   dom.playerTimeline.addEventListener("input", (event) => audioController.seek(event.currentTarget.value));
+  dom.playerAutoplay.addEventListener("change", (event) => {
+    playerState.setAutoplayEnabled(event.currentTarget.checked);
+  });
   document.addEventListener("keydown", trapFocus);
   playerState.subscribe(render);
 
@@ -155,6 +162,13 @@ export function createPlayerView({ dom, playerState, audioController, onStep }) 
 
 function isPlayable(state) {
   return Boolean(state.source?.url) && state.sourceStatus?.id === SOURCE_STATUSES.READY;
+}
+
+function getPlaybackLabel(state) {
+  if (state.playbackStatus === "loading") return "Loading audio...";
+  if (state.playbackStatus === "buffering") return "Buffering...";
+  if (state.playbackStatus === "error") return "Unable to play audio. Tap Play to retry.";
+  return state.sourceStatus.label;
 }
 
 function getProgressPercent(state) {

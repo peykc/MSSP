@@ -1,13 +1,17 @@
 import { getSourceStatus } from "./sourceStatus.js";
 
 const STORAGE_KEY = "mssp:playerState";
+const AUTOPLAY_STORAGE_KEY = "mssp:playerAutoplay:v1";
 const SCHEMA_VERSION = 1;
 
 export const PLAYBACK_STATUSES = Object.freeze({
   UNAVAILABLE: "unavailable",
   READY: "ready",
+  LOADING: "loading",
+  BUFFERING: "buffering",
   PLAYING: "playing",
   PAUSED: "paused",
+  ERROR: "error",
 });
 
 export function createPlayerState({ getPublicSourceForEpisode = () => null } = {}) {
@@ -23,6 +27,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     currentTime: 0,
     duration: 0,
     playbackError: "",
+    autoplayEnabled: readAutoplayPreference(),
   };
 
   function getState() {
@@ -85,6 +90,12 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
 
   function setPlaybackError(message) {
     state.playbackError = String(message || "");
+    notify();
+  }
+
+  function setAutoplayEnabled(enabled) {
+    state.autoplayEnabled = Boolean(enabled);
+    persistAutoplayPreference(state.autoplayEnabled);
     notify();
   }
 
@@ -153,6 +164,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     getState,
     loadEpisode,
     restore,
+    setAutoplayEnabled,
     setExpanded,
     setPlaybackError,
     setPlaybackStatus,
@@ -161,6 +173,26 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     step,
     subscribe,
   };
+}
+
+function readAutoplayPreference() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(AUTOPLAY_STORAGE_KEY));
+    return saved?.schemaVersion === SCHEMA_VERSION && saved.enabled === true;
+  } catch {
+    return false;
+  }
+}
+
+function persistAutoplayPreference(enabled) {
+  try {
+    localStorage.setItem(AUTOPLAY_STORAGE_KEY, JSON.stringify({
+      schemaVersion: SCHEMA_VERSION,
+      enabled,
+    }));
+  } catch (error) {
+    console.warn("[MSSP] Could not persist autoplay preference.", error);
+  }
 }
 
 function sortQueue(queue) {
