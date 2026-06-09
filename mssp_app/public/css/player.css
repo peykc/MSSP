@@ -1,10 +1,10 @@
 :root {
   --mini-player-height: 82px;
-  --mini-player-bottom-fill: max(12px, env(safe-area-inset-bottom));
+  --player-safe-bottom: max(18px, env(safe-area-inset-bottom));
 }
 
 body.has-player .app {
-  padding-bottom: calc(clamp(18px, 3vw, 40px) + (var(--mini-player-height) / var(--page-scale)));
+  padding-bottom: calc(clamp(18px, 3vw, 40px) + ((var(--mini-player-height) + var(--player-safe-bottom)) / var(--page-scale)));
 }
 
 .mini-player {
@@ -17,9 +17,10 @@ body.has-player .app {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
-  height: calc(var(--mini-player-height) + var(--mini-player-bottom-fill));
+  height: calc(var(--mini-player-height) + var(--player-safe-bottom));
+  padding-bottom: var(--player-safe-bottom);
   overflow: hidden;
-  background: rgba(38, 36, 35, 0.96);
+  background: rgba(38, 36, 35, 0.98);
   border: 0;
   border-radius: 0;
   box-shadow: 0 18px 50px rgba(0, 0, 0, 0.44);
@@ -178,7 +179,7 @@ body.has-player .app {
   max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
   margin: 0 auto;
   gap: clamp(14px, 2vh, 22px);
-  padding: 16px clamp(18px, 5vw, 42px) calc(52px + env(safe-area-inset-bottom));
+  padding: 16px clamp(18px, 5vw, 42px) calc(48px + var(--player-safe-bottom));
   overflow: auto;
   color: var(--text);
   background: rgba(31, 29, 28, 0.99);
@@ -297,7 +298,7 @@ body.has-player .app {
   align-items: center;
   justify-content: center;
   gap: 22px;
-  margin-bottom: max(12px, env(safe-area-inset-bottom));
+  margin-bottom: var(--player-safe-bottom);
 }
 
 .full-player__controls button {
