@@ -178,7 +178,7 @@ body.has-player .app {
   max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
   margin: 0 auto;
   gap: clamp(14px, 2vh, 22px);
-  padding: 16px clamp(18px, 5vw, 42px) calc(20px + env(safe-area-inset-bottom));
+  padding: 16px clamp(18px, 5vw, 42px) calc(52px + env(safe-area-inset-bottom));
   overflow: auto;
   color: var(--text);
   background: rgba(31, 29, 28, 0.99);
@@ -297,6 +297,7 @@ body.has-player .app {
   align-items: center;
   justify-content: center;
   gap: 22px;
+  margin-bottom: max(12px, env(safe-area-inset-bottom));
 }
 
 .full-player__controls button {
