@@ -2,12 +2,11 @@ import { PLAYBACK_STATUSES } from "./playerState.js";
 
 const BUFFERING_GRACE_MS = 900;
 const RECONCILABLE_STATUSES = new Set([
-  PLAYBACK_STATUSES.LOADING,
-  PLAYBACK_STATUSES.BUFFERING,
+  PLAYBACK_STATUSES.LOADING_SOURCE,
+  PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
   PLAYBACK_STATUSES.PAUSED,
 ]);
-
-export function createAudioController({ playerState, onEnded, onPauseIntent }) {
+export function createAudioController({ playerState, onEnded }) {
   const audio = new Audio();
   audio.preload = "metadata";
   audio.crossOrigin = "anonymous";
@@ -18,6 +17,8 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
   let loadToken = 0;
   let loadEvents = null;
   let bufferingTimer = null;
+  let playbackCommandToken = 0;
+  let pendingPlayToken = null;
 
   document.addEventListener("visibilitychange", reconcilePlaybackState);
   window.addEventListener("pageshow", reconcilePlaybackState);
@@ -36,7 +37,7 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
     const sourceChanged = loadedEpisodeKey !== episode.episodeKey || loadedSourceUrl !== source.url;
     if (sourceChanged) loadSource(episode.episodeKey, source.url, shouldPlay);
 
-    playbackIntent = Boolean(shouldPlay);
+    setPlaybackIntent(shouldPlay);
     return playbackIntent ? play() : Promise.resolve(true);
   }
 
@@ -48,16 +49,38 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
       return loadSelected({ playbackIntent: true });
     }
 
-    playbackIntent = true;
+    const commandToken = ++playbackCommandToken;
+    pendingPlayToken = commandToken;
+    setPlaybackIntent(true);
     playerState.setPlaybackError("");
-    playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING);
+    playerState.setPlaybackStatus(
+      Number.isFinite(audio.duration) && audio.duration > 0
+        ? PLAYBACK_STATUSES.BUFFERING_PLAYBACK
+        : PLAYBACK_STATUSES.LOADING_SOURCE
+    );
 
     try {
       await audio.play();
+      if (pendingPlayToken === commandToken) pendingPlayToken = null;
+      if (commandToken !== playbackCommandToken) {
+        if (!playbackIntent) audio.pause();
+        return false;
+      }
+      if (!playbackIntent) {
+        audio.pause();
+        return false;
+      }
       return true;
     } catch (error) {
-      if (!isCurrentSource()) return false;
-      playbackIntent = false;
+      if (
+        commandToken !== playbackCommandToken
+        || !playbackIntent
+        || !isCurrentSource()
+      ) {
+        return false;
+      }
+      if (pendingPlayToken === commandToken) pendingPlayToken = null;
+      setPlaybackIntent(false);
       clearBufferingTimer();
       if (playerState.getState().playbackStatus !== PLAYBACK_STATUSES.ERROR) {
         playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
@@ -69,13 +92,13 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
   }
 
   function pause() {
-    playbackIntent = false;
+    playbackCommandToken += 1;
+    pendingPlayToken = null;
+    setPlaybackIntent(false);
     clearBufferingTimer();
-    const cancelledPendingAutoplay = onPauseIntent?.() === true;
     audio.pause();
     if (
-      !cancelledPendingAutoplay
-      && playerState.getState().source?.url
+      playerState.getState().source?.url
       && playerState.getState().playbackStatus !== PLAYBACK_STATUSES.ERROR
     ) {
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
@@ -83,23 +106,22 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
   }
 
   function toggle() {
-    if (playerState.getState().playbackStatus === PLAYBACK_STATUSES.AUTOPLAY_PENDING) {
+    if (playerState.getState().playbackRequested) {
       pause();
       return Promise.resolve(true);
     }
-    if (audio.paused) return play();
-    pause();
-    return Promise.resolve(true);
+    return play();
   }
 
   function seek(value) {
-    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return null;
     audio.currentTime = Math.max(0, Math.min(Number(value) || 0, audio.duration));
     updateTimeline();
+    return audio.currentTime;
   }
 
   function seekBy(offset) {
-    seek(audio.currentTime + Number(offset || 0));
+    return seek(audio.currentTime + Number(offset || 0));
   }
 
   function loadSource(episodeKey, sourceUrl, shouldPlay) {
@@ -108,14 +130,14 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
 
     loadedEpisodeKey = episodeKey;
     loadedSourceUrl = sourceUrl;
-    playbackIntent = Boolean(shouldPlay);
+    setPlaybackIntent(shouldPlay);
     const token = loadToken;
 
     audio.src = sourceUrl;
     bindLoadEvents(token, audio.src);
     playerState.setTimeline({ currentTime: 0, duration: 0 });
     playerState.setPlaybackError("");
-    playerState.setPlaybackStatus(playbackIntent ? PLAYBACK_STATUSES.LOADING : PLAYBACK_STATUSES.READY);
+    playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING_SOURCE);
     audio.load();
   }
 
@@ -134,11 +156,10 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
 
     audio.addEventListener("loadedmetadata", current(() => {
       updateTimeline();
-      if (
-        !playbackIntent
-        && playerState.getState().playbackStatus === PLAYBACK_STATUSES.LOADING
-      ) {
-        playerState.setPlaybackStatus(PLAYBACK_STATUSES.READY);
+      if (playerState.getState().playbackStatus === PLAYBACK_STATUSES.LOADING_SOURCE) {
+        playerState.setPlaybackStatus(
+          playbackIntent ? PLAYBACK_STATUSES.BUFFERING_PLAYBACK : PLAYBACK_STATUSES.READY
+        );
       }
     }), options);
     audio.addEventListener("durationchange", current(updateTimeline), options);
@@ -152,26 +173,30 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
     audio.addEventListener("playing", current(() => {
       clearBufferingTimer();
       if (!audio.paused && !audio.ended) {
-        playerState.setPlaybackStatus(PLAYBACK_STATUSES.PLAYING);
+        if (playbackIntent) {
+          playerState.setPlaybackStatus(PLAYBACK_STATUSES.PLAYING);
+        } else {
+          audio.pause();
+        }
       }
     }), options);
     audio.addEventListener("pause", current(() => {
-      playbackIntent = false;
       clearBufferingTimer();
       if (
         audio.paused
         && !audio.ended
         && [
-          PLAYBACK_STATUSES.LOADING,
-          PLAYBACK_STATUSES.BUFFERING,
+          PLAYBACK_STATUSES.LOADING_SOURCE,
+          PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
           PLAYBACK_STATUSES.PLAYING,
         ].includes(playerState.getState().playbackStatus)
       ) {
+        if (playbackIntent && pendingPlayToken === null) setPlaybackIntent(false);
         playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
       }
     }), options);
     audio.addEventListener("ended", current(() => {
-      playbackIntent = false;
+      setPlaybackIntent(false);
       clearBufferingTimer();
       updateTimeline();
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.ENDED);
@@ -181,7 +206,8 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
   }
 
   function handleError() {
-    playbackIntent = false;
+    pendingPlayToken = null;
+    setPlaybackIntent(false);
     clearBufferingTimer();
     playerState.setPlaybackStatus(PLAYBACK_STATUSES.ERROR);
     playerState.setPlaybackError("Unable to play audio. Tap Play to retry.");
@@ -201,7 +227,7 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
         && Number.isFinite(snapshot.currentTime)
         && Math.abs(snapshot.currentTime - stalledAtTime) < 0.01
       ) {
-        playerState.setPlaybackStatus(PLAYBACK_STATUSES.BUFFERING);
+        playerState.setPlaybackStatus(PLAYBACK_STATUSES.BUFFERING_PLAYBACK);
       }
     }, BUFFERING_GRACE_MS);
   }
@@ -218,12 +244,14 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
     resetAudioElement();
     loadedEpisodeKey = null;
     loadedSourceUrl = null;
-    playbackIntent = false;
+    setPlaybackIntent(false);
     playerState.setTimeline({ currentTime: 0, duration: 0 });
   }
 
   function invalidateLoad() {
     clearBufferingTimer();
+    playbackCommandToken += 1;
+    pendingPlayToken = null;
     loadToken += 1;
     loadEvents?.abort();
     loadEvents = null;
@@ -247,6 +275,7 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
       currentTime: audio.currentTime,
       readyState: audio.readyState,
       isCurrentSource: isCurrentSource(),
+      playbackIntent,
     };
   }
 
@@ -254,13 +283,13 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
     const snapshot = getAudioSnapshot();
     const status = playerState.getState().playbackStatus;
     if (
-      snapshot.isCurrentSource
+      playbackIntent
+      && snapshot.isCurrentSource
       && !snapshot.paused
       && !snapshot.ended
       && Number.isFinite(snapshot.currentTime)
       && RECONCILABLE_STATUSES.has(status)
     ) {
-      playbackIntent = true;
       clearBufferingTimer();
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.PLAYING);
     }
@@ -269,6 +298,11 @@ export function createAudioController({ playerState, onEnded, onPauseIntent }) {
   function clearBufferingTimer() {
     window.clearTimeout(bufferingTimer);
     bufferingTimer = null;
+  }
+
+  function setPlaybackIntent(requested) {
+    playbackIntent = Boolean(requested);
+    playerState.setPlaybackRequested(playbackIntent);
   }
 
   return {

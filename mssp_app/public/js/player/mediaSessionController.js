@@ -1,20 +1,21 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 
 const DEFAULT_SEEK_SECONDS = 15;
+const DEFAULT_FORWARD_SECONDS = 30;
 
-export function createMediaSessionController({ playerState, audioController, onStep }) {
+export function createMediaSessionController({ playerState, audioController }) {
   if (!("mediaSession" in navigator)) return null;
   let metadataEpisodeKey = null;
 
   registerAction("play", () => audioController.play());
   registerAction("pause", () => audioController.pause());
   registerAction("seekbackward", (event) => audioController.seekBy(-(event.seekOffset || DEFAULT_SEEK_SECONDS)));
-  registerAction("seekforward", (event) => audioController.seekBy(event.seekOffset || DEFAULT_SEEK_SECONDS));
+  registerAction("seekforward", (event) => audioController.seekBy(event.seekOffset || DEFAULT_FORWARD_SECONDS));
   registerAction("seekto", (event) => {
     if (Number.isFinite(event.seekTime)) audioController.seek(event.seekTime);
   });
-  registerAction("previoustrack", () => onStep(-1));
-  registerAction("nexttrack", () => onStep(1));
+  clearAction("previoustrack");
+  clearAction("nexttrack");
 
   return playerState.subscribe(syncMediaSession);
 
@@ -72,6 +73,14 @@ export function createMediaSessionController({ playerState, audioController, onS
   function registerAction(action, handler) {
     try {
       navigator.mediaSession.setActionHandler(action, handler);
+    } catch {
+      // Unsupported actions should not affect in-app playback.
+    }
+  }
+
+  function clearAction(action) {
+    try {
+      navigator.mediaSession.setActionHandler(action, null);
     } catch {
       // Unsupported actions should not affect in-app playback.
     }

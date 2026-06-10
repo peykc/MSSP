@@ -6,7 +6,7 @@ import { createCoverFilters } from "./filters.js";
 import { createLibraryView } from "./libraryView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
-import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
+import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
 import { getSourceStatus } from "./player/sourceStatus.js";
 import { registerServiceWorker } from "./pwa.js";
@@ -14,8 +14,6 @@ import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js";
-
-const AUTOPLAY_DELAY_SECONDS = 2;
 
 function getApiClient() {
   if (!window.MsspApiClient) {
@@ -32,22 +30,16 @@ async function init() {
   await loadPublicSources();
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode });
-  let autoplayTimeout = null;
-  let autoplayCountdownTimeout = null;
-  let pendingAutoplayEpisodeKey = null;
   const audioController = createAudioController({
     playerState,
     onEnded: handleEnded,
-    onPauseIntent: cancelPendingAutoplay,
   });
   createPlayerView({
     dom,
     playerState,
     audioController,
-    onStep: stepPlayer,
-    onAutoplayChange: setAutoplayEnabled,
   });
-  createMediaSessionController({ playerState, audioController, onStep: stepPlayer });
+  createMediaSessionController({ playerState, audioController });
   const queueCache = new Map();
 
   let episodeList;
@@ -113,7 +105,6 @@ async function init() {
   await playerState.restore(apiClient);
 
   async function requestPlay(episode) {
-    cancelPendingAutoplay();
     state.selectedEpisodeId = episode.id;
     episodeDetails.renderDetails();
     episodeList.renderVisibleRows();
@@ -141,60 +132,15 @@ async function init() {
     }
   }
 
-  function stepPlayer(offset, { cancelPending = true, playbackIntent = playerState.getState().autoplayEnabled } = {}) {
-    if (cancelPending) cancelPendingAutoplay();
+  function stepPlayer(offset, { playbackIntent = true } = {}) {
     const episode = playerState.step(offset);
     if (!episode) return;
     audioController.loadSelected({ playbackIntent });
   }
 
   function handleEnded() {
-    const player = playerState.getState();
-    if (!player.autoplayEnabled || !playerState.getQueuePosition().hasNext) return;
-
-    cancelPendingAutoplay();
-    pendingAutoplayEpisodeKey = player.selectedEpisode?.episodeKey || null;
-    playerState.setAutoplayPending(AUTOPLAY_DELAY_SECONDS);
-
-    autoplayCountdownTimeout = window.setTimeout(() => {
-      if (isPendingAutoplayCurrent()) playerState.setAutoplayPending(1);
-    }, 1000);
-    autoplayTimeout = window.setTimeout(() => {
-      if (!isPendingAutoplayCurrent()) return;
-      clearPendingAutoplayTimers();
-      stepPlayer(1, { cancelPending: false, playbackIntent: true });
-    }, AUTOPLAY_DELAY_SECONDS * 1000);
-  }
-
-  function setAutoplayEnabled(enabled) {
-    if (!enabled) cancelPendingAutoplay();
-    playerState.setAutoplayEnabled(enabled);
-  }
-
-  function cancelPendingAutoplay() {
-    if (!autoplayTimeout && !autoplayCountdownTimeout) return false;
-    clearPendingAutoplayTimers();
-    if (playerState.getState().playbackStatus === PLAYBACK_STATUSES.AUTOPLAY_PENDING) {
-      playerState.setPlaybackStatus(PLAYBACK_STATUSES.ENDED);
-    }
-    return true;
-  }
-
-  function clearPendingAutoplayTimers() {
-    window.clearTimeout(autoplayTimeout);
-    window.clearTimeout(autoplayCountdownTimeout);
-    autoplayTimeout = null;
-    autoplayCountdownTimeout = null;
-    pendingAutoplayEpisodeKey = null;
-  }
-
-  function isPendingAutoplayCurrent() {
-    const player = playerState.getState();
-    return Boolean(
-      player.autoplayEnabled
-      && pendingAutoplayEpisodeKey
-      && player.selectedEpisode?.episodeKey === pendingAutoplayEpisodeKey
-    );
+    if (!playerState.getQueuePosition().hasNext) return;
+    stepPlayer(1, { playbackIntent: true });
   }
 }
 

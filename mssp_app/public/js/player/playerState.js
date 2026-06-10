@@ -1,19 +1,17 @@
 import { getSourceStatus } from "./sourceStatus.js";
 
 const STORAGE_KEY = "mssp:playerState";
-const AUTOPLAY_STORAGE_KEY = "mssp:playerAutoplay:v1";
 const SCHEMA_VERSION = 1;
 
 export const PLAYBACK_STATUSES = Object.freeze({
   IDLE: "idle",
   UNAVAILABLE: "unavailable",
   READY: "ready",
-  LOADING: "loading",
-  BUFFERING: "buffering",
+  LOADING_SOURCE: "loading_source",
+  BUFFERING_PLAYBACK: "buffering_playback",
   PLAYING: "playing",
   PAUSED: "paused",
   ENDED: "ended",
-  AUTOPLAY_PENDING: "autoplay_pending",
   ERROR: "error",
 });
 
@@ -25,13 +23,12 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     queue: [],
     isExpanded: false,
     playbackStatus: PLAYBACK_STATUSES.IDLE,
+    playbackRequested: false,
     sourceStatus: null,
     source: null,
     currentTime: 0,
     duration: 0,
     playbackError: "",
-    autoplayEnabled: readAutoplayPreference(),
-    autoplayCountdown: 0,
   };
 
   function getState() {
@@ -75,10 +72,10 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     state.source = source;
     state.sourceStatus = getSourceStatus(episode, source);
     state.playbackStatus = source ? PLAYBACK_STATUSES.READY : PLAYBACK_STATUSES.UNAVAILABLE;
+    state.playbackRequested = false;
     state.currentTime = 0;
     state.duration = 0;
     state.playbackError = "";
-    state.autoplayCountdown = 0;
     persist();
     notify();
   }
@@ -89,27 +86,22 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
   }
 
   function setPlaybackStatus(playbackStatus) {
+    if (state.playbackStatus === playbackStatus) return;
     state.playbackStatus = playbackStatus;
-    if (playbackStatus !== PLAYBACK_STATUSES.AUTOPLAY_PENDING) {
-      state.autoplayCountdown = 0;
-    }
+    notify();
+  }
+
+  function setPlaybackRequested(playbackRequested) {
+    const requested = Boolean(playbackRequested);
+    if (state.playbackRequested === requested) return;
+    state.playbackRequested = requested;
     notify();
   }
 
   function setPlaybackError(message) {
-    state.playbackError = String(message || "");
-    notify();
-  }
-
-  function setAutoplayEnabled(enabled) {
-    state.autoplayEnabled = Boolean(enabled);
-    persistAutoplayPreference(state.autoplayEnabled);
-    notify();
-  }
-
-  function setAutoplayPending(countdown) {
-    state.autoplayCountdown = Math.max(0, Number(countdown) || 0);
-    state.playbackStatus = PLAYBACK_STATUSES.AUTOPLAY_PENDING;
+    const nextMessage = String(message || "");
+    if (state.playbackError === nextMessage) return;
+    state.playbackError = nextMessage;
     notify();
   }
 
@@ -178,36 +170,15 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     getState,
     loadEpisode,
     restore,
-    setAutoplayEnabled,
-    setAutoplayPending,
     setExpanded,
     setPlaybackError,
+    setPlaybackRequested,
     setPlaybackStatus,
     setQueue,
     setTimeline,
     step,
     subscribe,
   };
-}
-
-function readAutoplayPreference() {
-  try {
-    const saved = JSON.parse(localStorage.getItem(AUTOPLAY_STORAGE_KEY));
-    return saved?.schemaVersion === SCHEMA_VERSION && saved.enabled === true;
-  } catch {
-    return false;
-  }
-}
-
-function persistAutoplayPreference(enabled) {
-  try {
-    localStorage.setItem(AUTOPLAY_STORAGE_KEY, JSON.stringify({
-      schemaVersion: SCHEMA_VERSION,
-      enabled,
-    }));
-  } catch (error) {
-    console.warn("[MSSP] Could not persist autoplay preference.", error);
-  }
 }
 
 function sortQueue(queue) {

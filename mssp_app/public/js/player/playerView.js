@@ -1,4 +1,18 @@
+import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
+
+const SEEK_BACK_SECONDS = 15;
+const SEEK_FORWARD_SECONDS = 30;
+const SEEK_FEEDBACK_MS = 700;
+const ACTIVE_PLAYBACK_STATUSES = new Set([
+  PLAYBACK_STATUSES.LOADING_SOURCE,
+  PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
+  PLAYBACK_STATUSES.PLAYING,
+]);
+const TIMELINE_LOADING_STATUSES = new Set([
+  PLAYBACK_STATUSES.LOADING_SOURCE,
+  PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
+]);
 
 const LOCK_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -19,9 +33,13 @@ const PAUSE_ICON = `
   </svg>
 `;
 
-export function createPlayerView({ dom, playerState, audioController, onStep, onAutoplayChange }) {
+export function createPlayerView({ dom, playerState, audioController }) {
   let restoreFocusTo = null;
   let wasExpanded = false;
+  let isScrubbing = false;
+  let scrubPreviewTime = 0;
+  let suppressNextChange = false;
+  const tooltipTimers = new Map();
 
   function render(state) {
     const episode = state.selectedEpisode;
@@ -37,12 +55,13 @@ export function createPlayerView({ dom, playerState, audioController, onStep, on
     const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
     const accessLabel = episode.paytch === "PAYTCH" ? "PAYTCH" : "Public";
     const source = state.sourceStatus;
-    const queuePosition = playerState.getQueuePosition();
+    const playable = isPlayable(state);
+    const hasDuration = playable && Number.isFinite(state.duration) && state.duration > 0;
 
     dom.miniPlayerCover.src = episode.coverUrl;
     dom.miniPlayerCover.alt = "";
     dom.miniPlayerTitle.textContent = `${episodeLabel} - ${episode.title || "Untitled episode"}`;
-    dom.miniPlayerStatus.textContent = getPlaybackLabel(state);
+    dom.miniPlayerStatus.textContent = getStableStatus(state);
     dom.miniPlayer.style.setProperty("--mini-player-progress", `${getProgressPercent(state)}%`);
 
     dom.fullPlayerCover.src = episode.coverUrl;
@@ -50,34 +69,52 @@ export function createPlayerView({ dom, playerState, audioController, onStep, on
     dom.fullPlayerEyebrow.textContent = `${episode.type || "MSSP"} ${accessLabel} ${episodeLabel}`;
     dom.fullPlayerTitle.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.date || "Unknown date"} · ${accessLabel}`;
-    const playbackLabel = getPlaybackLabel(state);
-    dom.fullPlayerStatus.textContent = playbackLabel;
-    dom.fullPlayerStatusDetail.textContent = state.playbackError && state.playbackError !== playbackLabel
-      ? state.playbackError
-      : source.detail;
-    dom.playerPrevious.disabled = !queuePosition.hasPrevious;
-    dom.playerNext.disabled = !queuePosition.hasNext;
-    dom.miniPlayerPrevious.disabled = !queuePosition.hasPrevious;
-    dom.miniPlayerNext.disabled = !queuePosition.hasNext;
-    dom.miniPlayerPlay.disabled = !isPlayable(state);
-    dom.playerPlay.disabled = !isPlayable(state);
-    dom.playerTimeline.disabled = !isPlayable(state) || !state.duration;
-    dom.playerTimeline.max = String(Math.max(0, state.duration || 0));
-    dom.playerTimeline.value = String(Math.min(state.currentTime || 0, state.duration || 0));
-    dom.playerTimelineStart.textContent = formatTime(state.currentTime);
-    dom.playerTimelineEnd.textContent = formatTime(state.duration);
-    dom.playerTimeline.setAttribute(
-      "aria-label",
-      isPlayable(state) ? "Playback position" : "Playback position unavailable"
-    );
-    dom.playerAutoplay.checked = state.autoplayEnabled;
-    renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackStatus);
-    renderPlaybackControl(dom.playerPlay, source, state.playbackStatus);
+    dom.fullPlayer.classList.toggle("is-playback-active", ACTIVE_PLAYBACK_STATUSES.has(state.playbackStatus));
+
+    const showStatusPanel = !playable || Boolean(state.playbackError);
+    dom.fullPlayerStatusPanel.hidden = !showStatusPanel;
+    dom.fullPlayerStatus.textContent = state.playbackError ? "Unable to play audio." : source.label;
+    dom.fullPlayerStatusDetail.textContent = state.playbackError ? "Tap Play to retry." : source.detail;
+
+    dom.playerSeekBack.disabled = !hasDuration;
+    dom.playerSeekForward.disabled = !hasDuration;
+    dom.miniPlayerSeekBack.disabled = !hasDuration;
+    dom.miniPlayerSeekForward.disabled = !hasDuration;
+    dom.miniPlayerPlay.disabled = !playable;
+    dom.playerPlay.disabled = !playable;
+    renderTimeline(state);
+
+    renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackRequested);
+    renderPlaybackControl(dom.playerPlay, source, state.playbackRequested);
     setExpandedUi(state.isExpanded);
     if (state.isExpanded && !wasExpanded) {
       requestAnimationFrame(() => dom.fullPlayerCollapse.focus());
     }
     wasExpanded = state.isExpanded;
+  }
+
+  function renderTimeline(state) {
+    const playable = isPlayable(state);
+    const loading = TIMELINE_LOADING_STATUSES.has(state.playbackStatus);
+    const duration = Number.isFinite(state.duration) ? state.duration : 0;
+    const shownTime = isScrubbing ? scrubPreviewTime : state.currentTime;
+
+    dom.playerTimeline.disabled = !playable || !duration || loading;
+    dom.playerTimeline.max = String(Math.max(0, duration));
+    if (!isScrubbing) {
+      dom.playerTimeline.value = String(Math.min(shownTime || 0, duration));
+    }
+    const progress = duration > 0 ? Math.max(0, Math.min(100, (shownTime / duration) * 100)) : 0;
+    dom.playerTimeline.style.setProperty("--timeline-progress", `${progress}%`);
+    dom.playerTimelineStart.classList.toggle("is-loading", loading);
+    dom.playerTimelineStart.textContent = loading ? "" : formatTime(shownTime);
+    dom.playerTimelineEnd.textContent = loading || !duration
+      ? "--:--"
+      : `-${formatTime(Math.max(0, duration - shownTime))}`;
+    dom.playerTimeline.setAttribute(
+      "aria-label",
+      playable ? "Playback position" : "Playback position unavailable"
+    );
   }
 
   function expand(trigger = document.activeElement) {
@@ -86,14 +123,17 @@ export function createPlayerView({ dom, playerState, audioController, onStep, on
     playerState.setExpanded(true);
   }
 
-  function renderPlaybackControl(button, source, playbackStatus) {
+  function renderPlaybackControl(button, source, playbackRequested) {
     const isLocked = source.id === SOURCE_STATUSES.RSS_REQUIRED;
-    const isPlaying = playbackStatus === "playing" || playbackStatus === "autoplay_pending";
-    button.innerHTML = isLocked ? LOCK_ICON : isPlaying ? PAUSE_ICON : PLAY_ICON;
+    const mode = isLocked ? "locked" : playbackRequested ? "pause" : "play";
+    if (button.dataset.controlMode !== mode) {
+      button.innerHTML = mode === "locked" ? LOCK_ICON : mode === "pause" ? PAUSE_ICON : PLAY_ICON;
+      button.dataset.controlMode = mode;
+    }
     button.classList.toggle("is-locked", isLocked);
     button.setAttribute(
       "aria-label",
-      isLocked ? "Connect Patreon RSS to play" : isPlaying ? "Pause episode" : "Play episode"
+      isLocked ? "Connect Patreon RSS to play" : playbackRequested ? "Pause episode" : "Play episode"
     );
   }
 
@@ -115,6 +155,63 @@ export function createPlayerView({ dom, playerState, audioController, onStep, on
     dom.app.inert = isExpanded;
     dom.miniPlayer.inert = isExpanded;
     if (!isExpanded) wasExpanded = false;
+  }
+
+  function seekBy(offset, surface) {
+    const seekTime = audioController.seekBy(offset);
+    if (seekTime === null) return;
+    showTimelineTooltip(surface, formatSeekOffset(offset), seekTime);
+  }
+
+  function showTimelineTooltip(surface, label, seekTime) {
+    const element = surface === "mini" ? dom.miniPlayerTimelineTooltip : dom.playerTimelineTooltip;
+    const duration = playerState.getState().duration;
+    const percent = duration > 0 ? (seekTime / duration) * 100 : 0;
+    window.clearTimeout(tooltipTimers.get(element));
+    element.textContent = label;
+    element.style.setProperty("--scrub-position", `${percent}%`);
+    element.hidden = false;
+    tooltipTimers.set(element, window.setTimeout(() => {
+      element.hidden = true;
+    }, SEEK_FEEDBACK_MS));
+  }
+
+  function beginScrub(event) {
+    if (dom.playerTimeline.disabled) return;
+    window.clearTimeout(tooltipTimers.get(dom.playerTimelineTooltip));
+    isScrubbing = true;
+    suppressNextChange = false;
+    dom.playerTimeline.setPointerCapture?.(event.pointerId);
+    updateScrubPreview(dom.playerTimeline.value);
+  }
+
+  function updateScrubPreview(value) {
+    if (!isScrubbing) return;
+    const duration = playerState.getState().duration;
+    scrubPreviewTime = clampTime(value, duration);
+    const percent = duration > 0 ? (scrubPreviewTime / duration) * 100 : 0;
+    dom.playerTimelineTooltip.textContent = formatTime(scrubPreviewTime);
+    dom.playerTimelineTooltip.style.setProperty("--scrub-position", `${percent}%`);
+    dom.playerTimelineTooltip.hidden = false;
+    renderTimeline(playerState.getState());
+  }
+
+  function commitScrub() {
+    if (!isScrubbing) return;
+    isScrubbing = false;
+    suppressNextChange = true;
+    dom.playerTimelineTooltip.hidden = true;
+    audioController.seek(scrubPreviewTime);
+    window.setTimeout(() => {
+      suppressNextChange = false;
+    }, 0);
+  }
+
+  function cancelScrub() {
+    if (!isScrubbing) return;
+    isScrubbing = false;
+    dom.playerTimelineTooltip.hidden = true;
+    renderTimeline(playerState.getState());
   }
 
   function trapFocus(event) {
@@ -141,16 +238,23 @@ export function createPlayerView({ dom, playerState, audioController, onStep, on
   dom.miniPlayerExpand.addEventListener("click", (event) => expand(event.currentTarget));
   dom.fullPlayerCollapse.addEventListener("click", collapse);
   dom.playerBackdrop.addEventListener("click", collapse);
-  dom.playerPrevious.addEventListener("click", () => onStep(-1));
-  dom.playerNext.addEventListener("click", () => onStep(1));
-  dom.miniPlayerPrevious.addEventListener("click", () => onStep(-1));
-  dom.miniPlayerNext.addEventListener("click", () => onStep(1));
+  dom.playerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "full"));
+  dom.playerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "full"));
+  dom.miniPlayerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "mini"));
+  dom.miniPlayerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "mini"));
   dom.playerPlay.addEventListener("click", () => audioController.toggle());
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
-  dom.playerTimeline.addEventListener("input", (event) => audioController.seek(event.currentTarget.value));
-  dom.playerAutoplay.addEventListener("change", (event) => {
-    onAutoplayChange(event.currentTarget.checked);
+  dom.playerTimeline.addEventListener("pointerdown", beginScrub);
+  dom.playerTimeline.addEventListener("pointerup", commitScrub);
+  dom.playerTimeline.addEventListener("pointercancel", cancelScrub);
+  dom.playerTimeline.addEventListener("input", (event) => {
+    if (isScrubbing) updateScrubPreview(event.currentTarget.value);
+    else audioController.seek(event.currentTarget.value);
   });
+  dom.playerTimeline.addEventListener("change", (event) => {
+    if (!isScrubbing && !suppressNextChange) audioController.seek(event.currentTarget.value);
+  });
+  dom.playerTimeline.addEventListener("blur", cancelScrub);
   document.addEventListener("keydown", trapFocus);
   playerState.subscribe(render);
 
@@ -164,17 +268,9 @@ function isPlayable(state) {
   return Boolean(state.source?.url) && state.sourceStatus?.id === SOURCE_STATUSES.READY;
 }
 
-function getPlaybackLabel(state) {
-  if (state.playbackStatus === "loading") return "Loading audio...";
-  if (state.playbackStatus === "buffering") return "Buffering...";
-  if (state.playbackStatus === "playing") return "Playing";
-  if (state.playbackStatus === "paused") return "Paused";
-  if (state.playbackStatus === "ended") return "Episode finished";
-  if (state.playbackStatus === "autoplay_pending") {
-    return `Next episode starting in ${state.autoplayCountdown || 1}...`;
-  }
-  if (state.playbackStatus === "error") return "Unable to play audio. Tap Play to retry.";
-  return state.sourceStatus.label;
+function getStableStatus(state) {
+  if (state.playbackError) return state.playbackError;
+  return state.sourceStatus.detail || state.sourceStatus.label;
 }
 
 function getProgressPercent(state) {
@@ -182,9 +278,20 @@ function getProgressPercent(state) {
   return Math.max(0, Math.min(100, (state.currentTime / state.duration) * 100));
 }
 
+function clampTime(value, duration) {
+  return Math.max(0, Math.min(Number(value) || 0, Number(duration) || 0));
+}
+
 function formatTime(seconds) {
   const totalSeconds = Math.max(0, Math.floor(Number(seconds) || 0));
-  const minutes = Math.floor(totalSeconds / 60);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
   const remainder = totalSeconds % 60;
+  if (hours) return `${hours}:${String(minutes).padStart(2, "0")}:${String(remainder).padStart(2, "0")}`;
   return `${minutes}:${String(remainder).padStart(2, "0")}`;
+}
+
+function formatSeekOffset(seconds) {
+  const sign = seconds >= 0 ? "+" : "-";
+  return `${sign}${formatTime(Math.abs(seconds))}`;
 }

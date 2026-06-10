@@ -69,7 +69,7 @@
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
     <section class="full-player" id="fullPlayer" role="dialog" aria-modal="true" aria-labelledby="fullPlayerTitle" tabindex="-1" hidden>
       <button class="full-player__collapse" id="fullPlayerCollapse" type="button" aria-label="Collapse full player">
-        <span aria-hidden="true">⌄</span>
+        <span class="full-player__grabber" aria-hidden="true"></span>
       </button>
       <img class="full-player__cover" id="fullPlayerCover" alt="">
       <div class="full-player__copy">
@@ -77,34 +77,42 @@
         <h2 class="full-player__title" id="fullPlayerTitle"></h2>
         <p class="full-player__meta" id="fullPlayerMeta"></p>
       </div>
-      <div class="full-player__status" role="status">
+      <div class="full-player__status" id="fullPlayerStatusPanel" role="status">
         <strong id="fullPlayerStatus"></strong>
         <span id="fullPlayerStatusDetail"></span>
       </div>
       <div class="full-player__timeline" aria-label="Playback timeline">
         <span id="playerTimelineStart">00:00</span>
-        <input id="playerTimeline" type="range" min="0" max="0" value="0" disabled aria-label="Playback position unavailable">
-        <span id="playerTimelineEnd">00:00</span>
+        <span class="player-timeline__scrubber">
+          <input id="playerTimeline" type="range" min="0" max="0" value="0" disabled aria-label="Playback position unavailable">
+          <output class="player-timeline__tooltip" id="playerTimelineTooltip" hidden>0:00</output>
+        </span>
+        <span id="playerTimelineEnd">--:--</span>
       </div>
-      <label class="full-player__autoplay">
-        <span>Autoplay next</span>
-        <input id="playerAutoplay" type="checkbox">
-      </label>
       <div class="full-player__controls">
-        <button id="playerPrevious" type="button" aria-label="Previous episode">
-          <span aria-hidden="true">‹</span>
+        <button id="playerSeekBack" type="button" aria-label="Rewind 15 seconds">
+          <svg aria-hidden="true" viewBox="0 0 48 48">
+            <path d="M20.12 9.51A15 15 0 1 1 9.51 20.12"></path>
+            <path class="seek-arrow" d="M14.32 11.06 20.16 5.77 22.02 12.73Z"></path>
+            <text x="24" y="24" dy=".34em">15</text>
+          </svg>
         </button>
         <button class="full-player__play" id="playerPlay" type="button" aria-label="Playback unavailable" disabled>
           <svg aria-hidden="true" viewBox="0 0 24 24">
             <path d="m7 4 12 8-12 8V4Z"></path>
           </svg>
         </button>
-        <button id="playerNext" type="button" aria-label="Next episode">
-          <span aria-hidden="true">›</span>
+        <button id="playerSeekForward" type="button" aria-label="Forward 30 seconds">
+          <svg aria-hidden="true" viewBox="0 0 48 48">
+            <path d="M27.88 9.51A15 15 0 1 0 38.49 20.12"></path>
+            <path class="seek-arrow" d="M33.68 11.06 27.84 5.77 25.98 12.73Z"></path>
+            <text x="24" y="24" dy=".34em">30</text>
+          </svg>
         </button>
       </div>
     </section>
     <section class="mini-player" id="miniPlayer" aria-label="Current episode" hidden>
+      <output class="player-timeline__tooltip mini-player__timeline-tooltip" id="miniPlayerTimelineTooltip" hidden>0:00</output>
       <button class="mini-player__expand" id="miniPlayerExpand" type="button" aria-label="Expand full player">
         <img id="miniPlayerCover" alt="">
         <span class="mini-player__copy">
@@ -113,10 +121,11 @@
         </span>
       </button>
       <div class="mini-player__controls" aria-label="Playback controls">
-        <button id="miniPlayerPrevious" type="button" aria-label="Previous episode">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="M19 20 9 12l10-8v16Z"></path>
-            <path d="M5 19V5"></path>
+        <button id="miniPlayerSeekBack" type="button" aria-label="Rewind 15 seconds">
+          <svg aria-hidden="true" viewBox="0 0 48 48">
+            <path d="M20.12 9.51A15 15 0 1 1 9.51 20.12"></path>
+            <path class="seek-arrow" d="M14.32 11.06 20.16 5.77 22.02 12.73Z"></path>
+            <text x="24" y="24" dy=".34em">15</text>
           </svg>
         </button>
         <button class="mini-player__play" id="miniPlayerPlay" type="button" aria-label="Playback unavailable" disabled>
@@ -124,10 +133,11 @@
             <path d="m7 4 12 8-12 8V4Z"></path>
           </svg>
         </button>
-        <button id="miniPlayerNext" type="button" aria-label="Next episode">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="m5 4 10 8-10 8V4Z"></path>
-            <path d="M19 5v14"></path>
+        <button id="miniPlayerSeekForward" type="button" aria-label="Forward 30 seconds">
+          <svg aria-hidden="true" viewBox="0 0 48 48">
+            <path d="M27.88 9.51A15 15 0 1 0 38.49 20.12"></path>
+            <path class="seek-arrow" d="M33.68 11.06 27.84 5.77 25.98 12.73Z"></path>
+            <text x="24" y="24" dy=".34em">30</text>
           </svg>
         </button>
       </div>
