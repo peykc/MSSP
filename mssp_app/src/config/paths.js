@@ -6,6 +6,8 @@ const SOURCE_DATA_DIR = path.join(ROOT_DIR, "data");
 const PUBLIC_DIR = path.join(APP_DIR, "public");
 const DB_PATH = process.env.DB_PATH || path.join(APP_DIR, "mssp.sqlite");
 const ANTHOLOGY_MARKDOWN = path.join(SOURCE_DATA_DIR, "The Holy Trinity", "MSSP - The Holy Trinity.md");
+const ANTHOLOGY_SOURCE = path.join(SOURCE_DATA_DIR, "The Holy Trinity", "MSSP - The Holy Trinity.txt");
+const ANTHOLOGY_METADATA = path.join(SOURCE_DATA_DIR, "The Holy Trinity", "MSSP - The Holy Trinity.json");
 
 const HOST = process.env.HOST || "0.0.0.0";
 const PORT = Number(process.env.PORT || 5177);
@@ -33,6 +35,8 @@ module.exports = {
   PUBLIC_DIR,
   DB_PATH,
   ANTHOLOGY_MARKDOWN,
+  ANTHOLOGY_SOURCE,
+  ANTHOLOGY_METADATA,
   HOST,
   PORT,
   COVERS,

@@ -1,89 +1,105 @@
 import { formatCount, formatDateRange } from "./utils.js";
 
-const COLLECTION_ORDER = ["anthology", "new", "old", "paytch"];
+const COLLECTION_ORDER = ["old", "new", "paytch"];
 
-export function createCollectionsView({ dom, state, onOpenCollection }) {
+export function createCollectionsView({
+  dom,
+  state,
+  favoritesStore,
+  calendarModal,
+  onOpenCollection,
+  onOpenFavorites,
+}) {
   function renderCollections() {
+    dom.launchHero.innerHTML = "";
     dom.collectionGrid.innerHTML = "";
+
+    renderHero();
 
     for (const id of COLLECTION_ORDER) {
       const collection = state.collections.find((item) => item.id === id);
       if (!collection) continue;
 
       const button = document.createElement("button");
-      button.className = `collection-card ${id === "anthology" ? "collection-card--anthology" : ""}`;
+      button.className = "collection-card";
       button.type = "button";
       button.style.setProperty("--accent", collection.accent);
-      const hoverCover = collection.hoverCoverUrl
-        ? `<img class="collection-card__cover collection-card__cover--hover" src="${collection.hoverCoverUrl}" alt="">`
-        : "";
       button.innerHTML = `
         <span class="collection-card__art">
           <img class="collection-card__cover" src="${collection.coverUrl}" alt="">
-          ${hoverCover}
         </span>
         <span class="collection-card__copy">
           <span class="eyebrow">${formatDateRange(collection)}</span>
           <h2>${collection.name}</h2>
           <p>${formatCount(collection.count)}</p>
+          <span class="collection-card__browse" aria-hidden="true">Browse <span>›</span></span>
         </span>
       `;
       button.addEventListener("click", () => onOpenCollection(collection.id));
       dom.collectionGrid.append(button);
     }
-
-    requestAnimationFrame(updateCollectionCoverSizes);
   }
 
-  function updateCollectionCoverSizes() {
-    const portraitLayout = window.matchMedia("(max-aspect-ratio: 7 / 6)").matches;
-    if (portraitLayout) {
-      const cards = [...dom.collectionGrid.querySelectorAll(".collection-card")];
-      const firstCard = cards[0];
-      if (!firstCard || cards.length === 0) return;
+  function renderHero() {
+    dom.launchHero.innerHTML = "";
+    const anthology = state.collections.find((item) => item.id === "anthology");
+    if (!anthology) return;
 
-      const gridStyle = window.getComputedStyle(dom.collectionGrid);
-      const cardStyle = window.getComputedStyle(firstCard);
-      const rowGap = parseFloat(gridStyle.rowGap) || 0;
-      const verticalPadding = (parseFloat(cardStyle.paddingTop) || 0)
-        + (parseFloat(cardStyle.paddingBottom) || 0);
-      const horizontalPadding = (parseFloat(cardStyle.paddingLeft) || 0)
-        + (parseFloat(cardStyle.paddingRight) || 0);
-      const rowHeight = (dom.collectionGrid.clientHeight - (rowGap * (cards.length - 1))) / cards.length;
-      const maxByHeight = rowHeight - verticalPadding;
-      const maxByWidth = (firstCard.clientWidth - horizontalPadding) * 0.34;
-      const size = Math.max(64, Math.min(190, maxByHeight, maxByWidth));
+    const oldCollection = state.collections.find((item) => item.id === "old");
+    const newCollection = state.collections.find((item) => item.id === "new");
+    const paytchCollection = state.collections.find((item) => item.id === "paytch");
+    const startYear = Number(anthology.startDate?.slice(0, 4));
+    const endYear = Number(anthology.endDate?.slice(0, 4));
+    const yearCount = startYear && endYear ? endYear - startYear + 1 : null;
+    const publicCount = (oldCollection?.count || 0) + (newCollection?.count || 0);
 
-      dom.collectionGrid.style.setProperty("--collection-card-cover-size", `${size}px`);
-      for (const card of cards) {
-        card.querySelector(".collection-card__art")?.style.removeProperty("--collection-cover-size");
-      }
-      return;
-    }
-
-    dom.collectionGrid.style.removeProperty("--collection-card-cover-size");
-    for (const card of dom.collectionGrid.querySelectorAll(".collection-card:not(.collection-card--anthology)")) {
-      const art = card.querySelector(".collection-card__art");
-      const copy = card.querySelector(".collection-card__copy");
-      if (!art || !copy) continue;
-
-      const cardStyle = window.getComputedStyle(card);
-      const innerWidth = card.clientWidth
-        - parseFloat(cardStyle.paddingLeft)
-        - parseFloat(cardStyle.paddingRight);
-      const innerHeight = card.clientHeight
-        - parseFloat(cardStyle.paddingTop)
-        - parseFloat(cardStyle.paddingBottom);
-      const copyHeight = copy.offsetHeight;
-      const copyPaddingTop = parseFloat(window.getComputedStyle(copy).paddingTop) || 0;
-      const availableHeight = innerHeight - copyHeight - copyPaddingTop;
-      const size = Math.max(72, Math.min(innerWidth, availableHeight));
-      art.style.setProperty("--collection-cover-size", `${size}px`);
-    }
+    const hero = document.createElement("article");
+    hero.className = "collection-hero";
+    hero.style.setProperty("--accent", anthology.accent);
+    hero.innerHTML = `
+      <span class="collection-hero__art">
+        <img class="collection-hero__cover" src="${anthology.coverUrl}" alt="">
+        ${anthology.hoverCoverUrl
+          ? `<img class="collection-hero__cover collection-hero__cover--hover" src="${anthology.hoverCoverUrl}" alt="">`
+          : ""}
+      </span>
+      <div class="collection-hero__copy">
+        <span class="eyebrow">${formatDateRange(anthology)}</span>
+        <h2>${anthology.name}</h2>
+        <p class="collection-hero__description">The complete chronological archive of MSSP.</p>
+        <dl class="collection-hero__stats">
+          <div><dt>${anthology.count.toLocaleString()}</dt><dd>episodes</dd></div>
+          ${yearCount ? `<div><dt>${yearCount}</dt><dd>years</dd></div>` : ""}
+          <div><dt>${publicCount.toLocaleString()}</dt><dd>public</dd></div>
+          <div><dt>${(paytchCollection?.count || 0).toLocaleString()}</dt><dd>paytch</dd></div>
+        </dl>
+        <button class="collection-hero__open" type="button">
+          <img class="collection-hero__open-icon" src="./assets/icons/archive.svg" alt="">
+          <span>Open Archive</span>
+          <span aria-hidden="true">›</span>
+        </button>
+        <div class="collection-hero__actions" role="group" aria-label="Archive tools">
+          <button type="button" data-hero-action="calendar" ${state.archiveEpisodes.length ? "" : "disabled"}>Calendar</button>
+          <button type="button" data-hero-action="stats">Stats</button>
+          ${favoritesStore.getCount() > 0
+            ? `<button type="button" data-hero-action="favorites">Favorites &middot; ${favoritesStore.getCount()}</button>`
+            : ""}
+        </div>
+      </div>
+    `;
+    hero.querySelector(".collection-hero__open").addEventListener("click", () => onOpenCollection(anthology.id));
+    hero.querySelector('[data-hero-action="calendar"]').addEventListener("click", (event) => {
+      calendarModal.open(state.archiveEpisodes, event.currentTarget);
+    });
+    hero.querySelector('[data-hero-action="stats"]').addEventListener("click", () => {
+      dom.archiveStats.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    hero.querySelector('[data-hero-action="favorites"]')?.addEventListener("click", onOpenFavorites);
+    dom.launchHero.append(hero);
   }
 
   return {
     renderCollections,
-    updateCollectionCoverSizes,
+    renderHero,
   };
 }

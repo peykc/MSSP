@@ -33,7 +33,7 @@ const PAUSE_ICON = `
   </svg>
 `;
 
-export function createPlayerView({ dom, playerState, audioController }) {
+export function createPlayerView({ dom, playerState, audioController, favoritesStore }) {
   let restoreFocusTo = null;
   let wasExpanded = false;
   let isScrubbing = false;
@@ -69,6 +69,7 @@ export function createPlayerView({ dom, playerState, audioController }) {
     dom.fullPlayerEyebrow.textContent = `${episode.type || "MSSP"} ${accessLabel} ${episodeLabel}`;
     dom.fullPlayerTitle.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.date || "Unknown date"} · ${accessLabel}`;
+    renderFavorite();
     dom.fullPlayer.classList.toggle("is-playback-active", ACTIVE_PLAYBACK_STATUSES.has(state.playbackStatus));
 
     const showStatusPanel = !playable || Boolean(state.playbackError);
@@ -135,6 +136,13 @@ export function createPlayerView({ dom, playerState, audioController }) {
       "aria-label",
       isLocked ? "Connect Patreon RSS to play" : playbackRequested ? "Pause episode" : "Play episode"
     );
+  }
+
+  function renderFavorite() {
+    const episode = playerState.getState().selectedEpisode;
+    const isFavorite = Boolean(episode && favoritesStore.has(episode));
+    dom.fullPlayerFavorite.setAttribute("aria-pressed", String(isFavorite));
+    dom.fullPlayerFavorite.textContent = isFavorite ? "Favorited" : "Favorite";
   }
 
   function collapse() {
@@ -255,8 +263,13 @@ export function createPlayerView({ dom, playerState, audioController }) {
     if (!isScrubbing && !suppressNextChange) audioController.seek(event.currentTarget.value);
   });
   dom.playerTimeline.addEventListener("blur", cancelScrub);
+  dom.fullPlayerFavorite.addEventListener("click", () => {
+    const episode = playerState.getState().selectedEpisode;
+    if (episode) favoritesStore.toggle(episode);
+  });
   document.addEventListener("keydown", trapFocus);
   playerState.subscribe(render);
+  favoritesStore.subscribe(renderFavorite);
 
   return {
     collapse,

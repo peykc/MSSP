@@ -9,6 +9,16 @@ export function createLibraryView({
   renderVisibleRows,
 }) {
   async function openCollection(id) {
+    state.favoritesOnly = false;
+    return openLibrary(id);
+  }
+
+  async function openFavorites() {
+    state.favoritesOnly = true;
+    return openLibrary("anthology");
+  }
+
+  async function openLibrary(id) {
     state.activeCollection = state.collections.find((item) => item.id === id);
     if (!state.activeCollection) return;
 
@@ -19,7 +29,7 @@ export function createLibraryView({
 
     dom.heroCover.src = state.activeCollection.coverUrl;
     dom.heroCover.alt = `${state.activeCollection.name} cover`;
-    dom.panelTitle.textContent = state.activeCollection.name;
+    dom.panelTitle.textContent = state.favoritesOnly ? "Favorites" : state.activeCollection.name;
     dom.searchInput.value = "";
     state.query = "";
     state.selectedCoverKinds = new Set();
@@ -46,6 +56,7 @@ export function createLibraryView({
     state.episodes = [];
     state.visibleEpisodes = [];
     state.selectedCoverKinds = new Set();
+    state.favoritesOnly = false;
     clearRows();
     dom.coverFilters.innerHTML = "";
   }
@@ -54,5 +65,6 @@ export function createLibraryView({
     closeLibrary,
     loadEpisodes,
     openCollection,
+    openFavorites,
   };
 }

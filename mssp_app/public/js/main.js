@@ -1,8 +1,11 @@
+import { createArchiveStatsView } from "./archiveStats.js";
+import { createCalendarModal } from "./calendarModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { dom } from "./dom.js";
 import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
+import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
@@ -26,6 +29,9 @@ async function init() {
   registerServiceWorker();
   const apiClient = getApiClient();
   const state = createAppState();
+  const favoritesStore = createFavoritesStore();
+  const calendarModal = createCalendarModal({ dom });
+  const archiveStatsView = createArchiveStatsView({ dom, state });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
@@ -38,6 +44,7 @@ async function init() {
     dom,
     playerState,
     audioController,
+    favoritesStore,
   });
   createMediaSessionController({ playerState, audioController });
   const queueCache = new Map();
@@ -46,6 +53,7 @@ async function init() {
   const episodeDetails = createEpisodeDetails({
     dom,
     state,
+    favoritesStore,
     onPlayRequest: requestPlay,
     getSourceStatusForEpisode,
   });
@@ -64,6 +72,7 @@ async function init() {
   coverFilters = createCoverFilters({
     dom,
     state,
+    favoritesStore,
     onFiltersChanged: () => {
       episodeList.applyEpisodeFilters({ preserveScroll: true });
       episodeDetails.renderDetails();
@@ -85,12 +94,14 @@ async function init() {
   const collectionsView = createCollectionsView({
     dom,
     state,
+    favoritesStore,
+    calendarModal,
     onOpenCollection: libraryView.openCollection,
+    onOpenFavorites: libraryView.openFavorites,
   });
 
   dom.episodeList.addEventListener("scroll", episodeList.renderVisibleRows, { passive: true });
   window.addEventListener("resize", () => {
-    collectionsView.updateCollectionCoverSizes();
     episodeList.renderVisibleRows();
     episodeDetails.updateHeroCoverSize();
     episodeDetails.updateHeroTitleMarquee();
@@ -98,10 +109,34 @@ async function init() {
   dom.backButton.addEventListener("click", libraryView.closeLibrary);
   initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
 
-  const data = await apiClient.getCollections();
+  const [data, archiveResult] = await Promise.all([
+    apiClient.getCollections(),
+    apiClient.getEpisodes({ collection: "anthology", query: "" })
+      .then((value) => ({ value }))
+      .catch((error) => ({ error })),
+  ]);
   console.info("[MSSP] Data mode:", apiClient.getMode());
   state.collections = data.collections;
+  if (archiveResult.value) {
+    const archiveEpisodes = archiveResult.value.episodes || [];
+    favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
+    archiveStatsView.setEpisodes(archiveEpisodes);
+  } else {
+    console.error("[MSSP] Could not load archive statistics.", archiveResult.error);
+    archiveStatsView.renderError();
+  }
   collectionsView.renderCollections();
+  void logMetadataDiagnostics(apiClient);
+
+  favoritesStore.subscribe(() => {
+    collectionsView.renderHero();
+    if (dom.libraryView.classList.contains("is-hidden")) return;
+    if (state.favoritesOnly) {
+      episodeList.applyEpisodeFilters({ preserveScroll: true });
+    }
+    episodeDetails.renderDetails();
+    episodeList.renderVisibleRows();
+  });
   await playerState.restore(apiClient);
 
   async function requestPlay(episode) {
@@ -141,6 +176,22 @@ async function init() {
   function handleEnded() {
     if (!playerState.getQueuePosition().hasNext) return;
     stepPlayer(1, { playbackIntent: true });
+  }
+}
+
+async function logMetadataDiagnostics(apiClient) {
+  // TODO: Remove the metadata debug surface after archive metadata is complete.
+  const isDevelopment = ["localhost", "127.0.0.1", "::1"].includes(window.location.hostname);
+  const isDebugRequested = new URLSearchParams(window.location.search).get("debug") === "metadata";
+  if (!isDevelopment && !isDebugRequested) return;
+
+  try {
+    const health = await apiClient.getHealth();
+    if (health.metadataDiagnostics) {
+      console.info("[MSSP] Metadata diagnostics", health.metadataDiagnostics);
+    }
+  } catch (error) {
+    console.warn("[MSSP] Metadata diagnostics unavailable.", error);
   }
 }
 

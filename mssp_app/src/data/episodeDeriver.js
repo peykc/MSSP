@@ -1,4 +1,4 @@
-const { normalizeKeyPart, normalizeSearchText } = require("../utils/normalize");
+const { normalizeSearchText } = require("../utils/normalize");
 
 function deriveEpisodeFields(row, globalIndex) {
   const series = String(row.type || "").trim().toUpperCase();
@@ -12,14 +12,16 @@ function deriveEpisodeFields(row, globalIndex) {
   else if (series === "MSSPOT") collectionKind = "old";
   else collectionKind = "new";
 
-  const episodeKey = [
-    "global",
-    String(globalIndex).padStart(6, "0"),
-    normalizeKeyPart(series),
-    isPaytch ? "paytch" : "public",
-    normalizeKeyPart(episodeCode || "extra"),
-    normalizeKeyPart(title || "untitled"),
-  ].filter(Boolean).join("-");
+  const fallbackFilenameStem = [
+    String(row.date || "").trim(),
+    `${series}${isPaytch ? " PAYTCH" : ""}`,
+    `Ep. ${episodeCode || "EX"}`,
+    `- ${title}`,
+  ].filter(Boolean).join(" ");
+  const filenameStem = String(row.filenameStem || fallbackFilenameStem).trim();
+  const filename = String(row.filename || `${filenameStem}.mp3`).trim();
+  const sourcePath = String(row.sourcePath || "").trim();
+  const episodeKey = filenameStem;
 
   const searchableText = normalizeSearchText([
     row.date,
@@ -33,6 +35,9 @@ function deriveEpisodeFields(row, globalIndex) {
   return {
     globalIndex,
     episodeKey,
+    filename,
+    filenameStem,
+    sourcePath,
     date: String(row.date || "").trim(),
     series,
     isPaytch,

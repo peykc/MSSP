@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="./css/base.css">
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/launch.css">
+    <link rel="stylesheet" href="./css/archive.css">
     <link rel="stylesheet" href="./css/library.css">
     <link rel="stylesheet" href="./css/episode-list.css">
     <link rel="stylesheet" href="./css/episode-details.css">
@@ -28,11 +29,24 @@
   <body>
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
-        <div class="launch__header">
-          <p class="eyebrow">Matt and Shane's Secret Podcast</p>
-          <h1>The Complete Collection</h1>
+        <header class="launch__header">
+          <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="MSSP">
+          <div class="launch__heading">
+            <p class="eyebrow">Matt and Shane's Secret Podcast</p>
+            <h1>The Complete Collection</h1>
+          </div>
+        </header>
+        <div class="launch__content">
+          <div class="launch__hero" id="launchHero"></div>
+          <section class="launch__browse" aria-labelledby="launchBrowseTitle">
+            <h2 id="launchBrowseTitle">Browse by section</h2>
+            <div class="collection-grid" id="collectionGrid"></div>
+          </section>
+          <section class="launch__archive" id="archiveStats" aria-labelledby="archiveStatsTitle">
+            <h2 id="archiveStatsTitle">Archive Stats</h2>
+            <div class="archive-stats" id="archiveStatsPanel"></div>
+          </section>
         </div>
-        <div class="collection-grid" id="collectionGrid"></div>
       </section>
 
       <section class="library is-hidden" id="libraryView" aria-label="Episodes">
@@ -66,6 +80,19 @@
         </section>
       </section>
     </main>
+    <div class="calendar-modal" id="calendarModal" aria-hidden="true" hidden>
+      <section class="calendar-dialog" id="calendarDialog" role="dialog" aria-modal="true" aria-labelledby="calendarTitle" tabindex="-1">
+        <header class="calendar-dialog__header">
+          <div>
+            <p class="eyebrow">Release rhythm</p>
+            <h2 id="calendarTitle">Archive Calendar</h2>
+            <p>Every release grouped by day of the month.</p>
+          </div>
+          <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close archive calendar">Close</button>
+        </header>
+        <div class="calendar-heatmap" id="calendarHeatmap" role="group" aria-label="Episode releases by day of month"></div>
+      </section>
+    </div>
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
     <section class="full-player" id="fullPlayer" role="dialog" aria-modal="true" aria-labelledby="fullPlayerTitle" tabindex="-1" hidden>
       <button class="full-player__collapse" id="fullPlayerCollapse" type="button" aria-label="Collapse full player">
@@ -76,6 +103,7 @@
         <p class="full-player__eyebrow" id="fullPlayerEyebrow"></p>
         <h2 class="full-player__title" id="fullPlayerTitle"></h2>
         <p class="full-player__meta" id="fullPlayerMeta"></p>
+        <button class="full-player__favorite" id="fullPlayerFavorite" type="button" aria-pressed="false">Favorite</button>
       </div>
       <div class="full-player__status" id="fullPlayerStatusPanel" role="status">
         <strong id="fullPlayerStatus"></strong>

@@ -3,8 +3,17 @@
   height: calc(100vh / var(--page-scale));
   height: calc(100dvh / var(--page-scale));
   padding: clamp(18px, 3vw, 40px);
+  overflow-x: hidden;
   transform: scale(var(--page-scale));
   transform-origin: top left;
+}
+
+.app:has(> .launch:not(.is-hidden)) {
+  overflow-y: auto;
+}
+
+.app:has(> .library:not(.is-hidden)) {
+  overflow-y: hidden;
 }
 
 .launch,

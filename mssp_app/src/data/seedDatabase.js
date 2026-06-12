@@ -1,13 +1,17 @@
 const { EXPECTED_COUNTS } = require("../config/collections");
 const { parseAnthology } = require("./anthologyParser");
 
-function seedDatabase(db, anthologyPath) {
-  const parsed = parseAnthology(anthologyPath);
+function seedDatabase(db, anthologyPath, metadataPath) {
+  const parsed = parseAnthology(anthologyPath, { metadataPath });
+  const duplicateKeys = findDuplicateEpisodeKeys(parsed.episodes);
+  if (duplicateKeys.length > 0) {
+    throw new Error(`Duplicate authoritative filename stems: ${duplicateKeys.join(", ")}`);
+  }
   const insert = db.prepare(`
     INSERT INTO episodes (
-      global_index, episode_key, date, series, is_paytch, episode_code, title,
-      collection_kind, cover_kind, searchable_text, raw_row
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      global_index, episode_key, filename, source_path, date, series, is_paytch, episode_code, title,
+      collection_kind, cover_kind, searchable_text, duration_seconds, file_size_bytes, raw_row
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
 
   db.exec("BEGIN TRANSACTION");
@@ -15,6 +19,8 @@ function seedDatabase(db, anthologyPath) {
     insert.run(
       episode.globalIndex,
       episode.episodeKey,
+      episode.filename,
+      episode.sourcePath,
       episode.date,
       episode.series,
       episode.isPaytch ? 1 : 0,
@@ -23,12 +29,24 @@ function seedDatabase(db, anthologyPath) {
       episode.collectionKind,
       episode.coverKind,
       episode.searchableText,
+      episode.durationSeconds,
+      episode.fileSizeBytes,
       episode.rawRow,
     );
   }
   db.exec("COMMIT");
 
   return validateSeed(db, parsed);
+}
+
+function findDuplicateEpisodeKeys(episodes) {
+  const seen = new Set();
+  const duplicates = new Set();
+  for (const episode of episodes) {
+    if (seen.has(episode.episodeKey)) duplicates.add(episode.episodeKey);
+    seen.add(episode.episodeKey);
+  }
+  return [...duplicates];
 }
 
 function validateSeed(db, parsed) {
@@ -58,6 +76,7 @@ function validateSeed(db, parsed) {
     skippedRows: parsed.skippedRows,
     counts,
     warnings,
+    metadataDiagnostics: parsed.metadataDiagnostics,
   };
 }
 

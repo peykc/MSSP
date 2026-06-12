@@ -17,6 +17,8 @@ function openDatabase(dbPath) {
       id INTEGER PRIMARY KEY,
       global_index INTEGER NOT NULL,
       episode_key TEXT NOT NULL UNIQUE,
+      filename TEXT NOT NULL,
+      source_path TEXT,
       date TEXT NOT NULL,
       series TEXT NOT NULL,
       is_paytch INTEGER NOT NULL,
@@ -25,6 +27,8 @@ function openDatabase(dbPath) {
       collection_kind TEXT NOT NULL,
       cover_kind TEXT NOT NULL,
       searchable_text TEXT NOT NULL,
+      duration_seconds REAL,
+      file_size_bytes INTEGER,
       raw_row TEXT
     );
 

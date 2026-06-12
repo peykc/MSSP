@@ -1,6 +1,6 @@
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 
-export function createEpisodeDetails({ dom, state, onPlayRequest, getSourceStatusForEpisode }) {
+export function createEpisodeDetails({ dom, state, favoritesStore, onPlayRequest, getSourceStatusForEpisode }) {
   function renderDetails() {
     const episode = state.visibleEpisodes.find((item) => item.id === state.selectedEpisodeId);
     if (!episode) {
@@ -34,11 +34,17 @@ export function createEpisodeDetails({ dom, state, onPlayRequest, getSourceStatu
       <button class="episode-details__play" type="button">
         ${actionLabel}
       </button>
+      <button class="episode-details__favorite" type="button" aria-pressed="${favoritesStore.has(episode)}">
+        ${favoritesStore.has(episode) ? "Favorited" : "Favorite"}
+      </button>
     `;
     dom.heroDetails.querySelector(".episode-details__play").addEventListener(
       "click",
       (event) => onPlayRequest(episode, event.currentTarget)
     );
+    dom.heroDetails.querySelector(".episode-details__favorite").addEventListener("click", () => {
+      favoritesStore.toggle(episode);
+    });
     requestAnimationFrame(updateHeroCoverSize);
     requestAnimationFrame(updateHeroTitleMarquee);
   }

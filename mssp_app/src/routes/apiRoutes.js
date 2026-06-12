@@ -9,6 +9,7 @@ function handleApiRoutes(requestUrl, response, context) {
       skippedRows: context.health.skippedRows,
       counts: context.health.counts,
       warnings: context.health.warnings,
+      metadataDiagnostics: context.health.metadataDiagnostics,
     });
     return true;
   }

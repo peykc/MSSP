@@ -8,7 +8,14 @@ function getRequiredElement(id) {
 
 export const dom = {
   collectionGrid: getRequiredElement("collectionGrid"),
+  launchHero: getRequiredElement("launchHero"),
   launchView: getRequiredElement("launchView"),
+  archiveStats: getRequiredElement("archiveStats"),
+  archiveStatsPanel: getRequiredElement("archiveStatsPanel"),
+  calendarModal: getRequiredElement("calendarModal"),
+  calendarDialog: getRequiredElement("calendarDialog"),
+  calendarClose: getRequiredElement("calendarClose"),
+  calendarHeatmap: getRequiredElement("calendarHeatmap"),
   libraryView: getRequiredElement("libraryView"),
   heroPanel: getRequiredElement("heroPanel"),
   heroCover: getRequiredElement("heroCover"),
@@ -28,6 +35,7 @@ export const dom = {
   fullPlayerEyebrow: getRequiredElement("fullPlayerEyebrow"),
   fullPlayerTitle: getRequiredElement("fullPlayerTitle"),
   fullPlayerMeta: getRequiredElement("fullPlayerMeta"),
+  fullPlayerFavorite: getRequiredElement("fullPlayerFavorite"),
   fullPlayerStatusPanel: getRequiredElement("fullPlayerStatusPanel"),
   fullPlayerStatus: getRequiredElement("fullPlayerStatus"),
   fullPlayerStatusDetail: getRequiredElement("fullPlayerStatusDetail"),

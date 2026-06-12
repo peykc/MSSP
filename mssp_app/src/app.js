@@ -1,6 +1,7 @@
 const http = require("node:http");
+const path = require("node:path");
 const { URL } = require("node:url");
-const { ANTHOLOGY_MARKDOWN, DB_PATH } = require("./config/paths");
+const { ANTHOLOGY_METADATA, ANTHOLOGY_SOURCE, DB_PATH, ROOT_DIR } = require("./config/paths");
 const { openDatabase } = require("./data/database");
 const { seedDatabase } = require("./data/seedDatabase");
 const { createCollectionService } = require("./services/collectionService");
@@ -15,9 +16,11 @@ const { sendJson } = require("./utils/http");
 
 function createApp(options = {}) {
   const dbPath = options.dbPath || DB_PATH;
-  const anthologyPath = options.anthologyPath || ANTHOLOGY_MARKDOWN;
+  const anthologyPath = options.anthologyPath || ANTHOLOGY_SOURCE;
+  const metadataPath = options.metadataPath || ANTHOLOGY_METADATA;
   const db = openDatabase(dbPath);
-  const health = seedDatabase(db, anthologyPath);
+  const health = seedDatabase(db, anthologyPath, metadataPath);
+  health.sourceFile = path.relative(ROOT_DIR, health.sourceFile).split(path.sep).join("/");
 
   for (const warning of health.warnings) {
     console.warn(`[mssp validation] ${warning}`);

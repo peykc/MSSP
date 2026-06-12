@@ -45,6 +45,25 @@
   border-top: 1px solid var(--line);
 }
 
+.episode-details__favorite {
+  width: 100%;
+  min-height: 38px;
+  padding: 7px 12px;
+  color: var(--muted);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.episode-details__favorite:hover,
+.episode-details__favorite:focus-visible,
+.episode-details__favorite[aria-pressed="true"] {
+  color: var(--text);
+  background: var(--soft);
+  outline: none;
+}
+
 .hero-details > span {
   min-width: 0;
   overflow: hidden;

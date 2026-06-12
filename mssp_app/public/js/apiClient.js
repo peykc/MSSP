@@ -7,6 +7,7 @@
   let collectionsPromise = null;
   let episodesPromise = null;
   let healthPromise = null;
+  const episodeRequestCache = new Map();
 
   function getInitialMode() {
     const source = new URLSearchParams(window.location.search).get("source");
@@ -35,6 +36,19 @@
   }
 
   async function getEpisodes({ collection = "anthology", query = "" } = {}) {
+    const cacheKey = query ? "" : collection;
+    if (cacheKey && episodeRequestCache.has(cacheKey)) return episodeRequestCache.get(cacheKey);
+    const request = loadEpisodes({ collection, query });
+    if (cacheKey) episodeRequestCache.set(cacheKey, request);
+    try {
+      return await request;
+    } catch (error) {
+      if (cacheKey) episodeRequestCache.delete(cacheKey);
+      throw error;
+    }
+  }
+
+  async function loadEpisodes({ collection = "anthology", query = "" } = {}) {
     if (mode === API_MODE) {
       try {
         const url = new URL("/api/episodes", window.location.origin);
@@ -93,6 +107,7 @@
     return {
       collection,
       count: episodes.length,
+      metadataDiagnostics: collection === "anthology" && !query ? data.metadataDiagnostics : undefined,
       episodes,
     };
   }

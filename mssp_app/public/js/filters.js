@@ -1,17 +1,20 @@
 const FILTER_COLLECTIONS = ["old", "paytch", "new"];
 
-export function createCoverFilters({ dom, state, onFiltersChanged }) {
+export function createCoverFilters({ dom, state, favoritesStore, onFiltersChanged }) {
   function getVisibleEpisodes() {
-    if (state.activeCollection?.id !== "anthology" || state.selectedCoverKinds.size === 0) {
-      return state.episodes;
+    let episodes = state.episodes;
+    if (state.favoritesOnly) {
+      episodes = episodes.filter((episode) => favoritesStore.has(episode));
     }
-
-    return state.episodes.filter((episode) => state.selectedCoverKinds.has(episode.coverKind));
+    if (state.activeCollection?.id === "anthology" && state.selectedCoverKinds.size > 0) {
+      episodes = episodes.filter((episode) => state.selectedCoverKinds.has(episode.coverKind));
+    }
+    return episodes;
   }
 
   function renderCoverFilters() {
     dom.coverFilters.innerHTML = "";
-    const shouldShow = state.activeCollection?.id === "anthology";
+    const shouldShow = state.activeCollection?.id === "anthology" && !state.favoritesOnly;
     dom.coverFilters.classList.toggle("is-hidden", !shouldShow);
     if (!shouldShow) return;
 

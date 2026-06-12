@@ -1,18 +1,18 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { COLLECTIONS, EXPECTED_COUNTS } = require("../src/config/collections");
-const { ANTHOLOGY_MARKDOWN, COVERS, PUBLIC_DIR, ROOT_DIR } = require("../src/config/paths");
+const { ANTHOLOGY_METADATA, ANTHOLOGY_SOURCE, COVERS, PUBLIC_DIR, ROOT_DIR } = require("../src/config/paths");
 const { parseAnthology } = require("../src/data/anthologyParser");
 
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const DATA_DIR = path.join(PUBLIC_DIR, "data");
 
 function main() {
   const generatedAt = new Date().toISOString();
-  const parsed = parseAnthology(ANTHOLOGY_MARKDOWN);
+  const parsed = parseAnthology(ANTHOLOGY_SOURCE, { metadataPath: ANTHOLOGY_METADATA });
   const counts = deriveCounts(parsed.episodes);
   const warnings = validateExport(parsed, counts);
-  const sourceFile = toPortablePath(ANTHOLOGY_MARKDOWN);
+  const sourceFile = toPortablePath(ANTHOLOGY_SOURCE);
 
   const episodes = parsed.episodes
     .slice()
@@ -26,6 +26,7 @@ function main() {
       sourceFile,
       collection: "anthology",
       count: episodes.length,
+      metadataDiagnostics: parsed.metadataDiagnostics,
       episodes,
     },
     "collections.json": {
@@ -45,6 +46,7 @@ function main() {
       skippedRows: parsed.skippedRows,
       counts,
       warnings,
+      metadataDiagnostics: parsed.metadataDiagnostics,
     },
   };
 
@@ -68,6 +70,10 @@ function toStaticEpisode(episode) {
     id: episode.globalIndex,
     globalIndex: episode.globalIndex,
     episodeKey: episode.episodeKey,
+    filename: episode.filename,
+    sourcePath: episode.sourcePath,
+    durationSeconds: episode.durationSeconds,
+    fileSizeBytes: episode.fileSizeBytes,
     date: episode.date,
     type: episode.series,
     paytch: episode.isPaytch ? "PAYTCH" : "",
@@ -124,6 +130,16 @@ function deriveCounts(episodes) {
 
 function validateExport(parsed, counts) {
   const warnings = [...parsed.warnings];
+  const diagnostics = parsed.metadataDiagnostics;
+  if (diagnostics.matchedCount !== diagnostics.episodeCount) {
+    warnings.push(`Metadata matched ${diagnostics.matchedCount}/${diagnostics.episodeCount} episodes`);
+  }
+  for (const filename of diagnostics.missingEpisodeFilenames) {
+    warnings.push(`Missing metadata for episode: ${filename}`);
+  }
+  for (const filename of diagnostics.orphanMetadataFilenames) {
+    warnings.push(`Orphan metadata filename: ${filename}`);
+  }
 
   for (const [id, expected] of Object.entries(EXPECTED_COUNTS)) {
     const actual = counts[id] || 0;

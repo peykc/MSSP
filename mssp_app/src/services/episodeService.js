@@ -33,6 +33,8 @@ function createEpisodeService(db) {
       SELECT id,
              global_index AS globalIndex,
              episode_key AS episodeKey,
+             filename,
+             source_path AS sourcePath,
              date,
              series,
              is_paytch AS isPaytch,
@@ -41,6 +43,8 @@ function createEpisodeService(db) {
              collection_kind AS collectionKind,
              cover_kind AS coverKind,
              searchable_text AS searchableText,
+             duration_seconds AS durationSeconds,
+             file_size_bytes AS fileSizeBytes,
              raw_row AS rawRow
       FROM episodes
       ${whereSql}
@@ -65,6 +69,8 @@ function toFrontendEpisode(episode) {
     id: episode.id,
     globalIndex: episode.globalIndex,
     episodeKey: episode.episodeKey,
+    filename: episode.filename,
+    sourcePath: episode.sourcePath,
     date: episode.date,
     type: episode.series,
     paytch: isPaytch ? "PAYTCH" : "",
@@ -73,6 +79,8 @@ function toFrontendEpisode(episode) {
     collectionKind: episode.collectionKind,
     coverKind: episode.coverKind,
     coverUrl: `/covers/${episode.coverKind}`,
+    durationSeconds: episode.durationSeconds,
+    fileSizeBytes: episode.fileSizeBytes,
     searchableText: episode.searchableText,
     rawRow: episode.rawRow,
   };

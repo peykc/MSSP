@@ -296,6 +296,24 @@ body.has-player .app {
   line-height: 1.08;
 }
 
+.full-player__favorite {
+  margin-top: 8px;
+  padding: 7px 14px;
+  color: var(--muted);
+  cursor: pointer;
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.full-player__favorite:hover,
+.full-player__favorite:focus-visible,
+.full-player__favorite[aria-pressed="true"] {
+  color: var(--text);
+  background: var(--soft);
+  outline: none;
+}
+
 .full-player__status {
   display: grid;
   gap: 4px;
