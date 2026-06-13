@@ -1,11 +1,24 @@
 const SECTION_ORDER = ["old", "new", "paytch"];
 // September 16, 2019 at 2:15 PM ET (EDT, UTC-4)
 const CANCELLED_AT_MS = Date.parse("2019-09-16T14:15:00-04:00");
+const SEVEN_SEGMENTS = ["a", "b", "c", "d", "e", "f", "g"];
+const SEVEN_SEGMENT_MAP = Object.freeze({
+  "0": "abcdef",
+  "1": "bc",
+  "2": "abged",
+  "3": "abgcd",
+  "4": "fgbc",
+  "5": "afgcd",
+  "6": "afgedc",
+  "7": "abc",
+  "8": "abcdefg",
+  "9": "abcdfg",
+});
 const METRICS = Object.freeze({
-  span: {
-    label: "Span",
-    value: (stats) => getYearCount(stats),
-    format: (_, stats) => formatYearCount(stats),
+  busiestYear: {
+    label: "Busiest Year",
+    value: (stats) => stats.busiestYearCount,
+    format: (_, stats) => formatBusiestYear(stats),
   },
   hours: {
     label: "Hours",
@@ -25,7 +38,7 @@ const METRICS = Object.freeze({
 });
 
 export function createArchiveStatsView({ dom, state }) {
-  let selectedMetric = "span";
+  let selectedMetric = "busiestYear";
   let archiveStats = null;
 
   function setEpisodes(episodes) {
@@ -48,8 +61,7 @@ export function createArchiveStatsView({ dom, state }) {
     `;
   }
 
-  function render() {
-    if (!archiveStats) return renderLoading();
+  function buildGraphRows() {
     const metric = METRICS[selectedMetric];
     const rows = SECTION_ORDER.map((id) => ({
       id,
@@ -58,11 +70,39 @@ export function createArchiveStatsView({ dom, state }) {
     }));
     const maxValue = Math.max(...rows.map((row) => metric.value(row.stats)), 1);
 
+    return rows.map(({ id, collection, stats }) => {
+      const value = metric.value(stats);
+      const scale = Math.max(0, value / maxValue);
+      return `
+        <div class="stats-bar-row" style="--bar-width: ${(scale * 100).toFixed(2)}%; --bar-accent: ${collection?.accent || "#f8f2ec"}">
+          <div class="stats-bar-row__label">
+            <span>${collection?.name || id}</span>
+            <strong>${metric.format(value, stats)}</strong>
+          </div>
+          <div class="stats-bar" aria-hidden="true"><span class="stats-bar__fill"></span></div>
+        </div>
+      `;
+    }).join("");
+  }
+
+  function updateGraph() {
+    const graph = dom.archiveStatsPanel.querySelector(".stats-graph");
+    if (graph) {
+      graph.setAttribute("aria-label", `${METRICS[selectedMetric].label} by archive section`);
+      graph.innerHTML = buildGraphRows();
+    }
+    for (const button of dom.archiveStatsPanel.querySelectorAll("[data-metric]")) {
+      button.setAttribute("aria-pressed", String(button.dataset.metric === selectedMetric));
+    }
+  }
+
+  function render() {
+    if (!archiveStats) return renderLoading();
     const total = archiveStats.total;
     const pulseItems = buildPulseItems(total);
 
     const summaryItems = [
-      { id: "span", value: getYearCount(archiveStats.total).toLocaleString(), label: "years" },
+      { id: "busiestYear", value: formatBusiestYear(archiveStats.total), label: "busiest year" },
       { id: "hours", value: formatHours(archiveStats.total.durationSecondsTotal), label: "hours" },
       { id: "storage", value: formatGiB(archiveStats.total.fileSizeBytesTotal), label: "storage" },
       {
@@ -72,7 +112,7 @@ export function createArchiveStatsView({ dom, state }) {
       },
     ];
 
-    dom.archiveTidbitsPanel.innerHTML = pulseItems.length
+    const pulseMarkup = pulseItems.length
       ? `
         <section class="archive-pulse" aria-label="Archive pulse">
           <div class="archive-pulse__viewport">
@@ -87,6 +127,11 @@ export function createArchiveStatsView({ dom, state }) {
         </section>
       `
       : "";
+
+    dom.archiveTidbitsPanel.innerHTML = `
+      ${pulseMarkup}
+      ${renderSafetySign()}
+    `;
 
     bindPulseTouchPause(dom.archiveTidbitsPanel.querySelector(".archive-pulse__viewport"));
 
@@ -104,36 +149,26 @@ export function createArchiveStatsView({ dom, state }) {
           </button>
         `).join("")}
       </div>
-      <div class="stats-graph" role="group" aria-label="${metric.label} by archive section">
-        ${rows.map(({ id, collection, stats }) => {
-          const value = metric.value(stats);
-          const scale = Math.max(0, value / maxValue);
-          return `
-            <div class="stats-bar-row" style="--bar-width: ${(scale * 100).toFixed(2)}%; --bar-accent: ${collection?.accent || "#f8f2ec"}">
-              <div class="stats-bar-row__label">
-                <span>${collection?.name || id}</span>
-                <strong>${metric.format(value, stats)}</strong>
-              </div>
-              <div class="stats-bar" aria-hidden="true"><span class="stats-bar__fill"></span></div>
-            </div>
-          `;
-        }).join("")}
+      <div class="stats-graph" role="group" aria-label="${METRICS[selectedMetric].label} by archive section">
+        ${buildGraphRows()}
       </div>
     `;
 
     for (const button of dom.archiveStatsPanel.querySelectorAll("[data-metric]")) {
       button.addEventListener("click", () => {
         selectedMetric = button.dataset.metric;
-        render();
+        updateGraph();
       });
     }
   }
 
   setInterval(() => {
-    for (const element of dom.archiveTidbitsPanel.querySelectorAll("[data-cancelled-days]")) {
-      element.textContent = formatDaysSinceCancelled();
+    const sign = dom.archiveTidbitsPanel.querySelector("[data-cancelled-sign]");
+    if (sign) {
+      sign.innerHTML = renderSafetySignDigits();
+      sign.setAttribute("aria-label", formatSafetySignLabel());
     }
-  }, 60000);
+  }, 1000);
 
   renderLoading();
   return {
@@ -169,9 +204,11 @@ function emptyStats() {
     exEpisodeCount: 0,
     firstEpisodeDate: "",
     lastEpisodeDate: "",
+    episodeDates: [],
     episodesByYear: {},
     busiestYear: "",
     busiestYearCount: 0,
+    missedWeekCount: 0,
   };
 }
 
@@ -186,6 +223,7 @@ function addEpisode(stats, episode) {
   }
   const year = getYear(episode.date);
   if (year) stats.episodesByYear[year] = (stats.episodesByYear[year] || 0) + 1;
+  if (episode.date) stats.episodeDates.push(episode.date);
   const duration = Number(episode.durationSeconds);
   const fileSize = Number(episode.fileSizeBytes);
   if (episode.durationSeconds !== null && episode.durationSeconds !== "" && Number.isFinite(duration)) {
@@ -211,23 +249,33 @@ function finalizeStats(stats) {
       stats.busiestYearCount = count;
     }
   }
+  stats.missedWeekCount = countMissedWeeks(stats.episodeDates);
+}
+
+function countMissedWeeks(dates) {
+  const releaseDays = [...new Set(dates)]
+    .map((date) => Date.parse(date))
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  let missedWeeks = 0;
+
+  for (let index = 1; index < releaseDays.length; index += 1) {
+    const daysBetween = Math.round((releaseDays[index] - releaseDays[index - 1]) / 86400000);
+    missedWeeks += Math.max(0, Math.floor(daysBetween / 7) - 1);
+  }
+
+  return missedWeeks;
 }
 
 function buildPulseItems(total) {
   const spanDays = getDateSpanDays(total);
   const cadenceDays = total.episodeCount && spanDays ? spanDays / total.episodeCount : 0;
-  const items = [
-    {
-      value: formatDaysSinceCancelled(),
-      label: "Days Since Cancelled",
-      attr: " data-cancelled-days",
-    },
-  ];
+  const items = [];
 
-  if (total.busiestYear && total.busiestYearCount) {
+  if (total.episodeCount > 0) {
     items.push({
-      value: `${total.busiestYear} · ${total.busiestYearCount.toLocaleString()} eps`,
-      label: "Busiest Year",
+      value: total.missedWeekCount.toLocaleString(),
+      label: "Missed Weeks",
     });
   }
 
@@ -241,19 +289,67 @@ function buildPulseItems(total) {
   if (total.episodeCount > 0) {
     items.push({
       value: total.exEpisodeCount.toLocaleString(),
-      label: "EX Files",
+      label: "EX Episodes",
     });
   }
 
   return items;
 }
 
+function renderSafetySign() {
+  return `
+    <section class="safety-sign" aria-label="Time since cancelled">
+      <div class="safety-sign__header">
+        <span>Days Since Cancelled</span>
+        <span>Live</span>
+      </div>
+      <div class="safety-sign__display" data-cancelled-sign role="img" aria-label="${formatSafetySignLabel()}">
+        ${renderSafetySignDigits()}
+      </div>
+    </section>
+  `;
+}
+
+function renderSafetySignDigits() {
+  const { days, hours, minutes, seconds } = getCancelledElapsed();
+  const groups = [
+    { value: String(days).padStart(4, "0"), unit: "Days" },
+    { value: String(hours).padStart(2, "0"), unit: "Hrs" },
+    { value: String(minutes).padStart(2, "0"), unit: "Min" },
+    { value: String(seconds).padStart(2, "0"), unit: "Sec" },
+  ];
+  return groups.map(renderSegmentGroup).join('<span class="seg-colon" aria-hidden="true"><i></i><i></i></span>');
+}
+
+function renderSegmentGroup({ value, unit }) {
+  const digits = value.split("").map(renderSevenSegmentDigit).join("");
+  return `
+    <span class="seg-group">
+      <span class="seg-group__digits">${digits}</span>
+      <span class="seg-group__unit">${unit}</span>
+    </span>
+  `;
+}
+
+function renderSevenSegmentDigit(char) {
+  const active = SEVEN_SEGMENT_MAP[char] || "";
+  const segments = SEVEN_SEGMENTS.map(
+    (segment) => `<span class="seg seg--${segment}${active.includes(segment) ? " is-on" : ""}"></span>`,
+  ).join("");
+  return `<span class="seg-digit" aria-hidden="true">${segments}</span>`;
+}
+
+function formatSafetySignLabel() {
+  const { days, hours, minutes, seconds } = getCancelledElapsed();
+  return `${days.toLocaleString()} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds since cancelled`;
+}
+
 function renderPulseItem({ value, label, attr, hidden = false }) {
   const ariaHidden = hidden ? ' aria-hidden="true"' : "";
   return `
     <div class="archive-pulse__item"${ariaHidden}>
-      <strong class="archive-pulse__value"${attr || ""}>${value}</strong>
       <span class="archive-pulse__label">${label}</span>
+      <strong class="archive-pulse__value"${attr || ""}>${value}</strong>
     </div>
   `;
 }
@@ -265,6 +361,11 @@ function bindPulseTouchPause(viewport) {
   viewport.addEventListener("touchstart", pause, { passive: true });
   viewport.addEventListener("touchend", resume, { passive: true });
   viewport.addEventListener("touchcancel", resume, { passive: true });
+}
+
+function formatBusiestYear(stats) {
+  if (!stats.busiestYear || !stats.busiestYearCount) return "Unknown";
+  return `${stats.busiestYear} · ${stats.busiestYearCount.toLocaleString()} eps`;
 }
 
 function formatDuration(seconds) {
@@ -281,22 +382,14 @@ function getDateSpanDays(stats) {
   return Math.max(1, Math.round((last - first) / 86400000) + 1);
 }
 
-function formatDaysSinceCancelled() {
-  const days = Math.floor((Date.now() - CANCELLED_AT_MS) / 86400000);
-  return Math.max(0, days).toLocaleString();
-}
-
-function getYearCount(stats) {
-  const firstYear = Number(getYear(stats.firstEpisodeDate));
-  const lastYear = Number(getYear(stats.lastEpisodeDate));
-  if (!firstYear || !lastYear) return 0;
-  return Math.max(1, lastYear - firstYear + 1);
-}
-
-function formatYearCount(stats) {
-  const count = getYearCount(stats);
-  if (!count) return "Unknown";
-  return count === 1 ? "1 year" : `${count} years`;
+function getCancelledElapsed() {
+  const totalSeconds = Math.max(0, Math.floor((Date.now() - CANCELLED_AT_MS) / 1000));
+  return {
+    days: Math.floor(totalSeconds / 86400),
+    hours: Math.floor((totalSeconds % 86400) / 3600),
+    minutes: Math.floor((totalSeconds % 3600) / 60),
+    seconds: totalSeconds % 60,
+  };
 }
 
 function getYear(date) {
