@@ -35,12 +35,14 @@ export function createArchiveStatsView({ dom, state }) {
   }
 
   function renderLoading() {
+    dom.archiveTidbitsPanel.innerHTML = "";
     dom.archiveStatsPanel.innerHTML = `
       <p class="archive-stats__message" role="status">Loading archive statistics...</p>
     `;
   }
 
   function renderError() {
+    dom.archiveTidbitsPanel.innerHTML = "";
     dom.archiveStatsPanel.innerHTML = `
       <p class="archive-stats__message" role="status">Archive statistics are temporarily unavailable.</p>
     `;
@@ -57,19 +59,7 @@ export function createArchiveStatsView({ dom, state }) {
     const maxValue = Math.max(...rows.map((row) => metric.value(row.stats)), 1);
 
     const total = archiveStats.total;
-    const spanDays = getDateSpanDays(total);
-    const cadenceDays = total.episodeCount ? spanDays / total.episodeCount : 0;
-    const tidbits = [
-      { value: formatDaysSinceCancelled(), label: "days since cancelled", attr: " data-cancelled-days" },
-      { value: total.exEpisodeCount.toLocaleString(), label: "EX episodes" },
-      { value: cadenceDays ? `${cadenceDays.toFixed(1)} days` : "&mdash;", label: "between drops" },
-      {
-        value: total.busiestYear || "&mdash;",
-        label: total.busiestYear
-          ? `busiest year &middot; ${total.busiestYearCount.toLocaleString()} eps`
-          : "busiest year",
-      },
-    ];
+    const pulseItems = buildPulseItems(total);
 
     const summaryItems = [
       { id: "span", value: getYearCount(archiveStats.total).toLocaleString(), label: "years" },
@@ -82,15 +72,25 @@ export function createArchiveStatsView({ dom, state }) {
       },
     ];
 
+    dom.archiveTidbitsPanel.innerHTML = pulseItems.length
+      ? `
+        <section class="archive-pulse" aria-label="Archive pulse">
+          <div class="archive-pulse__viewport">
+            <div
+              class="archive-pulse__track"
+              style="--pulse-count: ${pulseItems.length}"
+            >
+              ${pulseItems.map((item) => renderPulseItem(item)).join("")}
+              ${pulseItems.map((item) => renderPulseItem({ ...item, hidden: true })).join("")}
+            </div>
+          </div>
+        </section>
+      `
+      : "";
+
+    bindPulseTouchPause(dom.archiveTidbitsPanel.querySelector(".archive-pulse__viewport"));
+
     dom.archiveStatsPanel.innerHTML = `
-      <ul class="archive-tidbits" aria-label="Archive details">
-        ${tidbits.map(({ value, label, attr }) => `
-          <li class="archive-tidbits__item">
-            <strong${attr || ""}>${value}</strong>
-            <span>${label}</span>
-          </li>
-        `).join("")}
-      </ul>
       <div class="archive-summary" role="group" aria-label="Archive statistic">
         ${summaryItems.map(({ id, value, label }) => `
           <button
@@ -130,8 +130,9 @@ export function createArchiveStatsView({ dom, state }) {
   }
 
   setInterval(() => {
-    const element = dom.archiveStatsPanel.querySelector("[data-cancelled-days]");
-    if (element) element.textContent = formatDaysSinceCancelled();
+    for (const element of dom.archiveTidbitsPanel.querySelectorAll("[data-cancelled-days]")) {
+      element.textContent = formatDaysSinceCancelled();
+    }
   }, 60000);
 
   renderLoading();
@@ -210,6 +211,60 @@ function finalizeStats(stats) {
       stats.busiestYearCount = count;
     }
   }
+}
+
+function buildPulseItems(total) {
+  const spanDays = getDateSpanDays(total);
+  const cadenceDays = total.episodeCount && spanDays ? spanDays / total.episodeCount : 0;
+  const items = [
+    {
+      value: formatDaysSinceCancelled(),
+      label: "Days Since Cancelled",
+      attr: " data-cancelled-days",
+    },
+  ];
+
+  if (total.busiestYear && total.busiestYearCount) {
+    items.push({
+      value: `${total.busiestYear} · ${total.busiestYearCount.toLocaleString()} eps`,
+      label: "Busiest Year",
+    });
+  }
+
+  if (cadenceDays > 0) {
+    items.push({
+      value: `${cadenceDays.toFixed(1)} days`,
+      label: "Avg. Drop Gap",
+    });
+  }
+
+  if (total.episodeCount > 0) {
+    items.push({
+      value: total.exEpisodeCount.toLocaleString(),
+      label: "EX Files",
+    });
+  }
+
+  return items;
+}
+
+function renderPulseItem({ value, label, attr, hidden = false }) {
+  const ariaHidden = hidden ? ' aria-hidden="true"' : "";
+  return `
+    <div class="archive-pulse__item"${ariaHidden}>
+      <strong class="archive-pulse__value"${attr || ""}>${value}</strong>
+      <span class="archive-pulse__label">${label}</span>
+    </div>
+  `;
+}
+
+function bindPulseTouchPause(viewport) {
+  if (!viewport) return;
+  const pause = () => viewport.classList.add("is-touching");
+  const resume = () => viewport.classList.remove("is-touching");
+  viewport.addEventListener("touchstart", pause, { passive: true });
+  viewport.addEventListener("touchend", resume, { passive: true });
+  viewport.addEventListener("touchcancel", resume, { passive: true });
 }
 
 function formatDuration(seconds) {

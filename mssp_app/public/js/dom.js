@@ -11,6 +11,7 @@ export const dom = {
   launchHero: getRequiredElement("launchHero"),
   launchView: getRequiredElement("launchView"),
   archiveStats: getRequiredElement("archiveStats"),
+  archiveTidbitsPanel: getRequiredElement("archiveTidbitsPanel"),
   archiveStatsPanel: getRequiredElement("archiveStatsPanel"),
   calendarModal: getRequiredElement("calendarModal"),
   calendarDialog: getRequiredElement("calendarDialog"),
