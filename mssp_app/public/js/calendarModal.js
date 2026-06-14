@@ -1,6 +1,58 @@
+const HEAT_STOPS = [
+  { t: 0, color: [54, 69, 79] },
+  { t: 0.25, color: [47, 111, 106] },
+  { t: 0.5, color: [104, 165, 92] },
+  { t: 0.72, color: [216, 162, 60] },
+  { t: 1, color: [226, 81, 47] },
+];
+
+const COLLECTIONS = [
+  { kind: "old", label: "Old Testament" },
+  { kind: "new", label: "New Testament" },
+  { kind: "paytch", label: "PAYTCH" },
+];
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+function emptySpread() {
+  return { old: 0, new: 0, paytch: 0 };
+}
+
+function getWeekday(date) {
+  const time = Date.parse(`${date}T00:00:00Z`);
+  if (!Number.isFinite(time)) return -1;
+  return new Date(time).getUTCDay();
+}
+
+function heatColor(value) {
+  const clamped = Math.max(0, Math.min(1, value));
+  for (let index = 1; index < HEAT_STOPS.length; index += 1) {
+    const previous = HEAT_STOPS[index - 1];
+    const next = HEAT_STOPS[index];
+    if (clamped <= next.t) {
+      const span = next.t - previous.t || 1;
+      const ratio = (clamped - previous.t) / span;
+      const channels = previous.color.map((channel, channelIndex) =>
+        Math.round(channel + (next.color[channelIndex] - channel) * ratio),
+      );
+      return `rgb(${channels[0]}, ${channels[1]}, ${channels[2]})`;
+    }
+  }
+  const last = HEAT_STOPS[HEAT_STOPS.length - 1].color;
+  return `rgb(${last[0]}, ${last[1]}, ${last[2]})`;
+}
+
 export function createCalendarModal({ dom }) {
   let restoreFocusTo = null;
   let isOpen = false;
+  let coverByKind = {};
+  let pinnedCell = null;
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "calendar-tooltip";
+  tooltip.setAttribute("role", "tooltip");
+  tooltip.hidden = true;
+  dom.calendarModal.appendChild(tooltip);
 
   function open(episodes, trigger) {
     restoreFocusTo = trigger;
@@ -16,6 +68,8 @@ export function createCalendarModal({ dom }) {
 
   function close() {
     if (!isOpen) return;
+    pinnedCell = null;
+    hideTooltip();
     dom.calendarModal.hidden = true;
     dom.calendarModal.setAttribute("aria-hidden", "true");
     dom.app.inert = false;
@@ -32,21 +86,141 @@ export function createCalendarModal({ dom }) {
   }
 
   function renderHeatmap(episodes) {
-    const counts = Array.from({ length: 31 }, () => 0);
+    coverByKind = {};
+    pinnedCell = null;
+    hideTooltip();
+
+    const dayCounts = Array.from({ length: 31 }, () => 0);
+    const dayBreakdown = Array.from({ length: 31 }, emptySpread);
+    const weekdayCounts = Array.from({ length: 7 }, () => 0);
+    const weekdayBreakdown = Array.from({ length: 7 }, emptySpread);
+
     for (const episode of episodes) {
+      const kind = episode.collectionKind;
+      if (kind && !coverByKind[kind] && episode.coverUrl) coverByKind[kind] = episode.coverUrl;
+
       const day = Number(String(episode.date || "").slice(8, 10));
-      if (day >= 1 && day <= 31) counts[day - 1] += 1;
+      if (day >= 1 && day <= 31) {
+        dayCounts[day - 1] += 1;
+        if (kind && dayBreakdown[day - 1][kind] !== undefined) dayBreakdown[day - 1][kind] += 1;
+      }
+
+      const weekday = getWeekday(episode.date);
+      if (weekday >= 0) {
+        weekdayCounts[weekday] += 1;
+        if (kind && weekdayBreakdown[weekday][kind] !== undefined) weekdayBreakdown[weekday][kind] += 1;
+      }
     }
-    const maxCount = Math.max(...counts, 1);
-    dom.calendarHeatmap.innerHTML = counts.map((count, index) => {
-      const day = index + 1;
+
+    renderWeekdayRow(weekdayCounts, weekdayBreakdown);
+    renderMonthGrid(dayCounts, dayBreakdown);
+  }
+
+  function renderWeekdayRow(counts, breakdown) {
+    const max = Math.max(...counts);
+    const min = Math.min(...counts);
+    const range = max - min || 1;
+    dom.calendarWeekdays.innerHTML = counts.map((count, index) => {
+      const intensity = (count - min) / range;
+      const name = WEEKDAYS[index];
+      const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
       return `
-        <div class="calendar-day" role="img" aria-label="Day ${day}, ${count} episodes" style="--day-alpha: ${0.08 + ((count / maxCount) * 0.78)}; --day-border-alpha: ${0.08 + ((count / maxCount) * 0.22)}">
-          <strong>${day}</strong>
-          <span>${count}</span>
-        </div>
+        <button type="button" class="calendar-day" aria-label="${label}" style="--day-color: ${heatColor(intensity)}">
+          <strong class="calendar-day__num">${name}</strong>
+          <span class="calendar-day__count">${count}</span>
+        </button>
       `;
     }).join("");
+
+    const cells = [...dom.calendarWeekdays.querySelectorAll(".calendar-day")];
+    cells.forEach((cell, index) => bindCell(cell, `${WEEKDAYS[index]}s`, breakdown[index]));
+  }
+
+  function renderMonthGrid(counts, breakdown) {
+    const max = Math.max(...counts);
+    const min = Math.min(...counts);
+    const range = max - min || 1;
+    const cellsMarkup = counts.map((count, index) => {
+      const day = index + 1;
+      const intensity = (count - min) / range;
+      const spread = breakdown[index];
+      const label = `Day ${day}, ${count} episodes. Old Testament ${spread.old}, New Testament ${spread.new}, PAYTCH ${spread.paytch}`;
+      return `
+        <button type="button" class="calendar-day" data-day="${day}" aria-label="${label}" style="--day-color: ${heatColor(intensity)}">
+          <strong class="calendar-day__num">${day}</strong>
+          <span class="calendar-day__count">${count}</span>
+        </button>
+      `;
+    });
+    const trailingBlanks = (7 - (counts.length % 7)) % 7;
+    for (let index = 0; index < trailingBlanks; index += 1) {
+      cellsMarkup.push('<div class="calendar-day calendar-day--empty" aria-hidden="true"></div>');
+    }
+    dom.calendarHeatmap.innerHTML = cellsMarkup.join("");
+
+    const cells = [...dom.calendarHeatmap.querySelectorAll(".calendar-day[data-day]")];
+    cells.forEach((cell, index) => bindCell(cell, `Day ${index + 1}`, breakdown[index]));
+  }
+
+  function bindCell(cell, title, spread) {
+    cell.tooltipData = { title, spread };
+    cell.addEventListener("mouseenter", () => {
+      if (!pinnedCell) showTooltip(cell);
+    });
+    cell.addEventListener("mouseleave", () => {
+      if (!pinnedCell) hideTooltip();
+    });
+    cell.addEventListener("focus", () => showTooltip(cell));
+    cell.addEventListener("blur", () => {
+      if (!pinnedCell) hideTooltip();
+    });
+    cell.addEventListener("click", () => {
+      if (pinnedCell === cell) {
+        pinnedCell = null;
+        hideTooltip();
+      } else {
+        pinnedCell = cell;
+        showTooltip(cell);
+      }
+    });
+  }
+
+  function showTooltip(cell) {
+    const data = cell.tooltipData;
+    if (!data) return;
+    const { title, spread } = data;
+    tooltip.innerHTML = `
+      <div class="calendar-tooltip__title">${title}</div>
+      <div class="calendar-tooltip__items">
+        ${COLLECTIONS.map(({ kind, label }) => `
+          <div class="calendar-tooltip__item${spread[kind] === 0 ? " is-empty" : ""}">
+            <img src="${coverByKind[kind] || ""}" alt="${label}" loading="lazy">
+            <span class="calendar-tooltip__count">${spread[kind]}</span>
+          </div>
+        `).join("")}
+      </div>
+    `;
+    tooltip.hidden = false;
+    positionTooltip(cell);
+  }
+
+  function positionTooltip(cell) {
+    const rect = cell.getBoundingClientRect();
+    const tipRect = tooltip.getBoundingClientRect();
+    const margin = 10;
+    const center = rect.left + (rect.width / 2);
+    const clampedLeft = Math.min(
+      Math.max(center, (tipRect.width / 2) + margin),
+      window.innerWidth - (tipRect.width / 2) - margin,
+    );
+    const fitsAbove = rect.top - tipRect.height - margin > margin;
+    tooltip.dataset.placement = fitsAbove ? "top" : "bottom";
+    tooltip.style.left = `${clampedLeft}px`;
+    tooltip.style.top = `${fitsAbove ? rect.top - margin : rect.bottom + margin}px`;
+  }
+
+  function hideTooltip() {
+    tooltip.hidden = true;
   }
 
   function handleKeydown(event) {
@@ -73,7 +247,18 @@ export function createCalendarModal({ dom }) {
 
   dom.calendarClose.addEventListener("click", close);
   dom.calendarModal.addEventListener("click", (event) => {
-    if (event.target === dom.calendarModal) close();
+    if (event.target === dom.calendarModal) {
+      close();
+      return;
+    }
+    if (!event.target.closest(".calendar-day")) {
+      pinnedCell = null;
+      hideTooltip();
+    }
+  });
+  dom.calendarDialog.addEventListener("scroll", () => {
+    pinnedCell = null;
+    hideTooltip();
   });
   document.addEventListener("keydown", handleKeydown);
 

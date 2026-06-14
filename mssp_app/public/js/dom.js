@@ -17,6 +17,7 @@ export const dom = {
   calendarDialog: getRequiredElement("calendarDialog"),
   calendarClose: getRequiredElement("calendarClose"),
   calendarHeatmap: getRequiredElement("calendarHeatmap"),
+  calendarWeekdays: getRequiredElement("calendarWeekdays"),
   libraryView: getRequiredElement("libraryView"),
   heroPanel: getRequiredElement("heroPanel"),
   heroCover: getRequiredElement("heroCover"),

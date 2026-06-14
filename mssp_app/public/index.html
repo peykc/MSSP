@@ -85,13 +85,23 @@
       <section class="calendar-dialog" id="calendarDialog" role="dialog" aria-modal="true" aria-labelledby="calendarTitle" tabindex="-1">
         <header class="calendar-dialog__header">
           <div>
-            <p class="eyebrow">Release rhythm</p>
             <h2 id="calendarTitle">Archive Calendar</h2>
-            <p>Every release grouped by day of the month.</p>
           </div>
           <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close archive calendar">Close</button>
         </header>
-        <div class="calendar-heatmap" id="calendarHeatmap" role="group" aria-label="Episode releases by day of month"></div>
+        <div class="calendar-section">
+          <p class="calendar-section__label">By weekday</p>
+          <div class="calendar-heatmap calendar-heatmap--week" id="calendarWeekdays" role="group" aria-label="Episode releases by weekday"></div>
+        </div>
+        <div class="calendar-section">
+          <p class="calendar-section__label">By day of month</p>
+          <div class="calendar-heatmap" id="calendarHeatmap" role="group" aria-label="Episode releases by day of month"></div>
+        </div>
+        <div class="calendar-legend" aria-hidden="true">
+          <span>Fewer</span>
+          <span class="calendar-legend__scale"></span>
+          <span>More</span>
+        </div>
       </section>
     </div>
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>

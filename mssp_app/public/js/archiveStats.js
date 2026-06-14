@@ -209,6 +209,7 @@ function emptyStats() {
     busiestYear: "",
     busiestYearCount: 0,
     missedWeekCount: 0,
+    longestStreakWeeks: 0,
   };
 }
 
@@ -249,22 +250,55 @@ function finalizeStats(stats) {
       stats.busiestYearCount = count;
     }
   }
-  stats.missedWeekCount = countMissedWeeks(stats.episodeDates);
+  const releaseWeeks = getReleaseWeeks(stats.episodeDates);
+  stats.missedWeekCount = countMissedWeeks(releaseWeeks);
+  stats.longestStreakWeeks = countLongestWeeklyStreak(releaseWeeks);
 }
 
-function countMissedWeeks(dates) {
-  const releaseDays = [...new Set(dates)]
-    .map((date) => Date.parse(date))
+function getReleaseWeeks(dates) {
+  return [...new Set(dates)]
+    .map(getWeekStartTime)
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+}
+
+function getWeekStartTime(date) {
+  const parsed = Date.parse(`${date}T00:00:00Z`);
+  if (!Number.isFinite(parsed)) return NaN;
+  const day = new Date(parsed).getUTCDay();
+  const daysSinceMonday = (day + 6) % 7;
+  return parsed - (daysSinceMonday * 86400000);
+}
+
+function countMissedWeeks(releaseWeeks) {
+  const weeks = [...new Set(releaseWeeks)]
     .filter(Number.isFinite)
     .sort((a, b) => a - b);
   let missedWeeks = 0;
 
-  for (let index = 1; index < releaseDays.length; index += 1) {
-    const daysBetween = Math.round((releaseDays[index] - releaseDays[index - 1]) / 86400000);
-    missedWeeks += Math.max(0, Math.floor(daysBetween / 7) - 1);
+  for (let index = 1; index < weeks.length; index += 1) {
+    const weekGap = Math.round((weeks[index] - weeks[index - 1]) / 604800000);
+    missedWeeks += Math.max(0, weekGap - 1);
   }
 
   return missedWeeks;
+}
+
+function countLongestWeeklyStreak(releaseWeeks) {
+  const weeks = [...new Set(releaseWeeks)]
+    .filter(Number.isFinite)
+    .sort((a, b) => a - b);
+  if (!weeks.length) return 0;
+
+  let longest = 1;
+  let current = 1;
+  for (let index = 1; index < weeks.length; index += 1) {
+    const weekGap = Math.round((weeks[index] - weeks[index - 1]) / 604800000);
+    current = weekGap === 1 ? current + 1 : 1;
+    longest = Math.max(longest, current);
+  }
+
+  return longest;
 }
 
 function buildPulseItems(total) {
@@ -275,7 +309,14 @@ function buildPulseItems(total) {
   if (total.episodeCount > 0) {
     items.push({
       value: total.missedWeekCount.toLocaleString(),
-      label: "Missed Weeks",
+      label: "Weeks Missed",
+    });
+  }
+
+  if (total.longestStreakWeeks > 0) {
+    items.push({
+      value: `${total.longestStreakWeeks.toLocaleString()} weeks`,
+      label: "Longest Streak",
     });
   }
 
