@@ -84,10 +84,14 @@
     <div class="calendar-modal" id="calendarModal" aria-hidden="true" hidden>
       <section class="calendar-dialog" id="calendarDialog" role="dialog" aria-modal="true" aria-labelledby="calendarTitle" tabindex="-1">
         <header class="calendar-dialog__header">
-          <div>
-            <h2 id="calendarTitle">Archive Calendar</h2>
+          <div class="calendar-dialog__heading">
+            <h2 id="calendarTitle">Release Heatmap</h2>
+            <div class="calendar-mode" role="group" aria-label="Heatmap style">
+              <button type="button" class="calendar-mode__btn" data-mode="color" aria-pressed="true">Color</button>
+              <button type="button" class="calendar-mode__btn" data-mode="brightness" aria-pressed="false">Brightness</button>
+            </div>
           </div>
-          <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close archive calendar">Close</button>
+          <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close release heatmap">Close</button>
         </header>
         <div class="calendar-section">
           <p class="calendar-section__label">By weekday</p>
@@ -101,6 +105,21 @@
           <span>Fewer</span>
           <span class="calendar-legend__scale"></span>
           <span>More</span>
+        </div>
+      </section>
+    </div>
+    <div class="calendar-modal" id="fullCalendarModal" aria-hidden="true" hidden>
+      <section class="calendar-dialog full-calendar-dialog" id="fullCalendarDialog" role="dialog" aria-modal="true" aria-labelledby="fullCalendarTitle" tabindex="-1">
+        <header class="calendar-dialog__header">
+          <div class="calendar-dialog__heading">
+            <h2 id="fullCalendarTitle">Archive Calendar</h2>
+            <div class="full-calendar__legend" id="fullCalendarLegend" role="group" aria-label="Collections"></div>
+          </div>
+          <button class="calendar-dialog__close" id="fullCalendarClose" type="button" aria-label="Close archive calendar">Close</button>
+        </header>
+        <div class="full-calendar" id="fullCalendarBody">
+          <div class="full-calendar__weekdays" id="fullCalendarWeekdays" aria-hidden="true"></div>
+          <div class="full-calendar__months" id="fullCalendarMonths"></div>
         </div>
       </section>
     </div>

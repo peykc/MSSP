@@ -1,5 +1,6 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
+import { createFullCalendarModal } from "./fullCalendarModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { dom } from "./dom.js";
 import { createEpisodeDetails } from "./episodeDetails.js";
@@ -31,6 +32,7 @@ async function init() {
   const state = createAppState();
   const favoritesStore = createFavoritesStore();
   const calendarModal = createCalendarModal({ dom });
+  const fullCalendarModal = createFullCalendarModal({ dom });
   const archiveStatsView = createArchiveStatsView({ dom, state });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
@@ -96,6 +98,7 @@ async function init() {
     state,
     favoritesStore,
     calendarModal,
+    fullCalendarModal,
     onOpenCollection: libraryView.openCollection,
     onOpenFavorites: libraryView.openFavorites,
   });

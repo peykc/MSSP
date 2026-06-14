@@ -42,11 +42,42 @@ function heatColor(value) {
   return `rgb(${last[0]}, ${last[1]}, ${last[2]})`;
 }
 
+const COLOR_GRADIENT = "linear-gradient(90deg, rgb(54, 69, 79) 0%, rgb(47, 111, 106) 25%, rgb(104, 165, 92) 50%, rgb(216, 162, 60) 72%, rgb(226, 81, 47) 100%)";
+const BRIGHTNESS_GRADIENT = "linear-gradient(90deg, hsl(28, 85%, 16%) 0%, hsl(28, 88%, 62%) 100%)";
+
+function brightnessColor(value) {
+  const clamped = Math.max(0, Math.min(1, value));
+  const lightness = 16 + (clamped * 46);
+  return `hsl(28, 86%, ${lightness.toFixed(1)}%)`;
+}
+
 export function createCalendarModal({ dom }) {
   let restoreFocusTo = null;
   let isOpen = false;
   let coverByKind = {};
   let pinnedCell = null;
+  let heatmapMode = "color";
+  let currentEpisodes = [];
+
+  const modeButtons = [...dom.calendarModal.querySelectorAll(".calendar-mode__btn")];
+  const legendScale = dom.calendarModal.querySelector(".calendar-legend__scale");
+
+  for (const button of modeButtons) {
+    button.addEventListener("click", () => setMode(button.dataset.mode));
+  }
+
+  function setMode(mode) {
+    if (mode === heatmapMode) return;
+    heatmapMode = mode;
+    for (const button of modeButtons) {
+      button.setAttribute("aria-pressed", String(button.dataset.mode === mode));
+    }
+    renderHeatmap(currentEpisodes);
+  }
+
+  function colorForIntensity(value) {
+    return heatmapMode === "brightness" ? brightnessColor(value) : heatColor(value);
+  }
 
   const tooltip = document.createElement("div");
   tooltip.className = "calendar-tooltip";
@@ -56,6 +87,7 @@ export function createCalendarModal({ dom }) {
 
   function open(episodes, trigger) {
     restoreFocusTo = trigger;
+    currentEpisodes = episodes;
     renderHeatmap(episodes);
     dom.calendarModal.hidden = false;
     dom.calendarModal.setAttribute("aria-hidden", "false");
@@ -79,7 +111,7 @@ export function createCalendarModal({ dom }) {
     requestAnimationFrame(() => {
       const target = restoreFocusTo?.isConnected
         ? restoreFocusTo
-        : dom.launchHero.querySelector('[data-hero-action="calendar"]');
+        : dom.launchHero.querySelector('[data-hero-action="heatmap"]');
       target?.focus();
       restoreFocusTo = null;
     });
@@ -114,6 +146,10 @@ export function createCalendarModal({ dom }) {
 
     renderWeekdayRow(weekdayCounts, weekdayBreakdown);
     renderMonthGrid(dayCounts, dayBreakdown);
+
+    if (legendScale) {
+      legendScale.style.background = heatmapMode === "brightness" ? BRIGHTNESS_GRADIENT : COLOR_GRADIENT;
+    }
   }
 
   function renderWeekdayRow(counts, breakdown) {
@@ -125,7 +161,7 @@ export function createCalendarModal({ dom }) {
       const name = WEEKDAYS[index];
       const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
       return `
-        <button type="button" class="calendar-day" aria-label="${label}" style="--day-color: ${heatColor(intensity)}">
+        <button type="button" class="calendar-day" aria-label="${label}" style="--day-color: ${colorForIntensity(intensity)}">
           <strong class="calendar-day__num">${name}</strong>
           <span class="calendar-day__count">${count}</span>
         </button>
@@ -146,7 +182,7 @@ export function createCalendarModal({ dom }) {
       const spread = breakdown[index];
       const label = `Day ${day}, ${count} episodes. Old Testament ${spread.old}, New Testament ${spread.new}, PAYTCH ${spread.paytch}`;
       return `
-        <button type="button" class="calendar-day" data-day="${day}" aria-label="${label}" style="--day-color: ${heatColor(intensity)}">
+        <button type="button" class="calendar-day" data-day="${day}" aria-label="${label}" style="--day-color: ${colorForIntensity(intensity)}">
           <strong class="calendar-day__num">${day}</strong>
           <span class="calendar-day__count">${count}</span>
         </button>

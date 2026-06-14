@@ -7,6 +7,7 @@ export function createCollectionsView({
   state,
   favoritesStore,
   calendarModal,
+  fullCalendarModal,
   onOpenCollection,
   onOpenFavorites,
 }) {
@@ -79,6 +80,7 @@ export function createCollectionsView({
           <span aria-hidden="true">›</span>
         </button>
         <div class="collection-hero__actions" role="group" aria-label="Archive tools">
+          <button type="button" data-hero-action="heatmap" ${state.archiveEpisodes.length ? "" : "disabled"}>Heatmap</button>
           <button type="button" data-hero-action="calendar" ${state.archiveEpisodes.length ? "" : "disabled"}>Calendar</button>
           <button type="button" data-hero-action="stats">Stats</button>
           ${favoritesStore.getCount() > 0
@@ -88,8 +90,11 @@ export function createCollectionsView({
       </div>
     `;
     hero.querySelector(".collection-hero__open").addEventListener("click", () => onOpenCollection(anthology.id));
-    hero.querySelector('[data-hero-action="calendar"]').addEventListener("click", (event) => {
+    hero.querySelector('[data-hero-action="heatmap"]').addEventListener("click", (event) => {
       calendarModal.open(state.archiveEpisodes, event.currentTarget);
+    });
+    hero.querySelector('[data-hero-action="calendar"]').addEventListener("click", (event) => {
+      fullCalendarModal.open(state.archiveEpisodes, event.currentTarget);
     });
     hero.querySelector('[data-hero-action="stats"]').addEventListener("click", () => {
       dom.archiveStats.scrollIntoView({ behavior: "smooth", block: "start" });
