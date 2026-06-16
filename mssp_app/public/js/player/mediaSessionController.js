@@ -5,7 +5,7 @@ const DEFAULT_FORWARD_SECONDS = 30;
 
 export function createMediaSessionController({ playerState, audioController }) {
   if (!("mediaSession" in navigator)) return null;
-  let metadataEpisodeKey = null;
+  let metadataKey = null;
 
   registerAction("play", () => audioController.play());
   registerAction("pause", () => audioController.pause());
@@ -25,8 +25,13 @@ export function createMediaSessionController({ playerState, audioController }) {
       return;
     }
 
-    if (metadataEpisodeKey !== state.selectedEpisode.episodeKey) {
-      metadataEpisodeKey = state.selectedEpisode.episodeKey;
+    const nextMetadataKey = [
+      state.selectedEpisode.episodeKey,
+      state.selectedEpisode.coverKind || state.selectedEpisode.collectionKind || "anthology",
+    ].join("|");
+
+    if (metadataKey !== nextMetadataKey) {
+      metadataKey = nextMetadataKey;
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
           title: getMediaTitle(state.selectedEpisode),
@@ -61,7 +66,7 @@ export function createMediaSessionController({ playerState, audioController }) {
   }
 
   function clearMediaSession() {
-    metadataEpisodeKey = null;
+    metadataKey = null;
     try {
       navigator.mediaSession.metadata = null;
       navigator.mediaSession.playbackState = "none";
@@ -104,9 +109,20 @@ function getAlbum(episode) {
 
 function getArtwork(episode) {
   const base = document.baseURI || window.location.href;
+  const coverKind = episode.coverKind || episode.collectionKind || "anthology";
+
+  const coverByKind = {
+    old: "./assets/covers/old.jpg",
+    new: "./assets/covers/new.jpg",
+    paytch: "./assets/covers/paytch.jpg",
+    anthology: "./assets/covers/anthology.jpg",
+  };
+
+  const coverPath = coverByKind[coverKind] || coverByKind.anthology;
+
   return [
-    { src: new URL("./assets/media-session/old-512.jpg", base).href, sizes: "512x512", type: "image/jpeg" },
-    { src: new URL("./assets/media-session/old-192.jpg", base).href, sizes: "192x192", type: "image/jpeg" },
+    { src: new URL(coverPath, base).href, sizes: "512x512", type: "image/jpeg" },
+    { src: new URL(coverPath, base).href, sizes: "192x192", type: "image/jpeg" },
     { src: new URL("./android-chrome-512x512.png", base).href, sizes: "512x512", type: "image/png" },
   ];
 }

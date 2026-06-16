@@ -63,6 +63,20 @@ function scorePair(episode, candidate) {
   };
 }
 
+function isSafeAutoMatch(pair) {
+  const reasons = new Set(pair.reasons || []);
+
+  if (pair.score >= AUTO_MATCH_THRESHOLD) return true;
+
+  if (reasons.has("date-exact") && reasons.has("title-strong")) return true;
+
+  if (reasons.has("episode-number") && reasons.has("title-medium")) return true;
+
+  if (reasons.has("episode-number") && reasons.has("date-near")) return true;
+
+  return false;
+}
+
 function buildRssSourceEntry(candidate, matchMeta, feedById) {
   const feed = feedById.get(candidate.feedId);
   return {
@@ -115,7 +129,7 @@ function matchRssSources({ episodes, feeds, candidates, overrides = {} }) {
       continue;
     }
 
-    if (pair.score >= AUTO_MATCH_THRESHOLD) {
+    if (isSafeAutoMatch(pair)) {
       autoMatches.push(pair);
       assignedEpisodes.add(pair.episodeKey);
       assignedGuids.add(`${pair.candidate.feedId}:${pair.candidate.guid}`);
@@ -233,6 +247,7 @@ module.exports = {
   AUTO_MATCH_THRESHOLD,
   LOW_CONFIDENCE_MIN,
   isEligibleEpisode,
+  isSafeAutoMatch,
   matchRssSources,
   scorePair,
 };

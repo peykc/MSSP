@@ -6,6 +6,7 @@ function normalizeMatchTitle(value) {
     .trim()
     .replace(/&amp;/g, "and")
     .replace(/&/g, "and")
+    .replace(/['’]/g, "")
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
@@ -14,10 +15,10 @@ function normalizeMatchTitle(value) {
 function extractEpisodeNumber(title) {
   const text = String(title || "");
   const patterns = [
-    /\bep\.?\s*(\d+(?:\.\d+)?)\b/i,
-    /\bepisode\s*(\d+(?:\.\d+)?)\b/i,
-    /#\s*(\d+(?:\.\d+)?)\b/,
-    /^\s*(\d+(?:\.\d+)?)\s*[-:]/,
+    /\bep\.?\s*-?\s*(\d+(?:\.\d+)?)(?:[a-z])?\b/i,
+    /\bepisode\s*-?\s*(\d+(?:\.\d+)?)(?:[a-z])?\b/i,
+    /#\s*(\d+(?:\.\d+)?)(?:[a-z])?\b/i,
+    /^\s*(\d+(?:\.\d+)?)(?:[a-z])?\s*[-:]/i,
   ];
 
   for (const pattern of patterns) {
