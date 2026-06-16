@@ -511,6 +511,43 @@ body.has-player.calendar-open .calendar-modal {
   padding-bottom: calc(var(--mini-player-height) + var(--mini-player-bottom-fill) + clamp(12px, 3vw, 32px));
 }
 
+@media (min-width: 561px) {
+  body.calendar-open #calendarModal {
+    place-items: stretch;
+  }
+
+  body.calendar-open #calendarModal .calendar-dialog {
+    width: min(100%, 720px);
+    max-height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    justify-self: center;
+    align-self: stretch;
+    align-content: stretch;
+    gap: clamp(12px, 1.8vh, 22px);
+    /* Week 1 row, month 2 rows, day 5 rows — equal cell height when space is tight */
+    grid-template-rows: auto minmax(0, 1fr) minmax(0, 2fr) minmax(0, 5fr) auto;
+  }
+
+  body.calendar-open #calendarModal .calendar-section {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 8px;
+    min-height: 0;
+  }
+
+  body.calendar-open #calendarModal .calendar-heatmap {
+    min-height: 0;
+    height: 100%;
+    grid-auto-rows: minmax(0, 1fr);
+  }
+
+  body.calendar-open #calendarModal .calendar-day {
+    aspect-ratio: unset;
+    min-height: 0;
+  }
+}
+
 body.calendar-open .mini-player {
   z-index: 220;
 }
