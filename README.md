@@ -1,6 +1,6 @@
 # MSSP: The Complete Collection
 
-<img width="390" height="227" alt="launch1" src="https://github.com/user-attachments/assets/7f86e6d3-7d9c-4b25-9fca-c4770d49b19d" /> <img width="375" height="225" alt="launch2" src="https://github.com/user-attachments/assets/fa458940-0628-408c-a7a4-bb56b236cfba" />
+<img width="390" height="227" alt="launch1" src="https://github.com/user-attachments/assets/7f86e6d3-7d9c-4b25-9fca-c4770d49b19d" /> <img width="390" height="227" alt="launch2" src="https://github.com/user-attachments/assets/fa458940-0628-408c-a7a4-bb56b236cfba" />
 
 <img width="293" height="598" alt="launch3" src="https://github.com/user-attachments/assets/2d989040-8e68-4802-8c9c-77fafe99121b" /> <img width="293" height="598" alt="launch4" src="https://github.com/user-attachments/assets/92a0bbbc-679b-427a-9143-920e0b844ac8" />
 
