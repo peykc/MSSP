@@ -10,6 +10,7 @@ import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
+import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
 import { getSourceStatus } from "./player/sourceStatus.js";
@@ -38,8 +39,10 @@ async function init() {
   await loadPublicSources();
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode });
+  const playbackProgressStore = createPlaybackProgressStore();
   const audioController = createAudioController({
     playerState,
+    playbackProgressStore,
     onEnded: handleEnded,
   });
   createPlayerView({

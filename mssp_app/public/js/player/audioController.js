@@ -1,12 +1,14 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 
 const BUFFERING_GRACE_MS = 900;
+const SAVE_INTERVAL_MS = 5000;
 const RECONCILABLE_STATUSES = new Set([
   PLAYBACK_STATUSES.LOADING_SOURCE,
   PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
   PLAYBACK_STATUSES.PAUSED,
 ]);
-export function createAudioController({ playerState, onEnded }) {
+
+export function createAudioController({ playerState, playbackProgressStore, onEnded }) {
   const audio = new Audio();
   audio.preload = "metadata";
   audio.crossOrigin = "anonymous";
@@ -19,10 +21,30 @@ export function createAudioController({ playerState, onEnded }) {
   let bufferingTimer = null;
   let playbackCommandToken = 0;
   let pendingPlayToken = null;
+  let restoredLoadToken = null;
 
-  document.addEventListener("visibilitychange", reconcilePlaybackState);
+  function onVisibilityChange() {
+    reconcilePlaybackState();
+    if (document.visibilityState === "hidden") {
+      savePlaybackPositionNow();
+    }
+  }
+
+  function onPageHidden() {
+    savePlaybackPositionNow();
+  }
+
+  document.addEventListener("visibilitychange", onVisibilityChange);
   window.addEventListener("pageshow", reconcilePlaybackState);
   window.addEventListener("focus", reconcilePlaybackState);
+  window.addEventListener("pagehide", onPageHidden);
+  window.addEventListener("beforeunload", onPageHidden);
+
+  const saveInterval = window.setInterval(() => {
+    if (!audio.paused && !audio.ended) {
+      savePlaybackPositionNow();
+    }
+  }, SAVE_INTERVAL_MS);
 
   function loadSelected({ playbackIntent: shouldPlay = false } = {}) {
     const state = playerState.getState();
@@ -103,6 +125,7 @@ export function createAudioController({ playerState, onEnded }) {
     ) {
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
     }
+    savePlaybackPositionNow();
   }
 
   function toggle() {
@@ -113,10 +136,11 @@ export function createAudioController({ playerState, onEnded }) {
     return play();
   }
 
-  function seek(value) {
+  function seek(value, { persist = true } = {}) {
     if (!Number.isFinite(audio.duration) || audio.duration <= 0) return null;
     audio.currentTime = Math.max(0, Math.min(Number(value) || 0, audio.duration));
     updateTimeline();
+    if (persist) savePlaybackPositionNow();
     return audio.currentTime;
   }
 
@@ -124,7 +148,40 @@ export function createAudioController({ playerState, onEnded }) {
     return seek(audio.currentTime + Number(offset || 0));
   }
 
+  function seekToRestoredPosition(time) {
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    audio.currentTime = Math.max(0, Math.min(Number(time) || 0, audio.duration));
+    updateTimeline();
+  }
+
+  function restoreSavedPosition() {
+    if (!playbackProgressStore || !loadedEpisodeKey) return;
+    const savedTime = playbackProgressStore.getRestorablePosition(loadedEpisodeKey, audio.duration);
+    if (savedTime !== null) seekToRestoredPosition(savedTime);
+  }
+
+  function savePlaybackPositionNow({ episodeKey } = {}) {
+    if (!playbackProgressStore) return;
+
+    const key = episodeKey || playerState.getState().selectedEpisode?.episodeKey;
+    if (!key) return;
+    if (!episodeKey && !isCurrentSource()) return;
+    if (audio.ended) return;
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    if (!Number.isFinite(audio.currentTime)) return;
+
+    playbackProgressStore.savePosition({
+      episodeKey: key,
+      currentTime: audio.currentTime,
+      duration: audio.duration,
+    });
+  }
+
   function loadSource(episodeKey, sourceUrl, shouldPlay) {
+    if (loadedEpisodeKey) {
+      savePlaybackPositionNow({ episodeKey: loadedEpisodeKey });
+    }
+
     invalidateLoad();
     resetAudioElement();
 
@@ -156,6 +213,10 @@ export function createAudioController({ playerState, onEnded }) {
 
     audio.addEventListener("loadedmetadata", current(() => {
       updateTimeline();
+      if (restoredLoadToken !== token) {
+        restoredLoadToken = token;
+        restoreSavedPosition();
+      }
       if (playerState.getState().playbackStatus === PLAYBACK_STATUSES.LOADING_SOURCE) {
         playerState.setPlaybackStatus(
           playbackIntent ? PLAYBACK_STATUSES.BUFFERING_PLAYBACK : PLAYBACK_STATUSES.READY
@@ -198,6 +259,9 @@ export function createAudioController({ playerState, onEnded }) {
     audio.addEventListener("ended", current(() => {
       setPlaybackIntent(false);
       clearBufferingTimer();
+      if (loadedEpisodeKey) {
+        playbackProgressStore?.removePosition(loadedEpisodeKey);
+      }
       updateTimeline();
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.ENDED);
       onEnded?.();
@@ -305,7 +369,17 @@ export function createAudioController({ playerState, onEnded }) {
     playerState.setPlaybackRequested(playbackIntent);
   }
 
+  function destroy() {
+    window.clearInterval(saveInterval);
+    document.removeEventListener("visibilitychange", onVisibilityChange);
+    window.removeEventListener("pageshow", reconcilePlaybackState);
+    window.removeEventListener("focus", reconcilePlaybackState);
+    window.removeEventListener("pagehide", onPageHidden);
+    window.removeEventListener("beforeunload", onPageHidden);
+  }
+
   return {
+    destroy,
     getAudioSnapshot,
     loadSelected,
     pause,
