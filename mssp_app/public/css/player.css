@@ -48,13 +48,6 @@ body.has-player .app {
   transition: width 180ms linear;
 }
 
-.mini-player__timeline-tooltip {
-  top: 0;
-  bottom: auto;
-  left: var(--scrub-position, 0%);
-  transform: translate(-50%, calc(-100% - 6px));
-}
-
 .mini-player__expand {
   display: grid;
   grid-template-columns: 58px minmax(0, 1fr);
@@ -95,20 +88,38 @@ body.player-dragging {
   gap: 4px;
 }
 
-.mini-player__copy strong,
-.mini-player__copy span {
+.mini-player__title {
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  gap: 8px;
   overflow: hidden;
+}
+
+.mini-player__episode {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.94rem;
+  font-weight: 650;
+}
+
+.mini-player__title-text {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.98rem;
+  font-weight: 780;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mini-player__copy strong {
-  font-size: 0.98rem;
-}
-
-.mini-player__copy span {
+#miniPlayerStatus {
+  overflow: hidden;
   color: var(--muted);
   font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mini-player__controls {
@@ -141,7 +152,7 @@ body.player-dragging {
   outline-offset: 2px;
 }
 
-.mini-player__controls button:disabled {
+.mini-player__controls .mini-player__play:disabled {
   color: rgba(255, 255, 255, 0.28);
   cursor: not-allowed;
   background: transparent;
@@ -507,6 +518,14 @@ body.player-dragging .full-player__collapse {
   display: none;
 }
 
+.mini-player .mini-player__timeline-tooltip {
+  top: 0;
+  bottom: auto;
+  left: var(--scrub-position, 0%);
+  z-index: 3;
+  transform: translate(-50%, calc(-100% - 6px));
+}
+
 .full-player__controls {
   display: flex;
   align-items: center;
@@ -535,7 +554,7 @@ body.player-dragging .full-player__collapse {
   outline-offset: 2px;
 }
 
-.full-player__controls button:disabled {
+.full-player__controls .full-player__play:disabled {
   color: rgba(255, 255, 255, 0.28);
   cursor: not-allowed;
 }

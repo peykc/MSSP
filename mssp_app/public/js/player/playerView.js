@@ -3,15 +3,11 @@ import { SOURCE_STATUSES } from "./sourceStatus.js";
 
 const SEEK_BACK_SECONDS = 15;
 const SEEK_FORWARD_SECONDS = 30;
-const SEEK_FEEDBACK_MS = 700;
+const SEEK_BURST_MS = 1200;
 const ACTIVE_PLAYBACK_STATUSES = new Set([
   PLAYBACK_STATUSES.LOADING_SOURCE,
   PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
   PLAYBACK_STATUSES.PLAYING,
-]);
-const TIMELINE_LOADING_STATUSES = new Set([
-  PLAYBACK_STATUSES.LOADING_SOURCE,
-  PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
 ]);
 
 const LOCK_ICON = `
@@ -49,8 +45,102 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   let dragTranslate = 0;
   let suppressClickUntil = 0;
   let scrubPointerId = null;
+  let seekBurstTotal = 0;
+  let seekBurstTimer = null;
+  let activeSeekTooltipSurface = null;
+  let lastBurstEpisodeKey = null;
+  let lastBurstSourceKey = null;
+  let lastBurstHadError = false;
+  let lastBurstWasEnded = false;
   const timelineScrubber = dom.playerTimeline.closest(".player-timeline__scrubber");
+  const miniPlayerEpisode = dom.miniPlayerTitle.querySelector(".mini-player__episode");
+  const miniPlayerTitleText = dom.miniPlayerTitle.querySelector(".mini-player__title-text");
   const tooltipTimers = new Map();
+
+  function getSourceKey(state) {
+    return state.source?.url
+      || state.source?.objectKey
+      || state.sourceStatus?.id
+      || "";
+  }
+
+  function getSeekTooltipElement(surface) {
+    return surface === "mini" ? dom.miniPlayerTimelineTooltip : dom.playerTimelineTooltip;
+  }
+
+  function resetSeekBurst() {
+    seekBurstTotal = 0;
+    if (seekBurstTimer) {
+      window.clearTimeout(seekBurstTimer);
+      seekBurstTimer = null;
+    }
+  }
+
+  function hideSeekTooltip(surface) {
+    if (surface === "mini" || surface === "full") {
+      const element = getSeekTooltipElement(surface);
+      window.clearTimeout(tooltipTimers.get(element));
+      tooltipTimers.delete(element);
+      element.hidden = true;
+      return;
+    }
+    hideSeekTooltip("mini");
+    hideSeekTooltip("full");
+  }
+
+  function clearBurstContext() {
+    resetSeekBurst();
+    hideSeekTooltip();
+    activeSeekTooltipSurface = null;
+  }
+
+  function extendSeekBurst(offset) {
+    window.clearTimeout(seekBurstTimer);
+    seekBurstTotal = seekBurstTimer ? seekBurstTotal + offset : offset;
+    seekBurstTimer = window.setTimeout(() => {
+      seekBurstTimer = null;
+      seekBurstTotal = 0;
+      activeSeekTooltipSurface = null;
+      hideSeekTooltip();
+    }, SEEK_BURST_MS);
+    return seekBurstTotal;
+  }
+
+  function maybeResetBurstOnContextChange(state, episode) {
+    const episodeKey = episode?.episodeKey || "";
+    const sourceKey = getSourceKey(state);
+    const hasError = Boolean(state.playbackError);
+    const isEnded = state.playbackStatus === PLAYBACK_STATUSES.ENDED;
+    let shouldReset = false;
+
+    if (!episode) {
+      shouldReset = true;
+    } else if (lastBurstEpisodeKey !== null && episodeKey !== lastBurstEpisodeKey) {
+      shouldReset = true;
+    } else if (lastBurstSourceKey !== null && sourceKey !== lastBurstSourceKey) {
+      shouldReset = true;
+    } else if (!lastBurstWasEnded && isEnded) {
+      shouldReset = true;
+    } else if (!lastBurstHadError && hasError) {
+      shouldReset = true;
+    }
+
+    if (shouldReset) {
+      clearBurstContext();
+    }
+
+    if (episode) {
+      lastBurstEpisodeKey = episodeKey;
+      lastBurstSourceKey = sourceKey;
+      lastBurstHadError = hasError;
+      lastBurstWasEnded = isEnded;
+    } else {
+      lastBurstEpisodeKey = null;
+      lastBurstSourceKey = null;
+      lastBurstHadError = false;
+      lastBurstWasEnded = false;
+    }
+  }
 
   function render(state) {
     const episode = state.selectedEpisode;
@@ -61,20 +151,29 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     document.body.classList.toggle("has-player", hasEpisode);
 
     if (!hasEpisode) {
+      maybeResetBurstOnContextChange(state, null);
       setExpandedUi(false);
       return;
     }
+
+    maybeResetBurstOnContextChange(state, episode);
 
     const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
     const accessLabel = episode.paytch === "PAYTCH" ? "PAYTCH" : "Public";
     const source = state.sourceStatus;
     const playable = isPlayable(state);
-    const hasDuration = playable && Number.isFinite(state.duration) && state.duration > 0;
+
+    if (playable && state.playbackStatus === PLAYBACK_STATUSES.READY && state.duration === 0) {
+      void audioController.loadSelected({ playbackIntent: false });
+    }
 
     dom.miniPlayerCover.src = episode.coverUrl;
     dom.miniPlayerCover.alt = "";
-    dom.miniPlayerTitle.textContent = `${episodeLabel} - ${episode.title || "Untitled episode"}`;
-    dom.miniPlayerStatus.textContent = getStableStatus(state);
+    miniPlayerEpisode.textContent = episodeLabel;
+    miniPlayerTitleText.textContent = episode.title || "Untitled episode";
+    dom.miniPlayerStatus.textContent = state.playbackError
+      ? state.playbackError
+      : formatMiniPlayerSubtitle(episode);
     dom.miniPlayer.style.setProperty("--mini-player-progress", `${getProgressPercent(state)}%`);
 
     dom.fullPlayerCover.src = episode.coverUrl;
@@ -90,10 +189,6 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     dom.fullPlayerStatus.textContent = state.playbackError ? "Unable to play audio." : source.label;
     dom.fullPlayerStatusDetail.textContent = state.playbackError ? "Tap Play to retry." : source.detail;
 
-    dom.playerSeekBack.disabled = !hasDuration;
-    dom.playerSeekForward.disabled = !hasDuration;
-    dom.miniPlayerSeekBack.disabled = !hasDuration;
-    dom.miniPlayerSeekForward.disabled = !hasDuration;
     dom.miniPlayerPlay.disabled = !playable;
     dom.playerPlay.disabled = !playable;
     renderTimeline(state);
@@ -108,26 +203,26 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   }
 
   function renderTimeline(state) {
-    const playable = isPlayable(state);
-    const loading = TIMELINE_LOADING_STATUSES.has(state.playbackStatus);
+    const seekable = canSeek(state);
+    const metadataLoading = state.playbackStatus === PLAYBACK_STATUSES.LOADING_SOURCE;
     const duration = Number.isFinite(state.duration) ? state.duration : 0;
     const shownTime = isScrubbing ? scrubPreviewTime : state.currentTime;
 
-    dom.playerTimeline.disabled = !playable || !duration || loading;
+    dom.playerTimeline.disabled = !seekable;
     dom.playerTimeline.max = String(Math.max(0, duration));
     if (!isScrubbing) {
       dom.playerTimeline.value = String(Math.min(shownTime || 0, duration));
     }
     const progress = duration > 0 ? Math.max(0, Math.min(100, (shownTime / duration) * 100)) : 0;
     dom.playerTimeline.style.setProperty("--timeline-progress", `${progress}%`);
-    dom.playerTimelineStart.classList.toggle("is-loading", loading);
-    dom.playerTimelineStart.textContent = loading ? "" : formatTime(shownTime);
-    dom.playerTimelineEnd.textContent = loading || !duration
+    dom.playerTimelineStart.classList.toggle("is-loading", metadataLoading);
+    dom.playerTimelineStart.textContent = metadataLoading ? "" : formatTime(shownTime);
+    dom.playerTimelineEnd.textContent = metadataLoading || !duration
       ? "--:--"
       : `-${formatTime(Math.max(0, duration - shownTime))}`;
     dom.playerTimeline.setAttribute(
       "aria-label",
-      playable ? "Playback position" : "Playback position unavailable"
+      seekable ? "Playback position" : "Playback position unavailable"
     );
   }
 
@@ -342,13 +437,21 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   }
 
   function seekBy(offset, surface) {
+    if (!canSeek(playerState.getState())) return;
+
     const seekTime = audioController.seekBy(offset);
     if (seekTime === null) return;
-    showTimelineTooltip(surface, formatSeekOffset(offset), seekTime);
+
+    const total = extendSeekBurst(offset);
+    if (activeSeekTooltipSurface && activeSeekTooltipSurface !== surface) {
+      hideSeekTooltip(activeSeekTooltipSurface);
+    }
+    activeSeekTooltipSurface = surface;
+    showTimelineTooltip(surface, formatSeekOffset(total), seekTime, SEEK_BURST_MS);
   }
 
-  function showTimelineTooltip(surface, label, seekTime) {
-    const element = surface === "mini" ? dom.miniPlayerTimelineTooltip : dom.playerTimelineTooltip;
+  function showTimelineTooltip(surface, label, seekTime, hideAfterMs = SEEK_BURST_MS) {
+    const element = getSeekTooltipElement(surface);
     const duration = playerState.getState().duration;
     const percent = duration > 0 ? (seekTime / duration) * 100 : 0;
     window.clearTimeout(tooltipTimers.get(element));
@@ -357,7 +460,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     element.hidden = false;
     tooltipTimers.set(element, window.setTimeout(() => {
       element.hidden = true;
-    }, SEEK_FEEDBACK_MS));
+    }, hideAfterMs));
   }
 
   function timelineValueFromClientX(clientX) {
@@ -377,6 +480,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
 
   function beginScrub(event) {
     if (dom.playerTimeline.disabled) return;
+    clearBurstContext();
     event.preventDefault();
     event.stopPropagation();
     window.clearTimeout(tooltipTimers.get(dom.playerTimelineTooltip));
@@ -494,10 +598,16 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   (timelineScrubber || dom.playerTimeline).addEventListener("pointerdown", beginScrub);
   dom.playerTimeline.addEventListener("input", (event) => {
     if (isScrubbing) updateScrubPreview(event.currentTarget.value);
-    else audioController.seek(event.currentTarget.value);
+    else {
+      clearBurstContext();
+      audioController.seek(event.currentTarget.value);
+    }
   });
   dom.playerTimeline.addEventListener("change", (event) => {
-    if (!isScrubbing && !suppressNextChange) audioController.seek(event.currentTarget.value);
+    if (!isScrubbing && !suppressNextChange) {
+      clearBurstContext();
+      audioController.seek(event.currentTarget.value);
+    }
   });
   dom.playerTimeline.addEventListener("blur", cancelScrub);
   dom.fullPlayerFavorite.addEventListener("click", () => {
@@ -518,9 +628,16 @@ function isPlayable(state) {
   return Boolean(state.source?.url) && state.sourceStatus?.id === SOURCE_STATUSES.READY;
 }
 
-function getStableStatus(state) {
-  if (state.playbackError) return state.playbackError;
-  return state.sourceStatus.detail || state.sourceStatus.label;
+function canSeek(state) {
+  if (!isPlayable(state)) return false;
+  if (state.playbackStatus === PLAYBACK_STATUSES.LOADING_SOURCE) return false;
+  const duration = Number.isFinite(state.duration) ? state.duration : 0;
+  return duration > 0;
+}
+
+function formatMiniPlayerSubtitle(episode) {
+  const sectionType = episode.paytch === "PAYTCH" ? "PAYTCH" : (episode.type || "MSSP");
+  return `${sectionType} - ${episode.date || "Unknown date"}`;
 }
 
 function getProgressPercent(state) {
