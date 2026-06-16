@@ -1,4 +1,45 @@
 {
-  "rssMatches": {},
+  "rssMatches": {
+    "2020-03-30 MSSP Ep. 175 - John McAfee Please Don't Kill Us": {
+      "feedId": "mssp-public-current",
+      "guid": "4e2cf8a3-6f62-4704-a6fc-6ab3ea918020",
+      "reason": "Manual match: RSS pubDate is one day later but title is exact."
+    },
+    "2020-07-15 MSSP Ep. EX - PuppyGirlJenna": {
+      "feedId": "mssp-public-current",
+      "guid": "b0e1b37f-41dd-4bf2-bf38-be173ba34b7d",
+      "reason": "Manual match: RSS title is MSSP Exclusive: Puppy Girl Jenna."
+    },
+    "2020-09-16 MSSP Ep. 315 - Hype Beasts": {
+      "feedId": "mssp-public-current",
+      "guid": "6d41dd07-f48f-474e-aea9-8b304a57f2de",
+      "reason": "Manual match: RSS title says Ep 115, but this appears to be Ep 315 Hype Beasts."
+    }
+  },
+  "r2Matches": {
+    "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.": {
+      "reason": "Visual episode mirrored to R2; YouTube embed planned."
+    },
+    "2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL": {
+      "reason": "Visual episode mirrored to R2; YouTube embed planned."
+    },
+    "2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream": {
+      "reason": "Visual episode mirrored to R2; YouTube embed planned."
+    }
+  },
+  "youtubeEmbeds": {
+    "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.": {
+      "url": "https://www.youtube.com/watch?v=ToZK5N5Le4s",
+      "reason": "Visual episode; audio mirrored on R2 for now."
+    },
+    "2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL": {
+      "url": "https://www.youtube.com/watch?v=ZtZy3AAOHFw",
+      "reason": "Visual episode; audio mirrored on R2 for now."
+    },
+    "2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream": {
+      "url": "https://www.youtube.com/watch?v=5bZOMIdfr_0",
+      "reason": "Visual episode; audio mirrored on R2 for now."
+    }
+  },
   "ignoreRssGuids": []
 }

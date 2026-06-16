@@ -207,6 +207,7 @@ body.player-dragging {
 .mini-player__controls .mini-player__play.is-locked svg {
   width: 24px;
   height: 24px;
+  stroke: none;
 }
 
 .player-backdrop {
@@ -388,6 +389,8 @@ body.player-dragging .full-player__collapse {
   grid-template-columns: 1fr 1fr;
   align-items: center;
   gap: 2px 10px;
+  width: min(100%, 1180px);
+  justify-self: center;
   color: var(--muted);
   font-size: 0.76rem;
 }
@@ -582,6 +585,7 @@ body.player-dragging .full-player__collapse {
 .full-player__controls .full-player__play.is-locked svg {
   width: 27px;
   height: 27px;
+  stroke: none;
 }
 
 .episode-details__play {

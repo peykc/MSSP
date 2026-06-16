@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T06:00:42.846Z",
+  "generatedAt": "2026-06-16T13:01:23.147Z",
   "schemaVersion": 1,
   "sourceBaseUrl": "https://mssp.pkcollection.net",
   "sources": {
@@ -1162,6 +1162,30 @@
       "mimeType": "audio/mpeg",
       "isOfficial": false,
       "credit": "Old Testament archival mirror"
+    },
+    "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.": {
+      "sourceType": "r2_audio",
+      "objectKey": "mssp/2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z..mp3",
+      "url": "https://mssp.pkcollection.net/mssp/2020-04-22%20MSSP%20Ep.%20179%20-%20Roll%20Call%20Ft%E2%A7%B8%20The%20D.A.W.G.Z..mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "New Testament archival mirror"
+    },
+    "2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL": {
+      "sourceType": "r2_audio",
+      "objectKey": "mssp/2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL.mp3",
+      "url": "https://mssp.pkcollection.net/mssp/2020-05-17%20MSSP%20Ep.%20182%20-%20D.A.W.G.%20ROLL%20CALL.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "New Testament archival mirror"
+    },
+    "2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream": {
+      "sourceType": "r2_audio",
+      "objectKey": "mssp/2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream.mp3",
+      "url": "https://mssp.pkcollection.net/mssp/2020-11-04%20MSSP%20Ep.%20322%20-%202020%20Presidential%20Livestream.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": false,
+      "credit": "New Testament archival mirror"
     },
     "2020-06-10 MSSP Ep. 300 - Emergency Teenis": {
       "sourceType": "public_rss_audio",
@@ -5410,6 +5434,42 @@
       "rssTitle": "The Presidents - Part Four (feat. Louis C.K.)",
       "rssPubDate": "2022-05-05",
       "matchConfidence": 0.6
+    },
+    "2020-03-30 MSSP Ep. 175 - John McAfee Please Don't Kill Us": {
+      "sourceType": "public_rss_audio",
+      "url": "https://traffic.megaphone.fm/GLT3652584372.mp3?updated=1738626535",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "4e2cf8a3-6f62-4704-a6fc-6ab3ea918020",
+      "rssTitle": "John McAfee Please Don't Kill Us",
+      "rssPubDate": "2020-03-31",
+      "matchConfidence": 1
+    },
+    "2020-07-15 MSSP Ep. EX - PuppyGirlJenna": {
+      "sourceType": "public_rss_audio",
+      "url": "https://traffic.megaphone.fm/GLT5377712092.mp3?updated=1738626518",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "b0e1b37f-41dd-4bf2-bf38-be173ba34b7d",
+      "rssTitle": "MSSP Exclusive: Puppy Girl Jenna",
+      "rssPubDate": "2020-07-16",
+      "matchConfidence": 1
+    },
+    "2020-09-16 MSSP Ep. 315 - Hype Beasts": {
+      "sourceType": "public_rss_audio",
+      "url": "https://traffic.megaphone.fm/GLT9242756546.mp3?updated=1738625895",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "6d41dd07-f48f-474e-aea9-8b304a57f2de",
+      "rssTitle": "Ep 115- Hype Beasts",
+      "rssPubDate": "2020-09-16",
+      "matchConfidence": 1
     }
   }
 }

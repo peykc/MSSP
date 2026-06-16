@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T06:00:42.850Z",
+  "generatedAt": "2026-06-16T13:01:23.152Z",
   "feeds": [
     {
       "id": "mssp-public-current",
@@ -10,20 +10,13 @@
   "summary": {
     "eligibleEpisodes": 360,
     "autoMatched": 354,
-    "manualMatched": 0,
-    "unmatchedEpisodes": 6,
-    "unmatchedRssItems": 13,
+    "manualMatched": 3,
+    "unmatchedEpisodes": 3,
+    "unmatchedRssItems": 10,
     "lowConfidence": 0
   },
   "lowConfidenceMatches": [],
   "unmatchedEpisodes": [
-    {
-      "episodeKey": "2020-03-30 MSSP Ep. 175 - John McAfee Please Don't Kill Us",
-      "date": "2020-03-30",
-      "episode": "175",
-      "title": "John McAfee Please Don't Kill Us",
-      "reason": "No RSS candidate met auto-match threshold"
-    },
     {
       "episodeKey": "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.",
       "date": "2020-04-22",
@@ -36,20 +29,6 @@
       "date": "2020-05-17",
       "episode": "182",
       "title": "D.A.W.G. ROLL CALL",
-      "reason": "No RSS candidate met auto-match threshold"
-    },
-    {
-      "episodeKey": "2020-07-15 MSSP Ep. EX - PuppyGirlJenna",
-      "date": "2020-07-15",
-      "episode": "EX",
-      "title": "PuppyGirlJenna",
-      "reason": "No RSS candidate met auto-match threshold"
-    },
-    {
-      "episodeKey": "2020-09-16 MSSP Ep. 315 - Hype Beasts",
-      "date": "2020-09-16",
-      "episode": "315",
-      "title": "Hype Beasts",
       "reason": "No RSS candidate met auto-match threshold"
     },
     {
@@ -83,30 +62,6 @@
       "rssTitle": "Ep 617 - Irish Good Morning",
       "pubDate": "2026-05-29",
       "enclosureUrl": "https://traffic.megaphone.fm/GLT7026172279.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "6d41dd07-f48f-474e-aea9-8b304a57f2de",
-      "rssTitle": "Ep 115- Hype Beasts",
-      "pubDate": "2020-09-16",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT9242756546.mp3?updated=1738625895",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "b0e1b37f-41dd-4bf2-bf38-be173ba34b7d",
-      "rssTitle": "MSSP Exclusive: Puppy Girl Jenna",
-      "pubDate": "2020-07-16",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT5377712092.mp3?updated=1738626518",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "4e2cf8a3-6f62-4704-a6fc-6ab3ea918020",
-      "rssTitle": "John McAfee Please Don't Kill Us",
-      "pubDate": "2020-03-31",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT3652584372.mp3?updated=1738626535",
       "reason": "No eligible anthology episode matched this RSS item"
     },
     {

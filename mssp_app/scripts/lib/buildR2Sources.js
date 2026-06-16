@@ -74,6 +74,8 @@ function extractR2Sources(sources) {
 module.exports = {
   EXPECTED_R2_COUNT,
   SOURCE_BASE_URL,
+  SOURCE_PREFIX,
+  buildUrl,
   buildR2Sources,
   countR2Sources,
   extractR2Sources,

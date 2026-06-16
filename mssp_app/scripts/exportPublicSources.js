@@ -4,10 +4,9 @@ const { PUBLIC_RSS_FEEDS } = require("./rssFeeds.config");
 const {
   SOURCE_BASE_URL,
   buildR2Sources,
-  countR2Sources,
-  extractR2Sources,
   EXPECTED_R2_COUNT,
 } = require("./lib/buildR2Sources");
+const { buildR2OverrideSources } = require("./lib/buildR2OverrideSources");
 const { buildRssSources } = require("./lib/buildRssSources");
 const { loadOverrides, validateMergedSources } = require("./lib/validateMergedSources");
 const { writeSourcesPayload } = require("./lib/writeSourcesPayload");
@@ -24,16 +23,19 @@ async function main() {
   const episodes = Array.isArray(episodesPayload.episodes) ? episodesPayload.episodes : [];
   const overrides = loadOverrides();
 
-  let r2Sources;
+  let otR2Sources;
+  let ntR2Sources;
   let rssSources = {};
   let report = null;
   let manualOverrideKeys = new Set();
 
   if (flags.rssOnly) {
-    r2Sources = loadExistingR2Sources(SOURCES_FILE);
+    otR2Sources = loadExistingOtR2Sources(SOURCES_FILE, episodes);
   } else {
-    r2Sources = buildR2Sources(episodes);
+    otR2Sources = buildR2Sources(episodes);
   }
+
+  ntR2Sources = buildR2OverrideSources(episodes, overrides);
 
   if (!flags.r2Only) {
     try {
@@ -59,7 +61,7 @@ async function main() {
     }
   }
 
-  const mergedSources = mergeSources(r2Sources, rssSources);
+  const mergedSources = mergeSources(otR2Sources, ntR2Sources, rssSources);
   validateMergedSources({
     sources: mergedSources,
     episodes,
@@ -77,9 +79,13 @@ async function main() {
     writeMatchReport({ filePath: REPORT_FILE, report });
   }
 
-  const r2Count = countR2Sources(mergedSources);
+  const otR2Count = countOtR2Sources(mergedSources, episodes);
+  const ntR2Count = Object.keys(ntR2Sources).length;
   const rssCount = Object.values(mergedSources).filter((source) => source.sourceType === "public_rss_audio").length;
-  console.log(`Exported ${Object.keys(mergedSources).length} public sources (${r2Count} R2, ${rssCount} RSS) to ${SOURCES_FILE}`);
+  console.log(
+    `Exported ${Object.keys(mergedSources).length} public sources `
+    + `(${otR2Count} R2 OT, ${ntR2Count} R2 NT, ${rssCount} RSS) to ${SOURCES_FILE}`,
+  );
 
   if (report?.summary) {
     const { summary } = report;
@@ -112,16 +118,35 @@ function loadExistingSourcesPayload(filePath) {
   return payload;
 }
 
-function loadExistingR2Sources(filePath) {
+function loadExistingOtR2Sources(filePath, episodes) {
   const payload = loadExistingSourcesPayload(filePath);
-  const r2Count = countR2Sources(payload.sources);
-  if (r2Count !== EXPECTED_R2_COUNT) {
+  const episodeByKey = new Map(episodes.map((episode) => [episode.episodeKey, episode]));
+  const otR2Sources = {};
+
+  for (const [episodeKey, source] of Object.entries(payload.sources)) {
+    if (source.sourceType !== "r2_audio") continue;
+    const episode = episodeByKey.get(episodeKey);
+    if (episode?.collectionKind === "old") {
+      otR2Sources[episodeKey] = source;
+    }
+  }
+
+  if (Object.keys(otR2Sources).length !== EXPECTED_R2_COUNT) {
     throw new Error(
-      `--rss-only requires exactly ${EXPECTED_R2_COUNT} existing R2 sources, got ${r2Count}`,
+      `--rss-only requires exactly ${EXPECTED_R2_COUNT} existing Old Testament R2 sources, `
+      + `got ${Object.keys(otR2Sources).length}`,
     );
   }
 
-  return extractR2Sources(payload.sources);
+  return otR2Sources;
+}
+
+function countOtR2Sources(sources, episodes) {
+  const episodeByKey = new Map(episodes.map((episode) => [episode.episodeKey, episode]));
+  return Object.keys(sources).filter((episodeKey) => {
+    const source = sources[episodeKey];
+    return source.sourceType === "r2_audio" && episodeByKey.get(episodeKey)?.collectionKind === "old";
+  }).length;
 }
 
 function extractRssSources(sources) {
@@ -134,8 +159,15 @@ function extractRssSources(sources) {
   return rssSources;
 }
 
-function mergeSources(r2Sources, rssSources) {
-  const merged = { ...r2Sources };
+function mergeSources(otR2Sources, ntR2Sources, rssSources) {
+  const merged = { ...otR2Sources };
+
+  for (const [episodeKey, source] of Object.entries(ntR2Sources)) {
+    if (merged[episodeKey]) {
+      throw new Error(`Collision: episodeKey has both Old Testament R2 and New Testament R2 source: ${episodeKey}`);
+    }
+    merged[episodeKey] = source;
+  }
 
   for (const [episodeKey, source] of Object.entries(rssSources)) {
     if (merged[episodeKey]) {
