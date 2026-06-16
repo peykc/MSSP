@@ -1,6 +1,7 @@
 export const SOURCE_TYPES = Object.freeze({
   R2_AUDIO: "r2_audio",
   PUBLIC_RSS: "public_rss",
+  PUBLIC_RSS_AUDIO: "public_rss_audio",
   YOUTUBE_EMBED: "youtube_embed",
   PATREON_RSS: "patreon_rss",
   LOCAL_FILE: "local_file",
@@ -32,12 +33,12 @@ export function getSourceStatus(episode, publicSource = null) {
     };
   }
 
-  if (publicSource?.sourceType === SOURCE_TYPES.R2_AUDIO) {
+  if (isPublicAudioSource(publicSource)) {
     return {
       id: SOURCE_STATUSES.READY,
       label: "Ready to play",
       detail: publicSource.credit || "Public audio source connected.",
-      sourceType: SOURCE_TYPES.R2_AUDIO,
+      sourceType: publicSource.sourceType,
     };
   }
 
@@ -53,4 +54,10 @@ function hasConnectedPatreonSource(episode) {
   return episode?.sourceType === SOURCE_TYPES.PATREON_RSS
     || episode?.source?.type === SOURCE_TYPES.PATREON_RSS
     || episode?.patreonRssConnected === true;
+}
+
+function isPublicAudioSource(publicSource) {
+  if (!publicSource?.url) return false;
+  return publicSource.sourceType === SOURCE_TYPES.R2_AUDIO
+    || publicSource.sourceType === SOURCE_TYPES.PUBLIC_RSS_AUDIO;
 }

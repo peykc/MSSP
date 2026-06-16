@@ -11,7 +11,6 @@ const RECONCILABLE_STATUSES = new Set([
 export function createAudioController({ playerState, playbackProgressStore, onEnded }) {
   const audio = new Audio();
   audio.preload = "metadata";
-  audio.crossOrigin = "anonymous";
 
   let loadedEpisodeKey = null;
   let loadedSourceUrl = null;
@@ -57,7 +56,7 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     }
 
     const sourceChanged = loadedEpisodeKey !== episode.episodeKey || loadedSourceUrl !== source.url;
-    if (sourceChanged) loadSource(episode.episodeKey, source.url, shouldPlay);
+    if (sourceChanged) loadSource(episode.episodeKey, source, shouldPlay);
 
     setPlaybackIntent(shouldPlay);
     return playbackIntent ? play() : Promise.resolve(true);
@@ -177,20 +176,21 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     });
   }
 
-  function loadSource(episodeKey, sourceUrl, shouldPlay) {
+  function loadSource(episodeKey, source, shouldPlay) {
     if (loadedEpisodeKey) {
       savePlaybackPositionNow({ episodeKey: loadedEpisodeKey });
     }
 
     invalidateLoad();
     resetAudioElement();
+    configureCrossOrigin(source);
 
     loadedEpisodeKey = episodeKey;
-    loadedSourceUrl = sourceUrl;
+    loadedSourceUrl = source.url;
     setPlaybackIntent(shouldPlay);
     const token = loadToken;
 
-    audio.src = sourceUrl;
+    audio.src = source.url;
     bindLoadEvents(token, audio.src);
     playerState.setTimeline({ currentTime: 0, duration: 0 });
     playerState.setPlaybackError("");
@@ -324,7 +324,19 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
   function resetAudioElement() {
     audio.pause();
     audio.removeAttribute("src");
+    audio.removeAttribute("crossorigin");
+    audio.crossOrigin = null;
     audio.load();
+  }
+
+  function configureCrossOrigin(source) {
+    if (source?.sourceType === "r2_audio") {
+      audio.crossOrigin = "anonymous";
+      return;
+    }
+
+    audio.removeAttribute("crossorigin");
+    audio.crossOrigin = null;
   }
 
   function isCurrentSource() {

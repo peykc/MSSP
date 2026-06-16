@@ -1,0 +1,1378 @@
+{
+  "generatedAt": "2026-06-16T04:31:34.213Z",
+  "feeds": [
+    {
+      "id": "mssp-public-current",
+      "url": "https://feeds.megaphone.fm/GLT1158789509",
+      "itemCount": 367
+    }
+  ],
+  "summary": {
+    "eligibleEpisodes": 360,
+    "autoMatched": 309,
+    "manualMatched": 0,
+    "unmatchedEpisodes": 51,
+    "unmatchedRssItems": 58,
+    "lowConfidence": 41
+  },
+  "lowConfidenceMatches": [
+    {
+      "episodeKey": "2020-07-30 MSSP Ep. 307 - Shatgazi vid",
+      "rssTitle": "Ep 307- Shatgazi",
+      "guid": "29f01cd7-a721-45f2-a27d-6b7a72667a43",
+      "feedId": "mssp-public-current",
+      "score": 70,
+      "matchConfidence": 0.7,
+      "reasons": [
+        "episode-number",
+        "date-near"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-04-21 MSSP Ep. 392 - Suss Al (feat. Lemaire Lee & Andy Malafarina)",
+      "rssTitle": "Ep 392 - Suss Al (feat. LeMaire Lee, Andy Malafarina, and mystery guest))",
+      "guid": "011ac0ca-68ca-4ff9-9f69-33a55c1919b9",
+      "feedId": "mssp-public-current",
+      "score": 65,
+      "matchConfidence": 0.65,
+      "reasons": [
+        "episode-number",
+        "title-medium"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-09-24 MSSP Ep. 148 - Comedy Podcast",
+      "rssTitle": "Comedy Podcast",
+      "guid": "9182cf21aa82446a82cf85e8c5c3054b",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-03 MSSP Ep. 149 - Back 2 Basics",
+      "rssTitle": "Back 2 Basics",
+      "guid": "1727c46776a34fcd973b192699e7d029",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-09 MSSP Ep. 150 - Twizted Azz Jokerz",
+      "rssTitle": "Twizted Azz Jokerz",
+      "guid": "7f0996e633fb4b9095e7fca6e601f423",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-15 MSSP Ep. 151 - Torso in the Mail",
+      "rssTitle": "Torso in the Mail",
+      "guid": "14b68e3e6e024b63a55870c7c44bac51",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-30 MSSP Ep. 152 - Bag Daddy Down",
+      "rssTitle": "Bag Daddy Down",
+      "guid": "47867e3bac304e0ba2f187d582af2820",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-08 MSSP Ep. 153 - Tommy Gear",
+      "rssTitle": "Tommy Gear",
+      "guid": "2f336c233c7047799341d99fd345abb7",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-13 MSSP Ep. 154 - The Gerbiezburg Address",
+      "rssTitle": "The Gerbiezburg Address",
+      "guid": "482e1c8e4fef4b37a9eceb4f33d940c3",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-21 MSSP Ep. 155 - The Party Prince",
+      "rssTitle": "The Party Prince",
+      "guid": "831bd2f5-9500-4e85-a66b-eb49d613660a",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-26 MSSP Ep. 156 - How to be a Praya",
+      "rssTitle": "How to be a Praya",
+      "guid": "979f71ff-4118-45a7-9328-94e12ae265d0",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-04 MSSP Ep. 157 - On Your Marks!",
+      "rssTitle": "On Your Marks!",
+      "guid": "84f30c41-05ef-4a28-ac92-c3704813e0dd",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-10 MSSP Ep. 158 - Hot Viral Boyz",
+      "rssTitle": "Hot Viral Boyz",
+      "guid": "1ac3867e-7046-4e9d-8cba-4cb56d3842cf",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-18 MSSP Ep. 159 - Fart Talk",
+      "rssTitle": "Fart Talk",
+      "guid": "560bba39-dec0-41d3-b1db-af3ad39b05c3",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-24 MSSP Ep. 160 - How can we not talk about Santa-",
+      "rssTitle": "How can we not talk about Santa?",
+      "guid": "9e16c01f-461f-4d05-8048-882645616d86",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-30 MSSP Ep. 161 - Stripper Party",
+      "rssTitle": "Stripper Party",
+      "guid": "79205ecf-aa4c-40e6-9ed1-035ca31d9c40",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-05 MSSP Ep. 162 - The Tesseract",
+      "rssTitle": "The Tesseract",
+      "guid": "f46bcd56-d933-40fc-b403-cd883b70fdae",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-14 MSSP Ep. 163 - Woodman's Oral Presentations",
+      "rssTitle": "Woodman's Oral Presentations",
+      "guid": "73f3752c-4ada-4e44-a761-8104e1b2bf09",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-20 MSSP Ep. 164 - Santa Maria",
+      "rssTitle": "Santa Maria",
+      "guid": "b63c4165-6db9-46c4-9db8-236b32bd7031",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-29 MSSP Ep. 165 - The ALL NEW Chevy Ted Cruze",
+      "rssTitle": "The ALL NEW Chevy Ted Cruze",
+      "guid": "12e03588-fa97-4248-93eb-1bea4de3af03",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-04 MSSP Ep. 166 - The Scotty Defense",
+      "rssTitle": "The Scotty Defense",
+      "guid": "2a92586a-7e45-4da5-ac5d-a5ba7f23009e",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-14 MSSP Ep. 167 - The Church of Sacred Dawgology",
+      "rssTitle": "The Church of Sacred Dawgology",
+      "guid": "7067ea5e-d68b-4991-8fb9-ce6e746775bf",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-23 MSSP Ep. 168 - Inner Core",
+      "rssTitle": "Inner Core",
+      "guid": "33f8a5cc-d3c2-44ab-b808-9b53aefafa37",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-25 MSSP Ep. 169 - Spheres",
+      "rssTitle": "Spheres",
+      "guid": "138b84f6-67d1-4d2d-b580-dc4a5702e364",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-03 MSSP Ep. 170 - Incredible Acts Of Bravery",
+      "rssTitle": "Incredible Acts Of Bravery",
+      "guid": "b73c8f23-d774-4716-aa86-719677737c68",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-10 MSSP Ep. 171 - Bull's Gone Wild- Spring Break Edition",
+      "rssTitle": "Bull's Gone Wild: Spring Break Edition",
+      "guid": "027ffda3-28d1-453a-b614-621fa0c95838",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-16 MSSP Ep. 172 - Geezer Face",
+      "rssTitle": "Geezer Face",
+      "guid": "2141c1dd-282e-4f17-9f89-36c3f8006ab5",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-23 MSSP Ep. 173 - Wahlberg",
+      "rssTitle": "Wahlberg",
+      "guid": "0f5d071e-9188-4924-8264-832364c0e1ce",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-28 MSSP Ep. 174 - Secure the Bug Out Bag w- Tom Green",
+      "rssTitle": "Secure the Bug Out Bag w/ Tom Green",
+      "guid": "2030d206-6bee-46f7-ae8c-84eef8bd89e4",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-05 MSSP Ep. 176 - Next Level",
+      "rssTitle": "Next Level",
+      "guid": "a1a857fa-15bd-448d-9090-36a138869a78",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-12 MSSP Ep. 177 - The McCusker Family Curse",
+      "rssTitle": "The McCusker Family Curse",
+      "guid": "28e4a994-bdfc-459c-be14-935d327ccf2f",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-21 MSSP Ep. 178 - Standing on The Gravitron",
+      "rssTitle": "Standing on The Gravitron",
+      "guid": "c5f6be2c-8e9d-420f-b4e7-bac8b399c159",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-12 MSSP Ep. 181 - Fueled By Hate",
+      "rssTitle": "Fueled By Hate",
+      "guid": "69f4a7a0-6ebd-4146-9013-d3c11c8f1881",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-20 MSSP Ep. 183 - Tybalt's Hole",
+      "rssTitle": "Tybalt's Hole",
+      "guid": "8bcd0237-b2f2-456b-8415-add72bf7e74d",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-27 MSSP Ep. 184 - Dad Dwyer",
+      "rssTitle": "Dad Dwyer",
+      "guid": "95a7d96a-4372-423b-8998-d3a971fc200e",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-06-01 MSSP Ep. 185 - The Shat Prophecies",
+      "rssTitle": "The Shat Prophecies",
+      "guid": "24eca59c-6893-4be7-b01b-758f1fb189ce",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-06-24 MSSP Ep. 302 - Dog Girl",
+      "rssTitle": "Dog Girl",
+      "guid": "6521777b-56bf-410d-8b12-02e04f106326",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2021-01-20 MSSP Ep. EX - Night Stalker",
+      "rssTitle": "Night Stalker",
+      "guid": "81233d00-713b-4a2a-a7b0-9f1b59066746",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-05-04 MSSP Ep. 393.2 - The Presidents - Part Two (feat. Louis C.K.)",
+      "rssTitle": "The Presidents - Part Two (feat. Louis C.K.)",
+      "guid": "799cc5d5-b7f7-40a3-9501-5b4815777320",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-05-05 MSSP Ep. 393.3 - The Presidents - Part Three (feat. Louis C.K.)",
+      "rssTitle": "The Presidents - Part Three (feat. Louis C.K.)",
+      "guid": "09a3c6ae-9fd5-4214-8934-006e806995f7",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-05-05 MSSP Ep. 393.4 - The Presidents - Part Four (feat. Louis C.K.)",
+      "rssTitle": "The Presidents - Part Four (feat. Louis C.K.)",
+      "guid": "ee06a673-e265-4b58-b70f-4afdfb503d21",
+      "feedId": "mssp-public-current",
+      "score": 60,
+      "matchConfidence": 0.6,
+      "reasons": [
+        "date-exact",
+        "title-strong"
+      ],
+      "reason": "Score below auto-match threshold"
+    }
+  ],
+  "unmatchedEpisodes": [
+    {
+      "episodeKey": "2019-09-24 MSSP Ep. 148 - Comedy Podcast",
+      "date": "2019-09-24",
+      "episode": "148",
+      "title": "Comedy Podcast",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-03 MSSP Ep. 149 - Back 2 Basics",
+      "date": "2019-10-03",
+      "episode": "149",
+      "title": "Back 2 Basics",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-09 MSSP Ep. 150 - Twizted Azz Jokerz",
+      "date": "2019-10-09",
+      "episode": "150",
+      "title": "Twizted Azz Jokerz",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-15 MSSP Ep. 151 - Torso in the Mail",
+      "date": "2019-10-15",
+      "episode": "151",
+      "title": "Torso in the Mail",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-10-30 MSSP Ep. 152 - Bag Daddy Down",
+      "date": "2019-10-30",
+      "episode": "152",
+      "title": "Bag Daddy Down",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-08 MSSP Ep. 153 - Tommy Gear",
+      "date": "2019-11-08",
+      "episode": "153",
+      "title": "Tommy Gear",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-13 MSSP Ep. 154 - The Gerbiezburg Address",
+      "date": "2019-11-13",
+      "episode": "154",
+      "title": "The Gerbiezburg Address",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-21 MSSP Ep. 155 - The Party Prince",
+      "date": "2019-11-21",
+      "episode": "155",
+      "title": "The Party Prince",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-11-26 MSSP Ep. 156 - How to be a Praya",
+      "date": "2019-11-26",
+      "episode": "156",
+      "title": "How to be a Praya",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-04 MSSP Ep. 157 - On Your Marks!",
+      "date": "2019-12-04",
+      "episode": "157",
+      "title": "On Your Marks!",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-10 MSSP Ep. 158 - Hot Viral Boyz",
+      "date": "2019-12-10",
+      "episode": "158",
+      "title": "Hot Viral Boyz",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-18 MSSP Ep. 159 - Fart Talk",
+      "date": "2019-12-18",
+      "episode": "159",
+      "title": "Fart Talk",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-24 MSSP Ep. 160 - How can we not talk about Santa-",
+      "date": "2019-12-24",
+      "episode": "160",
+      "title": "How can we not talk about Santa-",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2019-12-30 MSSP Ep. 161 - Stripper Party",
+      "date": "2019-12-30",
+      "episode": "161",
+      "title": "Stripper Party",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-05 MSSP Ep. 162 - The Tesseract",
+      "date": "2020-01-05",
+      "episode": "162",
+      "title": "The Tesseract",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-14 MSSP Ep. 163 - Woodman's Oral Presentations",
+      "date": "2020-01-14",
+      "episode": "163",
+      "title": "Woodman's Oral Presentations",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-20 MSSP Ep. 164 - Santa Maria",
+      "date": "2020-01-20",
+      "episode": "164",
+      "title": "Santa Maria",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-01-29 MSSP Ep. 165 - The ALL NEW Chevy Ted Cruze",
+      "date": "2020-01-29",
+      "episode": "165",
+      "title": "The ALL NEW Chevy Ted Cruze",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-04 MSSP Ep. 166 - The Scotty Defense",
+      "date": "2020-02-04",
+      "episode": "166",
+      "title": "The Scotty Defense",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-14 MSSP Ep. 167 - The Church of Sacred Dawgology",
+      "date": "2020-02-14",
+      "episode": "167",
+      "title": "The Church of Sacred Dawgology",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-23 MSSP Ep. 168 - Inner Core",
+      "date": "2020-02-23",
+      "episode": "168",
+      "title": "Inner Core",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-02-25 MSSP Ep. 169 - Spheres",
+      "date": "2020-02-25",
+      "episode": "169",
+      "title": "Spheres",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-03 MSSP Ep. 170 - Incredible Acts Of Bravery",
+      "date": "2020-03-03",
+      "episode": "170",
+      "title": "Incredible Acts Of Bravery",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-10 MSSP Ep. 171 - Bull's Gone Wild- Spring Break Edition",
+      "date": "2020-03-10",
+      "episode": "171",
+      "title": "Bull's Gone Wild- Spring Break Edition",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-16 MSSP Ep. 172 - Geezer Face",
+      "date": "2020-03-16",
+      "episode": "172",
+      "title": "Geezer Face",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-23 MSSP Ep. 173 - Wahlberg",
+      "date": "2020-03-23",
+      "episode": "173",
+      "title": "Wahlberg",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-28 MSSP Ep. 174 - Secure the Bug Out Bag w- Tom Green",
+      "date": "2020-03-28",
+      "episode": "174",
+      "title": "Secure the Bug Out Bag w- Tom Green",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-03-30 MSSP Ep. 175 - John McAfee Please Don't Kill Us",
+      "date": "2020-03-30",
+      "episode": "175",
+      "title": "John McAfee Please Don't Kill Us",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-05 MSSP Ep. 176 - Next Level",
+      "date": "2020-04-05",
+      "episode": "176",
+      "title": "Next Level",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-12 MSSP Ep. 177 - The McCusker Family Curse",
+      "date": "2020-04-12",
+      "episode": "177",
+      "title": "The McCusker Family Curse",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-21 MSSP Ep. 178 - Standing on The Gravitron",
+      "date": "2020-04-21",
+      "episode": "178",
+      "title": "Standing on The Gravitron",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.",
+      "date": "2020-04-22",
+      "episode": "179",
+      "title": "Roll Call Ft⧸ The D.A.W.G.Z.",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-04-30 MSSP Ep. 180 - O'Connors new leaf",
+      "date": "2020-04-30",
+      "episode": "180",
+      "title": "O'Connors new leaf",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-12 MSSP Ep. 181 - Fueled By Hate",
+      "date": "2020-05-12",
+      "episode": "181",
+      "title": "Fueled By Hate",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL",
+      "date": "2020-05-17",
+      "episode": "182",
+      "title": "D.A.W.G. ROLL CALL",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-20 MSSP Ep. 183 - Tybalt's Hole",
+      "date": "2020-05-20",
+      "episode": "183",
+      "title": "Tybalt's Hole",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-05-27 MSSP Ep. 184 - Dad Dwyer",
+      "date": "2020-05-27",
+      "episode": "184",
+      "title": "Dad Dwyer",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-06-01 MSSP Ep. 185 - The Shat Prophecies",
+      "date": "2020-06-01",
+      "episode": "185",
+      "title": "The Shat Prophecies",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-06-24 MSSP Ep. 302 - Dog Girl",
+      "date": "2020-06-24",
+      "episode": "302",
+      "title": "Dog Girl",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-07-15 MSSP Ep. EX - PuppyGirlJenna",
+      "date": "2020-07-15",
+      "episode": "EX",
+      "title": "PuppyGirlJenna",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-07-30 MSSP Ep. 307 - Shatgazi vid",
+      "date": "2020-07-30",
+      "episode": "307",
+      "title": "Shatgazi vid",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-08-05 MSSP Ep. 308 - Love in Australia",
+      "date": "2020-08-05",
+      "episode": "308",
+      "title": "Love in Australia",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-09-09 MSSP Ep. 313 - Return of the Stoner Dads",
+      "date": "2020-09-09",
+      "episode": "313",
+      "title": "Return of the Stoner Dads",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-09-16 MSSP Ep. 315 - Hype Beasts",
+      "date": "2020-09-16",
+      "episode": "315",
+      "title": "Hype Beasts",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream",
+      "date": "2020-11-04",
+      "episode": "322",
+      "title": "2020 Presidential Livestream",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2021-01-20 MSSP Ep. EX - Night Stalker",
+      "date": "2021-01-20",
+      "episode": "EX",
+      "title": "Night Stalker",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2021-06-01 MSSP Ep. 349 - LIVE from Magooby's (feat. Billy and Spud)",
+      "date": "2021-06-01",
+      "episode": "349",
+      "title": "LIVE from Magooby's (feat. Billy and Spud)",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-04-21 MSSP Ep. 392 - Suss Al (feat. Lemaire Lee & Andy Malafarina)",
+      "date": "2022-04-21",
+      "episode": "392",
+      "title": "Suss Al (feat. Lemaire Lee & Andy Malafarina)",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-05-04 MSSP Ep. 393.2 - The Presidents - Part Two (feat. Louis C.K.)",
+      "date": "2022-05-04",
+      "episode": "393.2",
+      "title": "The Presidents - Part Two (feat. Louis C.K.)",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-05-05 MSSP Ep. 393.3 - The Presidents - Part Three (feat. Louis C.K.)",
+      "date": "2022-05-05",
+      "episode": "393.3",
+      "title": "The Presidents - Part Three (feat. Louis C.K.)",
+      "reason": "No RSS candidate met auto-match threshold"
+    },
+    {
+      "episodeKey": "2022-05-05 MSSP Ep. 393.4 - The Presidents - Part Four (feat. Louis C.K.)",
+      "date": "2022-05-05",
+      "episode": "393.4",
+      "title": "The Presidents - Part Four (feat. Louis C.K.)",
+      "reason": "No RSS candidate met auto-match threshold"
+    }
+  ],
+  "unmatchedRssItems": [
+    {
+      "feedId": "mssp-public-current",
+      "guid": "6e87162e-654f-11f1-b73d-475f18d2ffb8",
+      "rssTitle": "Ep 619 - Plus-Sized Problems (feat. Nate Marshall & Lemaire Lee)",
+      "pubDate": "2026-06-11",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT6843635646.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "a08c8c2e-613c-11f1-b207-1f6d642e3d89",
+      "rssTitle": "Ep 618 - Officer Lemaire (feat. Charles Blyzniuk & Lemaire Lee)",
+      "pubDate": "2026-06-08",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT6305668784.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "8e7851c6-5b0b-11f1-80eb-373be815f64f",
+      "rssTitle": "Ep 617 - Irish Good Morning",
+      "pubDate": "2026-05-29",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT7026172279.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "ee06a673-e265-4b58-b70f-4afdfb503d21",
+      "rssTitle": "The Presidents - Part Four (feat. Louis C.K.)",
+      "pubDate": "2022-05-05",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5300929577.mp3?updated=1740681438",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "09a3c6ae-9fd5-4214-8934-006e806995f7",
+      "rssTitle": "The Presidents - Part Three (feat. Louis C.K.)",
+      "pubDate": "2022-05-05",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3386920342.mp3?updated=1740680731",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "799cc5d5-b7f7-40a3-9501-5b4815777320",
+      "rssTitle": "The Presidents - Part Two (feat. Louis C.K.)",
+      "pubDate": "2022-05-04",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT6661524396.mp3?updated=1740680495",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "011ac0ca-68ca-4ff9-9f69-33a55c1919b9",
+      "rssTitle": "Ep 392 - Suss Al (feat. LeMaire Lee, Andy Malafarina, and mystery guest))",
+      "pubDate": "2022-04-19",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT2767205899.mp3?updated=1740679732",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "315183d4-85cf-45ae-be2c-8ff7e6bfd6c7",
+      "rssTitle": "Ep - 349 LIVE from Magooby's (feat. Billy and Spud)",
+      "pubDate": "2021-06-01",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT6151485104.mp3?updated=1740617181",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "81233d00-713b-4a2a-a7b0-9f1b59066746",
+      "rssTitle": "Night Stalker",
+      "pubDate": "2021-01-20",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT4776900776.mp3?updated=1738626532",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "6d41dd07-f48f-474e-aea9-8b304a57f2de",
+      "rssTitle": "Ep 115- Hype Beasts",
+      "pubDate": "2020-09-16",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9242756546.mp3?updated=1738625895",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "d6d945fe-d6e4-4f78-bafc-8790158d9b48",
+      "rssTitle": "Ep 313a Return of the Stoner Dads",
+      "pubDate": "2020-09-09",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT7358714474.mp3?updated=1738625795",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "de4f51c1-5884-4d8e-9125-80480e3854b8",
+      "rssTitle": "Ep-308 Love in Australia",
+      "pubDate": "2020-08-05",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1787248350.mp3?updated=1738626537",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "29f01cd7-a721-45f2-a27d-6b7a72667a43",
+      "rssTitle": "Ep 307- Shatgazi",
+      "pubDate": "2020-07-29",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5577353250.mp3?updated=1738625778",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "b0e1b37f-41dd-4bf2-bf38-be173ba34b7d",
+      "rssTitle": "MSSP Exclusive: Puppy Girl Jenna",
+      "pubDate": "2020-07-16",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5377712092.mp3?updated=1738626518",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "6521777b-56bf-410d-8b12-02e04f106326",
+      "rssTitle": "Dog Girl",
+      "pubDate": "2020-06-24",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5376807467.mp3?updated=1738625968",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "24eca59c-6893-4be7-b01b-758f1fb189ce",
+      "rssTitle": "The Shat Prophecies",
+      "pubDate": "2020-06-01",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1751673454.mp3?updated=1738626558",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "95a7d96a-4372-423b-8998-d3a971fc200e",
+      "rssTitle": "Dad Dwyer",
+      "pubDate": "2020-05-27",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT2720918649.mp3?updated=1738625779",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "8bcd0237-b2f2-456b-8415-add72bf7e74d",
+      "rssTitle": "Tybalt's Hole",
+      "pubDate": "2020-05-20",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9152771513.mp3?updated=1738626580",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "69f4a7a0-6ebd-4146-9013-d3c11c8f1881",
+      "rssTitle": "Fueled By Hate",
+      "pubDate": "2020-05-12",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT4682595733.mp3?updated=1738626580",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "ea9ec075-7213-445b-8ee1-858f061b6245",
+      "rssTitle": "O'Connor's new leaf",
+      "pubDate": "2020-04-30",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT4286296102.mp3?updated=1738626689",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "c5f6be2c-8e9d-420f-b4e7-bac8b399c159",
+      "rssTitle": "Standing on The Gravitron",
+      "pubDate": "2020-04-21",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT4150130973.mp3?updated=1738627018",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "28e4a994-bdfc-459c-be14-935d327ccf2f",
+      "rssTitle": "The McCusker Family Curse",
+      "pubDate": "2020-04-12",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT2731683253.mp3?updated=1738626579",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "a1a857fa-15bd-448d-9090-36a138869a78",
+      "rssTitle": "Next Level",
+      "pubDate": "2020-04-05",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3662708068.mp3?updated=1738626540",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "4e2cf8a3-6f62-4704-a6fc-6ab3ea918020",
+      "rssTitle": "John McAfee Please Don't Kill Us",
+      "pubDate": "2020-03-31",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3652584372.mp3?updated=1738626535",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "2030d206-6bee-46f7-ae8c-84eef8bd89e4",
+      "rssTitle": "Secure the Bug Out Bag w/ Tom Green",
+      "pubDate": "2020-03-28",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1718001758.mp3?updated=1738626567",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "0f5d071e-9188-4924-8264-832364c0e1ce",
+      "rssTitle": "Wahlberg",
+      "pubDate": "2020-03-23",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT2549427685.mp3?updated=1738626537",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "2141c1dd-282e-4f17-9f89-36c3f8006ab5",
+      "rssTitle": "Geezer Face",
+      "pubDate": "2020-03-16",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5835661223.mp3?updated=1738626599",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "027ffda3-28d1-453a-b614-621fa0c95838",
+      "rssTitle": "Bull's Gone Wild: Spring Break Edition",
+      "pubDate": "2020-03-10",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3777743382.mp3?updated=1738625801",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "b73c8f23-d774-4716-aa86-719677737c68",
+      "rssTitle": "Incredible Acts Of Bravery",
+      "pubDate": "2020-03-03",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5631562768.mp3?updated=1738626528",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "138b84f6-67d1-4d2d-b580-dc4a5702e364",
+      "rssTitle": "Spheres",
+      "pubDate": "2020-02-25",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT2729088070.mp3?updated=1738626525",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "33f8a5cc-d3c2-44ab-b808-9b53aefafa37",
+      "rssTitle": "Inner Core",
+      "pubDate": "2020-02-23",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT5847896066.mp3?updated=1738626971",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "7067ea5e-d68b-4991-8fb9-ce6e746775bf",
+      "rssTitle": "The Church of Sacred Dawgology",
+      "pubDate": "2020-02-14",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9200130724.mp3?updated=1738626576",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "2a92586a-7e45-4da5-ac5d-a5ba7f23009e",
+      "rssTitle": "The Scotty Defense",
+      "pubDate": "2020-02-04",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT8989436623.mp3?updated=1738626984",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "12e03588-fa97-4248-93eb-1bea4de3af03",
+      "rssTitle": "The ALL NEW Chevy Ted Cruze",
+      "pubDate": "2020-01-29",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9312625529.mp3?updated=1738626527",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "b63c4165-6db9-46c4-9db8-236b32bd7031",
+      "rssTitle": "Santa Maria",
+      "pubDate": "2020-01-20",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1078099478.mp3?updated=1738626541",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "73f3752c-4ada-4e44-a761-8104e1b2bf09",
+      "rssTitle": "Woodman's Oral Presentations",
+      "pubDate": "2020-01-14",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1474158942.mp3?updated=1738626537",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "f46bcd56-d933-40fc-b403-cd883b70fdae",
+      "rssTitle": "The Tesseract",
+      "pubDate": "2020-01-05",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9735473209.mp3?updated=1738626539",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "79205ecf-aa4c-40e6-9ed1-035ca31d9c40",
+      "rssTitle": "Stripper Party",
+      "pubDate": "2019-12-30",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT7581813701.mp3?updated=1738626536",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "9e16c01f-461f-4d05-8048-882645616d86",
+      "rssTitle": "How can we not talk about Santa?",
+      "pubDate": "2019-12-24",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT8154519082.mp3?updated=1738626541",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "560bba39-dec0-41d3-b1db-af3ad39b05c3",
+      "rssTitle": "Fart Talk",
+      "pubDate": "2019-12-18",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3354025034.mp3?updated=1738626528",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "1ac3867e-7046-4e9d-8cba-4cb56d3842cf",
+      "rssTitle": "Hot Viral Boyz",
+      "pubDate": "2019-12-10",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3840441641.mp3?updated=1738626529",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "84f30c41-05ef-4a28-ac92-c3704813e0dd",
+      "rssTitle": "On Your Marks!",
+      "pubDate": "2019-12-04",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3271890366.mp3?updated=1738626510",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "979f71ff-4118-45a7-9328-94e12ae265d0",
+      "rssTitle": "How to be a Praya",
+      "pubDate": "2019-11-26",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT7325481828.mp3?updated=1738627019",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "831bd2f5-9500-4e85-a66b-eb49d613660a",
+      "rssTitle": "The Party Prince",
+      "pubDate": "2019-11-21",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT6313003176.mp3?updated=1738626549",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "482e1c8e4fef4b37a9eceb4f33d940c3",
+      "rssTitle": "The Gerbiezburg Address",
+      "pubDate": "2019-11-13",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT2344995042.mp3?updated=1738626541",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "2f336c233c7047799341d99fd345abb7",
+      "rssTitle": "Tommy Gear",
+      "pubDate": "2019-11-08",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3577875813.mp3?updated=1738626474",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "47867e3bac304e0ba2f187d582af2820",
+      "rssTitle": "Bag Daddy Down",
+      "pubDate": "2019-10-30",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT8306433228.mp3?updated=1738625765",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "14b68e3e6e024b63a55870c7c44bac51",
+      "rssTitle": "Torso in the Mail",
+      "pubDate": "2019-10-15",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT4086014727.mp3?updated=1738626534",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "7f0996e633fb4b9095e7fca6e601f423",
+      "rssTitle": "Twizted Azz Jokerz",
+      "pubDate": "2019-10-09",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9918794240.mp3?updated=1738626567",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "1727c46776a34fcd973b192699e7d029",
+      "rssTitle": "Back 2 Basics",
+      "pubDate": "2019-10-03",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1852973740.mp3?updated=1738625367",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "9182cf21aa82446a82cf85e8c5c3054b",
+      "rssTitle": "Comedy Podcast",
+      "pubDate": "2019-09-24",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9460968108.mp3?updated=1738625788",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "df6f03e9ff6c4181ac55d141f617a0e4",
+      "rssTitle": "Ep 1347- Ephemerality",
+      "pubDate": "2019-09-08",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1151850774.mp3?updated=1738625799",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "f23d30c890f147f48bdb7cab89c9ef56",
+      "rssTitle": "S4 Ep38: Ep 146-Live from Shane's Parent's Basement",
+      "pubDate": "2019-09-03",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT6028793986.mp3?updated=1738625751",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "0cd3772632d54de49abaafd04d0cedb9",
+      "rssTitle": "S4 Ep36: Ep 144- A.I. is Racist",
+      "pubDate": "2019-08-26",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT1265448661.mp3?updated=1738625746",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "6abd72b6ede3400895e5e6b3441eac7a",
+      "rssTitle": "S3 Ep35: Ep 143- Everything is F*cking Asshoe!!!",
+      "pubDate": "2019-08-22",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3492666925.mp3?updated=1738625779",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "65312b3852c4428d8589925a25a8d0d9",
+      "rssTitle": "S3 Ep34: Ep 142- War Room II-Pt 1",
+      "pubDate": "2019-08-15",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9677184540.mp3?updated=1738626350",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "2fde47e9e064469296d8964daea156ff",
+      "rssTitle": "S3 Ep33: Ep 141- Awash in Propagander",
+      "pubDate": "2019-08-05",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT7609504955.mp3?updated=1738625851",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "5ae13696f4c54173904ab61c720ba257",
+      "rssTitle": "Stink Tank- Ep 1",
+      "pubDate": "2019-07-28",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT4361693447.mp3?updated=1738626467",
+      "reason": "No eligible anthology episode matched this RSS item"
+    }
+  ]
+}

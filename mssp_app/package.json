@@ -5,7 +5,12 @@
   "scripts": {
     "export:data": "node scripts/exportData.js",
     "export:sources": "node scripts/exportPublicSources.js",
+    "export:sources:r2": "node scripts/exportPublicSources.js --r2-only",
+    "export:sources:rss": "node scripts/exportPublicSources.js --rss-only",
     "export:all": "npm run export:data && npm run export:sources",
     "start": "node server.js"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^5.2.5"
   }
 }
