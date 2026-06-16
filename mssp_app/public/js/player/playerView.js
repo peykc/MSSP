@@ -48,6 +48,8 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   let gesture = null;
   let dragTranslate = 0;
   let suppressClickUntil = 0;
+  let scrubPointerId = null;
+  const timelineScrubber = dom.playerTimeline.closest(".player-timeline__scrubber");
   const tooltipTimers = new Map();
 
   function render(state) {
@@ -226,7 +228,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
       const onHandle = Boolean(event.target.closest(".full-player__collapse"));
       if (!onHandle) {
         if (dom.fullPlayer.scrollTop > 0) return;
-        if (event.target.closest("button, input, a")) return;
+        if (event.target.closest("button, input, a, .full-player__timeline")) return;
       }
     }
 
@@ -358,13 +360,46 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     }, SEEK_FEEDBACK_MS));
   }
 
+  function timelineValueFromClientX(clientX) {
+    const input = dom.playerTimeline;
+    const rect = input.getBoundingClientRect();
+    const max = Number(input.max) || 0;
+    if (!max || rect.width <= 0) return 0;
+    const ratio = clampValue((clientX - rect.left) / rect.width, 0, 1);
+    return ratio * max;
+  }
+
+  function updateScrubFromPointer(event) {
+    const value = timelineValueFromClientX(event.clientX);
+    dom.playerTimeline.value = String(value);
+    updateScrubPreview(value);
+  }
+
   function beginScrub(event) {
     if (dom.playerTimeline.disabled) return;
+    event.preventDefault();
+    event.stopPropagation();
     window.clearTimeout(tooltipTimers.get(dom.playerTimelineTooltip));
     isScrubbing = true;
     suppressNextChange = false;
+    scrubPointerId = event.pointerId;
     dom.playerTimeline.setPointerCapture?.(event.pointerId);
-    updateScrubPreview(dom.playerTimeline.value);
+    updateScrubFromPointer(event);
+  }
+
+  function onScrubPointerMove(event) {
+    if (!isScrubbing || event.pointerId !== scrubPointerId) return;
+    event.preventDefault();
+    updateScrubFromPointer(event);
+  }
+
+  function endScrub(event, commit) {
+    if (!isScrubbing) return;
+    if (event?.pointerId !== undefined && scrubPointerId !== null && event.pointerId !== scrubPointerId) return;
+    dom.playerTimeline.releasePointerCapture?.(scrubPointerId);
+    scrubPointerId = null;
+    if (commit) commitScrub();
+    else cancelScrub();
   }
 
   function updateScrubPreview(value) {
@@ -381,6 +416,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   function commitScrub() {
     if (!isScrubbing) return;
     isScrubbing = false;
+    scrubPointerId = null;
     suppressNextChange = true;
     dom.playerTimelineTooltip.hidden = true;
     audioController.seek(scrubPreviewTime);
@@ -391,6 +427,10 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
 
   function cancelScrub() {
     if (!isScrubbing) return;
+    if (scrubPointerId !== null) {
+      dom.playerTimeline.releasePointerCapture?.(scrubPointerId);
+      scrubPointerId = null;
+    }
     isScrubbing = false;
     dom.playerTimelineTooltip.hidden = true;
     renderTimeline(playerState.getState());
@@ -424,18 +464,34 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   dom.fullPlayer.addEventListener("pointerdown", (event) => onDragPointerDown("collapse", event));
   dom.miniPlayer.addEventListener("click", maybeSwallowClick, true);
   dom.fullPlayer.addEventListener("click", maybeSwallowClick, true);
-  window.addEventListener("pointermove", onDragPointerMove, { passive: false });
-  window.addEventListener("pointerup", onDragPointerUp);
-  window.addEventListener("pointercancel", onDragPointerUp);
+  window.addEventListener("pointermove", (event) => {
+    if (isScrubbing) {
+      onScrubPointerMove(event);
+      return;
+    }
+    onDragPointerMove(event);
+  }, { passive: false });
+  window.addEventListener("pointerup", (event) => {
+    if (isScrubbing) {
+      endScrub(event, true);
+      return;
+    }
+    onDragPointerUp(event);
+  });
+  window.addEventListener("pointercancel", (event) => {
+    if (isScrubbing) {
+      endScrub(event, false);
+      return;
+    }
+    onDragPointerUp(event);
+  });
   dom.playerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "full"));
   dom.playerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "full"));
   dom.miniPlayerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "mini"));
   dom.miniPlayerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "mini"));
   dom.playerPlay.addEventListener("click", () => audioController.toggle());
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
-  dom.playerTimeline.addEventListener("pointerdown", beginScrub);
-  dom.playerTimeline.addEventListener("pointerup", commitScrub);
-  dom.playerTimeline.addEventListener("pointercancel", cancelScrub);
+  (timelineScrubber || dom.playerTimeline).addEventListener("pointerdown", beginScrub);
   dom.playerTimeline.addEventListener("input", (event) => {
     if (isScrubbing) updateScrubPreview(event.currentTarget.value);
     else audioController.seek(event.currentTarget.value);
