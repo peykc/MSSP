@@ -328,7 +328,7 @@ export function createPlayerView({
     bodyButton.type = "button";
     bodyButton.setAttribute("aria-label", isReady ? `Play ${episode.title || "episode"}` : `Select ${episode.title || "episode"}`);
     bodyButton.addEventListener("click", () => {
-      animateQueueSelection(episode, isReady ? onPlayRequest : onSelectRequest);
+      animateQueueSelection(episode, isReady ? onPlayRequest : onSelectRequest, { deferRequest: !isReady });
     });
 
     const cover = document.createElement("img");
@@ -364,14 +364,14 @@ export function createPlayerView({
     actionButton.addEventListener("click", (event) => {
       event.stopPropagation();
       const request = isReady ? onPlayRequest : onSelectRequest;
-      animateQueueSelection(episode, request);
+      animateQueueSelection(episode, request, { deferRequest: !isReady });
     });
 
     item.append(bodyButton, actionButton);
     return item;
   }
 
-  function animateQueueSelection(episode, request) {
+  function animateQueueSelection(episode, request, { deferRequest = true } = {}) {
     window.clearTimeout(queueSelectionTimer);
     const rows = [...dom.fullPlayerQueueList.querySelectorAll(".full-player__queue-item")];
     const selectedIndex = rows.findIndex((row) => row.dataset.episodeKey === episode.episodeKey);
@@ -392,6 +392,11 @@ export function createPlayerView({
       row.style.setProperty("--queue-shift", `-${shiftDistance}px`);
       row.classList.add("is-queue-shifting");
     });
+
+    if (!deferRequest) {
+      void request(episode, getQueueRequestOptions());
+      return;
+    }
 
     queueSelectionTimer = window.setTimeout(() => {
       queueSelectionTimer = null;
