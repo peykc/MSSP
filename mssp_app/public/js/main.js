@@ -33,7 +33,7 @@ async function init() {
   const favoritesStore = createFavoritesStore();
   const calendarModal = createCalendarModal({ dom });
   const fullCalendarModal = createFullCalendarModal({ dom });
-  const archiveStatsView = createArchiveStatsView({ dom, state });
+  const archiveStatsView = createArchiveStatsView({ dom, state, fullCalendarModal });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));

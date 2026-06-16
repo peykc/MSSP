@@ -8,6 +8,31 @@ export function createLibraryView({
   renderDetails,
   renderVisibleRows,
 }) {
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  function setLaunchCovered(covered) {
+    dom.launchView.classList.toggle("is-covered", covered);
+    document.body.classList.toggle("library-open", covered);
+    dom.launchView.inert = covered;
+    if (covered) {
+      dom.launchView.setAttribute("aria-hidden", "true");
+    } else {
+      dom.launchView.removeAttribute("aria-hidden");
+    }
+  }
+
+  function revealLibrary() {
+    dom.libraryView.classList.remove("is-hidden", "is-leaving");
+    if (prefersReducedMotion()) return;
+
+    dom.libraryView.classList.add("is-entering");
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        dom.libraryView.classList.remove("is-entering");
+      });
+    });
+  }
+
   async function openCollection(id) {
     state.favoritesOnly = false;
     return openLibrary(id);
@@ -22,10 +47,8 @@ export function createLibraryView({
     state.activeCollection = state.collections.find((item) => item.id === id);
     if (!state.activeCollection) return;
 
-    dom.launchView.classList.add("is-hidden");
-    dom.libraryView.classList.remove("is-hidden");
-    dom.libraryView.classList.add("is-entering");
-    requestAnimationFrame(() => dom.libraryView.classList.remove("is-entering"));
+    setLaunchCovered(true);
+    revealLibrary();
 
     dom.heroCover.src = state.activeCollection.coverUrl;
     dom.heroCover.alt = `${state.activeCollection.name} cover`;
@@ -50,15 +73,37 @@ export function createLibraryView({
     renderVisibleRows();
   }
 
-  function closeLibrary() {
-    dom.libraryView.classList.add("is-hidden");
-    dom.launchView.classList.remove("is-hidden");
+  function resetLibraryState() {
     state.episodes = [];
     state.visibleEpisodes = [];
     state.selectedCoverKinds = new Set();
     state.favoritesOnly = false;
     clearRows();
     dom.coverFilters.innerHTML = "";
+  }
+
+  function finishClose() {
+    dom.libraryView.classList.remove("is-leaving");
+    dom.libraryView.classList.add("is-hidden");
+    setLaunchCovered(false);
+    resetLibraryState();
+  }
+
+  function closeLibrary() {
+    if (dom.libraryView.classList.contains("is-hidden")) return;
+
+    if (prefersReducedMotion()) {
+      finishClose();
+      return;
+    }
+
+    dom.libraryView.classList.add("is-leaving");
+    const onTransitionEnd = (event) => {
+      if (event.target !== dom.libraryView || event.propertyName !== "transform") return;
+      dom.libraryView.removeEventListener("transitionend", onTransitionEnd);
+      finishClose();
+    };
+    dom.libraryView.addEventListener("transitionend", onTransitionEnd);
   }
 
   return {

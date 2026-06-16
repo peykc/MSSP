@@ -49,38 +49,37 @@
           </section>
         </div>
       </section>
-
-      <section class="library is-hidden" id="libraryView" aria-label="Episodes">
-        <aside class="library__hero" id="heroPanel">
-          <button class="back-button" id="backButton" type="button" aria-label="Back to collections">
-            <span aria-hidden="true">‹</span>
-          </button>
-          <img class="hero-cover" id="heroCover" alt="">
-          <div class="hero-details" id="heroDetails">
-            <span>Select an episode to inspect details.</span>
-          </div>
-        </aside>
-
-        <section class="episode-panel">
-          <div class="panel-top">
-            <div class="panel-title">
-              <p class="eyebrow">Browse</p>
-              <h2 id="panelTitle">Episodes</h2>
-            </div>
-            <label class="search">
-              <span class="search__icon">⌕</span>
-              <input id="searchInput" type="search" autocomplete="off" placeholder="Search title, date, ep">
-            </label>
-            <div class="cover-filters" id="coverFilters" aria-label="Filter anthology by collection cover"></div>
-          </div>
-
-          <div class="episode-list" id="episodeList" tabindex="0" aria-label="Episode list">
-            <div class="episode-list__spacer" id="listSpacer"></div>
-            <div class="episode-list__items" id="listItems"></div>
-          </div>
-        </section>
-      </section>
     </main>
+    <section class="library is-hidden" id="libraryView" aria-label="Episodes">
+      <aside class="library__hero" id="heroPanel">
+        <button class="back-button" id="backButton" type="button" aria-label="Back to collections">
+          <span aria-hidden="true">‹</span>
+        </button>
+        <img class="hero-cover" id="heroCover" alt="">
+        <div class="hero-details" id="heroDetails">
+          <span>Select an episode to inspect details.</span>
+        </div>
+      </aside>
+
+      <section class="episode-panel">
+        <div class="panel-top">
+          <div class="panel-title">
+            <p class="eyebrow">Browse</p>
+            <h2 id="panelTitle">Episodes</h2>
+          </div>
+          <label class="search">
+            <span class="search__icon">⌕</span>
+            <input id="searchInput" type="search" autocomplete="off" placeholder="Search title, date, ep">
+          </label>
+          <div class="cover-filters" id="coverFilters" aria-label="Filter anthology by collection cover"></div>
+        </div>
+
+        <div class="episode-list" id="episodeList" tabindex="0" aria-label="Episode list">
+          <div class="episode-list__spacer" id="listSpacer"></div>
+          <div class="episode-list__items" id="listItems"></div>
+        </div>
+      </section>
+    </section>
     <div class="calendar-modal" id="calendarModal" aria-hidden="true" hidden>
       <section class="calendar-dialog" id="calendarDialog" role="dialog" aria-modal="true" aria-labelledby="calendarTitle" tabindex="-1">
         <header class="calendar-dialog__header">
@@ -91,11 +90,17 @@
               <button type="button" class="calendar-mode__btn" data-mode="brightness" aria-pressed="false">Brightness</button>
             </div>
           </div>
-          <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close release heatmap">Close</button>
+          <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close release heatmap">
+            <span aria-hidden="true"></span>
+          </button>
         </header>
         <div class="calendar-section">
           <p class="calendar-section__label">By weekday</p>
           <div class="calendar-heatmap calendar-heatmap--week" id="calendarWeekdays" role="group" aria-label="Episode releases by weekday"></div>
+        </div>
+        <div class="calendar-section">
+          <p class="calendar-section__label">By month</p>
+          <div class="calendar-heatmap calendar-heatmap--month" id="calendarMonths" role="group" aria-label="Episode releases by month"></div>
         </div>
         <div class="calendar-section">
           <p class="calendar-section__label">By day of month</p>
@@ -115,7 +120,9 @@
             <h2 id="fullCalendarTitle">Archive Calendar</h2>
             <div class="full-calendar__legend" id="fullCalendarLegend" role="group" aria-label="Collections"></div>
           </div>
-          <button class="calendar-dialog__close" id="fullCalendarClose" type="button" aria-label="Close archive calendar">Close</button>
+          <button class="calendar-dialog__close" id="fullCalendarClose" type="button" aria-label="Close archive calendar">
+            <span aria-hidden="true"></span>
+          </button>
         </header>
         <div class="full-calendar" id="fullCalendarBody">
           <div class="full-calendar__weekdays" id="fullCalendarWeekdays" aria-hidden="true"></div>

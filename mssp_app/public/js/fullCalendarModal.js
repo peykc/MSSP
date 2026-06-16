@@ -12,6 +12,54 @@ const COLLECTION_META = {
 };
 const COLLECTION_ORDER = ["old", "new", "paytch"];
 
+const CANCELLED_DATE = "2019-09-16";
+
+const SEVEN_SEGMENTS = ["a", "b", "c", "d", "e", "f", "g"];
+const SEGMENT_MAP = {
+  "0": "abcdef",
+  "1": "bc",
+  "2": "abged",
+  "3": "abgcd",
+  "4": "fgbc",
+  "5": "afgcd",
+  "6": "afgedc",
+  "7": "abc",
+  "8": "abcdefg",
+  "9": "abcdfg",
+  P: "abefg",
+};
+
+function renderSevenSegmentFromActive(active) {
+  const segments = SEVEN_SEGMENTS.map(
+    (segment) => `<span class="seg seg--${segment}${active.includes(segment) ? " is-on" : ""}"></span>`,
+  ).join("");
+  return `<span class="seg-digit" aria-hidden="true">${segments}</span>`;
+}
+
+function renderSevenSegmentDigit(char) {
+  return renderSevenSegmentFromActive(SEGMENT_MAP[char] || "");
+}
+
+function renderSegmentColon() {
+  return '<span class="seg-colon" aria-hidden="true"><i></i><i></i></span>';
+}
+
+function renderCancelledTimeM() {
+  return `<span class="fc-tip__time-m">${renderSevenSegmentFromActive("abcef")}${renderSevenSegmentFromActive("abc")}</span>`;
+}
+
+function renderCancelledTimeDisplay() {
+  return [
+    renderSevenSegmentDigit("2"),
+    renderSegmentColon(),
+    renderSevenSegmentDigit("1"),
+    renderSevenSegmentDigit("5"),
+    '<span class="fc-tip__time-gap" aria-hidden="true"></span>',
+    renderSevenSegmentDigit("P"),
+    renderCancelledTimeM(),
+  ].join("");
+}
+
 function escapeHtml(value) {
   return String(value ?? "")
     .replace(/&/g, "&amp;")
@@ -33,6 +81,13 @@ export function createFullCalendarModal({ dom }) {
   let hoverCell = null;
   let episodesByDate = new Map();
   let renderedEpisodes = null;
+  let viewportAnchor = null;
+  let activeResizeAnchor = null;
+  let anchorFrame = null;
+  let resizeFrame = null;
+  let resizeEndTimer = null;
+  let spotlightCell = null;
+  let suppressScrollDismiss = false;
 
   const tooltip = document.createElement("div");
   tooltip.className = "full-calendar-tooltip";
@@ -43,9 +98,6 @@ export function createFullCalendarModal({ dom }) {
   renderLegend();
   renderWeekdayHeader();
   bindDelegatedEvents();
-
-  const cellResizeObserver = new ResizeObserver(() => updateIntrinsicSizes());
-  cellResizeObserver.observe(dom.fullCalendarMonths);
 
   function renderLegend() {
     dom.fullCalendarLegend.innerHTML = COLLECTION_ORDER.map((kind) => {
@@ -65,44 +117,118 @@ export function createFullCalendarModal({ dom }) {
     ).join("");
   }
 
-  function open(episodes, trigger) {
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let closeTransitionEnd = null;
+  let closeFallbackTimer = null;
+
+  function clearPendingClose() {
+    if (closeTransitionEnd) {
+      dom.fullCalendarModal.removeEventListener("transitionend", closeTransitionEnd);
+      closeTransitionEnd = null;
+    }
+    if (closeFallbackTimer !== null) {
+      clearTimeout(closeFallbackTimer);
+      closeFallbackTimer = null;
+    }
+  }
+
+  function open(episodes, trigger, { focusDate } = {}) {
     restoreFocusTo = trigger;
     render(episodes);
+    clearPendingClose();
+    dom.fullCalendarModal.classList.remove("is-leaving");
     dom.fullCalendarModal.hidden = false;
     dom.fullCalendarModal.setAttribute("aria-hidden", "false");
     dom.app.inert = true;
-    dom.miniPlayer.inert = true;
     document.body.classList.add("calendar-open");
     isOpen = true;
+
+    if (!prefersReducedMotion()) {
+      dom.fullCalendarModal.classList.add("is-entering");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => dom.fullCalendarModal.classList.remove("is-entering"));
+      });
+    }
+
     requestAnimationFrame(() => {
+      if (focusDate) {
+        requestAnimationFrame(() => {
+          const cell = spotlightDate(focusDate);
+          cell?.focus();
+          requestAnimationFrame(() => {
+            if (pinnedCell) positionTooltip(pinnedCell);
+            viewportAnchor = captureViewportAnchor();
+          });
+        });
+        return;
+      }
+
       dom.fullCalendarClose.focus();
+      dom.fullCalendarBody.scrollLeft = 0;
       dom.fullCalendarBody.scrollTop = dom.fullCalendarBody.scrollHeight;
+      requestAnimationFrame(() => {
+        viewportAnchor = captureViewportAnchor();
+      });
+    });
+  }
+
+  function finishClose() {
+    dom.fullCalendarModal.classList.remove("is-leaving");
+    dom.fullCalendarModal.hidden = true;
+    dom.fullCalendarModal.setAttribute("aria-hidden", "true");
+    dom.app.inert = false;
+    document.body.classList.remove("calendar-open");
+    requestAnimationFrame(() => {
+      const target = restoreFocusTo?.isConnected
+        ? restoreFocusTo
+        : dom.launchHero.querySelector('[data-hero-action="calendar"]');
+      if (target?.matches("[data-open-cancelled-calendar]")) {
+        target.blur();
+      } else {
+        target?.focus();
+      }
+      restoreFocusTo = null;
     });
   }
 
   function close() {
     if (!isOpen) return;
+    clearSpotlight();
     pinnedCell = null;
     hoverCell = null;
     hideTooltip();
-    dom.fullCalendarModal.hidden = true;
-    dom.fullCalendarModal.setAttribute("aria-hidden", "true");
-    dom.app.inert = false;
-    dom.miniPlayer.inert = false;
-    document.body.classList.remove("calendar-open");
     isOpen = false;
-    requestAnimationFrame(() => {
-      const target = restoreFocusTo?.isConnected
-        ? restoreFocusTo
-        : dom.launchHero.querySelector('[data-hero-action="calendar"]');
-      target?.focus();
-      restoreFocusTo = null;
-    });
+    viewportAnchor = null;
+    activeResizeAnchor = null;
+    if (anchorFrame !== null) cancelAnimationFrame(anchorFrame);
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    if (resizeEndTimer !== null) clearTimeout(resizeEndTimer);
+    anchorFrame = null;
+    resizeFrame = null;
+    resizeEndTimer = null;
+
+    if (prefersReducedMotion()) {
+      finishClose();
+      return;
+    }
+
+    dom.fullCalendarModal.classList.add("is-leaving");
+    closeTransitionEnd = (event) => {
+      if (event.target !== dom.fullCalendarDialog || event.propertyName !== "transform") return;
+      clearPendingClose();
+      finishClose();
+    };
+    dom.fullCalendarModal.addEventListener("transitionend", closeTransitionEnd);
+    closeFallbackTimer = setTimeout(() => {
+      clearPendingClose();
+      finishClose();
+    }, 460);
   }
 
   function render(episodes) {
     pinnedCell = null;
     hoverCell = null;
+    clearSpotlight();
     hideTooltip();
 
     if (episodes === renderedEpisodes) return;
@@ -132,7 +258,6 @@ export function createFullCalendarModal({ dom }) {
       months.push(renderMonth(Math.floor(ordinal / 12), ordinal % 12));
     }
     dom.fullCalendarMonths.innerHTML = months.join("");
-    requestAnimationFrame(updateIntrinsicSizes);
   }
 
   function renderMonth(year, month) {
@@ -147,7 +272,14 @@ export function createFullCalendarModal({ dom }) {
     for (let day = 1; day <= daysInMonth; day += 1) {
       const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const dayEpisodes = episodesByDate.get(dateKey);
-      if (dayEpisodes && dayEpisodes.length) {
+      if (dateKey === CANCELLED_DATE) {
+        cells.push(`
+          <button type="button" class="cal-cell cal-cell--event cal-cell--cancelled" data-date="${dateKey}" data-cancelled="true" aria-label="September 16, 2019: the day he got cancelled">
+            <span class="cal-cell__num">${day}</span>
+            <span class="cal-cell__cancel-mark" aria-hidden="true">!</span>
+          </button>
+        `);
+      } else if (dayEpisodes && dayEpisodes.length) {
         const kinds = COLLECTION_ORDER.filter((kind) =>
           dayEpisodes.some((episode) => episode.collectionKind === kind),
         );
@@ -176,42 +308,166 @@ export function createFullCalendarModal({ dom }) {
         }
 
         cells.push(`
-          <button type="button" class="cal-cell cal-cell--release ${variantClass}" data-date="${dateKey}" style="${styleVars}" aria-label="${escapeHtml(label)}">
+          <button type="button" class="cal-cell cal-cell--event cal-cell--release ${variantClass}" data-date="${dateKey}" style="${styleVars}" aria-label="${escapeHtml(label)}">
             <span class="cal-cell__num">${day}</span>
             ${dots}
           </button>
         `);
       } else {
-        cells.push(`<span class="cal-cell"><span class="cal-cell__num">${day}</span></span>`);
+        cells.push(`<span class="cal-cell" data-date="${dateKey}"><span class="cal-cell__num">${day}</span></span>`);
       }
     }
 
     const rows = Math.ceil((firstWeekday + daysInMonth) / 7);
     return `
       <section class="cal-month" data-rows="${rows}">
-        <h3 class="cal-month__title">${MONTH_NAMES[month]} ${year}</h3>
+        <h3 class="cal-month__title">
+          <span class="cal-month__name">${MONTH_NAMES[month]}</span>
+          <span class="cal-month__year">${year}</span>
+        </h3>
         <div class="cal-month__grid">${cells.join("")}</div>
       </section>
     `;
   }
 
-  function updateIntrinsicSizes() {
-    const styles = getComputedStyle(dom.fullCalendarMonths);
-    const padLeft = parseFloat(styles.paddingLeft) || 0;
-    const padRight = parseFloat(styles.paddingRight) || 0;
-    const contentWidth = dom.fullCalendarMonths.clientWidth - padLeft - padRight;
-    const cell = (contentWidth - 6 * 4) / 7;
-    if (!(cell > 0)) return;
-    for (const month of dom.fullCalendarMonths.querySelectorAll(".cal-month")) {
-      const rows = Number(month.dataset.rows) || 5;
-      const height = Math.round(rows * cell + (rows - 1) * 4 + 30);
-      month.style.containIntrinsicSize = `auto ${height}px`;
+  function captureViewportAnchor() {
+    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
+    if (bodyRect.width <= 0 || bodyRect.height <= 0) return viewportAnchor;
+
+    const weekdayRect = dom.fullCalendarWeekdays.getBoundingClientRect();
+    const stickyOffset = Math.max(0, weekdayRect.bottom - bodyRect.top);
+    const anchorY = Math.min(
+      bodyRect.bottom - 1,
+      bodyRect.top + stickyOffset + Math.max(36, Math.min(90, bodyRect.height * 0.18)),
+    );
+    const sampleXs = [
+      bodyRect.left + (bodyRect.width * 0.5),
+      bodyRect.left + (bodyRect.width * 0.25),
+      bodyRect.left + (bodyRect.width * 0.75),
+    ];
+
+    for (const x of sampleXs) {
+      const cell = document.elementFromPoint(x, anchorY)?.closest(".cal-cell[data-date]");
+      if (cell && dom.fullCalendarBody.contains(cell)) return anchorFromCell(cell, bodyRect);
     }
+
+    let bestCell = null;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    for (const cell of dom.fullCalendarMonths.querySelectorAll(".cal-cell[data-date]")) {
+      const rect = cell.getBoundingClientRect();
+      const isVisible = rect.bottom > bodyRect.top + stickyOffset && rect.top < bodyRect.bottom;
+      if (!isVisible) continue;
+      const distance = Math.abs(rect.top - anchorY) + Math.abs((rect.left + rect.width / 2) - sampleXs[0]) * 0.15;
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestCell = cell;
+      }
+    }
+
+    return bestCell ? anchorFromCell(bestCell, bodyRect) : viewportAnchor;
+  }
+
+  function anchorFromCell(cell, bodyRect) {
+    const rect = cell.getBoundingClientRect();
+    return {
+      date: cell.dataset.date,
+      offset: rect.top - bodyRect.top,
+    };
+  }
+
+  function restoreViewportAnchor(anchor) {
+    if (!anchor?.date) return;
+    const cell = dom.fullCalendarMonths.querySelector(`.cal-cell[data-date="${anchor.date}"]`);
+    if (!cell) return;
+
+    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
+    const rect = cell.getBoundingClientRect();
+    dom.fullCalendarBody.scrollLeft = 0;
+    dom.fullCalendarBody.scrollTop += rect.top - bodyRect.top - anchor.offset;
+  }
+
+  function scrollToDate(dateKey) {
+    const cell = dom.fullCalendarMonths.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+    if (!cell) return null;
+
+    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
+    const weekdayRect = dom.fullCalendarWeekdays.getBoundingClientRect();
+    const stickyOffset = Math.max(0, weekdayRect.bottom - bodyRect.top);
+    const cellRect = cell.getBoundingClientRect();
+    const visibleHeight = bodyRect.height - stickyOffset;
+    const targetScroll = dom.fullCalendarBody.scrollTop
+      + cellRect.top
+      - bodyRect.top
+      - stickyOffset
+      - (visibleHeight / 2)
+      + (cellRect.height / 2);
+
+    dom.fullCalendarBody.scrollLeft = 0;
+    suppressScrollDismiss = true;
+    dom.fullCalendarBody.scrollTop = Math.max(0, targetScroll);
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        suppressScrollDismiss = false;
+      });
+    });
+    return cell;
+  }
+
+  function clearSpotlight() {
+    if (!spotlightCell) return;
+    spotlightCell.classList.remove("cal-cell--spotlight");
+    spotlightCell = null;
+  }
+
+  function spotlightDate(dateKey) {
+    clearSpotlight();
+    const cell = scrollToDate(dateKey);
+    if (!cell) return null;
+
+    cell.classList.add("cal-cell--spotlight");
+    spotlightCell = cell;
+
+    if (cell.classList.contains("cal-cell--event")) {
+      pinnedCell = cell;
+      showTooltip(cell);
+    }
+
+    return cell;
+  }
+
+  function scheduleAnchorCapture() {
+    if (activeResizeAnchor || anchorFrame !== null) return;
+    anchorFrame = requestAnimationFrame(() => {
+      anchorFrame = null;
+      viewportAnchor = captureViewportAnchor();
+    });
+  }
+
+  function handleResize() {
+    if (!isOpen) return;
+    pinnedCell = null;
+    hoverCell = null;
+    hideTooltip();
+
+    activeResizeAnchor ||= viewportAnchor || captureViewportAnchor();
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    resizeFrame = requestAnimationFrame(() => {
+      resizeFrame = null;
+      restoreViewportAnchor(activeResizeAnchor);
+    });
+
+    if (resizeEndTimer !== null) clearTimeout(resizeEndTimer);
+    resizeEndTimer = setTimeout(() => {
+      resizeEndTimer = null;
+      restoreViewportAnchor(activeResizeAnchor);
+      viewportAnchor = captureViewportAnchor();
+      activeResizeAnchor = null;
+    }, 140);
   }
 
   function bindDelegatedEvents() {
     dom.fullCalendarMonths.addEventListener("mouseover", (event) => {
-      const cell = event.target.closest(".cal-cell--release");
+      const cell = event.target.closest(".cal-cell--event");
       if (cell === hoverCell) return;
       hoverCell = cell;
       if (pinnedCell) return;
@@ -223,15 +479,15 @@ export function createFullCalendarModal({ dom }) {
       if (!pinnedCell) hideTooltip();
     });
     dom.fullCalendarMonths.addEventListener("focusin", (event) => {
-      const cell = event.target.closest(".cal-cell--release");
+      const cell = event.target.closest(".cal-cell--event");
       if (cell) showTooltip(cell);
     });
     dom.fullCalendarMonths.addEventListener("focusout", (event) => {
-      const cell = event.target.closest(".cal-cell--release");
+      const cell = event.target.closest(".cal-cell--event");
       if (cell && cell !== pinnedCell) hideTooltip();
     });
     dom.fullCalendarMonths.addEventListener("click", (event) => {
-      const cell = event.target.closest(".cal-cell--release");
+      const cell = event.target.closest(".cal-cell--event");
       if (!cell) return;
       if (pinnedCell === cell) {
         pinnedCell = null;
@@ -244,10 +500,16 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function showTooltip(cell) {
+    if (cell.dataset.cancelled) {
+      showCancelledTooltip(cell);
+      return;
+    }
+
     const dateKey = cell.dataset.date;
     const dayEpisodes = episodesByDate.get(dateKey);
     if (!dayEpisodes || !dayEpisodes.length) return;
 
+    tooltip.classList.remove("full-calendar-tooltip--cancelled");
     const parts = parseDateParts(dateKey);
     const heading = parts ? `${MONTH_NAMES[parts.month]} ${parts.day}, ${parts.year}` : dateKey;
     const items = dayEpisodes.map((episode) => {
@@ -267,6 +529,24 @@ export function createFullCalendarModal({ dom }) {
     tooltip.innerHTML = `
       <div class="fc-tip__title">${escapeHtml(heading)}</div>
       <ul class="fc-tip__list">${items}</ul>
+    `;
+    tooltip.hidden = false;
+    positionTooltip(cell);
+  }
+
+  function showCancelledTooltip(cell) {
+    tooltip.classList.add("full-calendar-tooltip--cancelled");
+    tooltip.innerHTML = `
+      <div class="fc-tip__hazard">Cancelled</div>
+      <div class="fc-tip__cancel">
+        <strong>September 16, 2019</strong>
+        <div class="fc-tip__time-block">
+          <div class="fc-tip__time-display" role="img" aria-label="2:15 PM Eastern Time">
+            ${renderCancelledTimeDisplay()}
+          </div>
+          <span class="fc-tip__time-sub">Eastern Time</span>
+        </div>
+      </div>
     `;
     tooltip.hidden = false;
     positionTooltip(cell);
@@ -319,17 +599,20 @@ export function createFullCalendarModal({ dom }) {
       close();
       return;
     }
-    if (!event.target.closest(".cal-cell--release")) {
+    if (!event.target.closest(".cal-cell--event")) {
       pinnedCell = null;
       hideTooltip();
     }
   });
   dom.fullCalendarBody.addEventListener("scroll", () => {
-    if (!pinnedCell && hoverCell === null) return;
-    pinnedCell = null;
-    hoverCell = null;
-    hideTooltip();
+    if (!suppressScrollDismiss && (pinnedCell || hoverCell !== null)) {
+      pinnedCell = null;
+      hoverCell = null;
+      hideTooltip();
+    }
+    scheduleAnchorCapture();
   }, { passive: true });
+  window.addEventListener("resize", handleResize);
   document.addEventListener("keydown", handleKeydown);
 
   return {

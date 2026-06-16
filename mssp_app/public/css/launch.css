@@ -382,6 +382,18 @@ h1 {
     gap: 10px;
   }
 
+  .collection-card {
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 8px;
+    padding: 7px;
+  }
+
+  .collection-card__art {
+    max-width: 150px;
+    justify-self: center;
+  }
+
   .collection-card .eyebrow,
   .collection-card__browse {
     display: none;
@@ -394,20 +406,6 @@ h1 {
 
   .collection-card p {
     font-size: clamp(0.68rem, 2.8vw, 0.82rem);
-  }
-}
-
-@media (max-width: 560px) {
-  .collection-card {
-    grid-template-columns: 1fr;
-    min-height: 0;
-    gap: 8px;
-    padding: 7px;
-  }
-
-  .collection-card__art {
-    max-width: 150px;
-    justify-self: center;
   }
 }
 

@@ -1,4 +1,5 @@
 .app {
+  position: relative;
   width: calc(100vw / var(--page-scale));
   height: calc(100vh / var(--page-scale));
   height: calc(100dvh / var(--page-scale));
@@ -8,16 +9,20 @@
   transform-origin: top left;
 }
 
-.app:has(> .launch:not(.is-hidden)) {
+.app:has(> .launch:not(.is-covered)) {
   overflow-y: auto;
 }
 
-.app:has(> .library:not(.is-hidden)) {
-  overflow-y: hidden;
+body.library-open .app {
+  overflow: hidden;
 }
 
-.launch,
-.library {
+.launch.is-covered {
+  pointer-events: none;
+  user-select: none;
+}
+
+.launch {
   height: 100%;
   min-height: 0;
 }

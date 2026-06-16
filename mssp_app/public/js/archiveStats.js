@@ -1,5 +1,6 @@
 const SECTION_ORDER = ["old", "new", "paytch"];
 // September 16, 2019 at 2:15 PM ET (EDT, UTC-4)
+const CANCELLED_DATE = "2019-09-16";
 const CANCELLED_AT_MS = Date.parse("2019-09-16T14:15:00-04:00");
 const SEVEN_SEGMENTS = ["a", "b", "c", "d", "e", "f", "g"];
 const SEVEN_SEGMENT_MAP = Object.freeze({
@@ -37,7 +38,7 @@ const METRICS = Object.freeze({
   },
 });
 
-export function createArchiveStatsView({ dom, state }) {
+export function createArchiveStatsView({ dom, state, fullCalendarModal }) {
   let selectedMetric = "busiestYear";
   let archiveStats = null;
 
@@ -61,7 +62,7 @@ export function createArchiveStatsView({ dom, state }) {
     `;
   }
 
-  function buildGraphRows() {
+  function getGraphRowData() {
     const metric = METRICS[selectedMetric];
     const rows = SECTION_ORDER.map((id) => ({
       id,
@@ -73,24 +74,101 @@ export function createArchiveStatsView({ dom, state }) {
     return rows.map(({ id, collection, stats }) => {
       const value = metric.value(stats);
       const scale = Math.max(0, value / maxValue);
-      return `
-        <div class="stats-bar-row" style="--bar-width: ${(scale * 100).toFixed(2)}%; --bar-accent: ${collection?.accent || "#f8f2ec"}">
-          <div class="stats-bar-row__label">
-            <span>${collection?.name || id}</span>
-            <strong>${metric.format(value, stats)}</strong>
-          </div>
-          <div class="stats-bar" aria-hidden="true"><span class="stats-bar__fill"></span></div>
+      return {
+        id,
+        collection,
+        formatted: metric.format(value, stats),
+        barWidth: `${(scale * 100).toFixed(2)}%`,
+        accent: collection?.accent || "#f8f2ec",
+      };
+    });
+  }
+
+  function renderGraphRow({ id, collection, formatted, barWidth, accent }) {
+    return `
+      <div class="stats-bar-row" data-section="${id}" style="--bar-width: ${barWidth}; --bar-accent: ${accent}">
+        <div class="stats-bar-row__label">
+          <span>${collection?.name || id}</span>
+          <strong>${formatted}</strong>
         </div>
-      `;
-    }).join("");
+        <div class="stats-bar" aria-hidden="true"><span class="stats-bar__fill"></span></div>
+      </div>
+    `;
+  }
+
+  function buildGraphRows() {
+    return getGraphRowData().map(renderGraphRow).join("");
+  }
+
+  function animateBarFill(fill, bar, row, targetPercent) {
+    const trackWidth = bar.clientWidth;
+    const targetWidth = `${targetPercent.toFixed(2)}%`;
+    if (!trackWidth) {
+      row.style.setProperty("--bar-width", targetWidth);
+      fill.style.width = "";
+      return;
+    }
+
+    const currentPercent = (fill.getBoundingClientRect().width / trackWidth) * 100;
+    if (Math.abs(currentPercent - targetPercent) < 0.5) {
+      row.style.setProperty("--bar-width", targetWidth);
+      fill.style.width = "";
+      return;
+    }
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      row.style.setProperty("--bar-width", targetWidth);
+      fill.style.width = "";
+      return;
+    }
+
+    fill.getAnimations().forEach((animation) => animation.cancel());
+    const animation = fill.animate(
+      [
+        { width: `${currentPercent}%` },
+        { width: targetWidth },
+      ],
+      {
+        duration: 360,
+        easing: "cubic-bezier(0.4, 0, 0.2, 1)",
+        fill: "forwards",
+      },
+    );
+    animation.onfinish = () => {
+      row.style.setProperty("--bar-width", targetWidth);
+      fill.style.width = "";
+    };
   }
 
   function updateGraph() {
     const graph = dom.archiveStatsPanel.querySelector(".stats-graph");
-    if (graph) {
-      graph.setAttribute("aria-label", `${METRICS[selectedMetric].label} by archive section`);
-      graph.innerHTML = buildGraphRows();
+    if (!graph) return;
+
+    graph.setAttribute("aria-label", `${METRICS[selectedMetric].label} by archive section`);
+    const rowData = getGraphRowData();
+    const existingRows = [...graph.querySelectorAll(".stats-bar-row[data-section]")];
+
+    if (existingRows.length === rowData.length) {
+      for (const data of rowData) {
+        const row = graph.querySelector(`.stats-bar-row[data-section="${data.id}"]`);
+        if (!row) continue;
+
+        row.style.setProperty("--bar-accent", data.accent);
+        const label = row.querySelector(".stats-bar-row__label strong");
+        if (label && label.textContent !== data.formatted) {
+          label.textContent = data.formatted;
+        }
+
+        const bar = row.querySelector(".stats-bar");
+        const fill = row.querySelector(".stats-bar__fill");
+        if (bar && fill) {
+          animateBarFill(fill, bar, row, parseFloat(data.barWidth));
+        }
+      }
+    } else {
+      graph.innerHTML = rowData.map(renderGraphRow).join("");
     }
+
     for (const button of dom.archiveStatsPanel.querySelectorAll("[data-metric]")) {
       button.setAttribute("aria-pressed", String(button.dataset.metric === selectedMetric));
     }
@@ -130,10 +208,15 @@ export function createArchiveStatsView({ dom, state }) {
 
     dom.archiveTidbitsPanel.innerHTML = `
       ${pulseMarkup}
-      ${renderSafetySign()}
+      ${renderSafetySign(Boolean(state.archiveEpisodes.length))}
     `;
 
     bindPulseTouchPause(dom.archiveTidbitsPanel.querySelector(".archive-pulse__viewport"));
+
+    dom.archiveTidbitsPanel.querySelector("[data-open-cancelled-calendar]")?.addEventListener("click", (event) => {
+      if (!state.archiveEpisodes.length) return;
+      fullCalendarModal.open(state.archiveEpisodes, event.currentTarget, { focusDate: CANCELLED_DATE });
+    });
 
     dom.archiveStatsPanel.innerHTML = `
       <div class="archive-summary" role="group" aria-label="Archive statistic">
@@ -337,12 +420,28 @@ function buildPulseItems(total) {
   return items;
 }
 
-function renderSafetySign() {
+function renderSafetySignCalendarButton(disabled) {
+  return `
+    <button
+      type="button"
+      class="safety-sign__calendar"
+      data-open-cancelled-calendar
+      aria-label="View cancellation date on archive calendar"
+      ${disabled ? "disabled" : ""}
+    >
+      <svg class="safety-sign__calendar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+        <path fill="currentColor" d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1zm12 8H5v10h14V10z"/>
+      </svg>
+    </button>
+  `;
+}
+
+function renderSafetySign(hasArchiveEpisodes) {
   return `
     <section class="safety-sign" aria-label="Time since cancelled">
       <div class="safety-sign__header">
         <span>Days Since Cancelled</span>
-        <span>Live</span>
+        ${renderSafetySignCalendarButton(!hasArchiveEpisodes)}
       </div>
       <div class="safety-sign__display" data-cancelled-sign role="img" aria-label="${formatSafetySignLabel()}">
         ${renderSafetySignDigits()}

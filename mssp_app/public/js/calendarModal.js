@@ -14,6 +14,8 @@ const COLLECTIONS = [
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 function emptySpread() {
   return { old: 0, new: 0, paytch: 0 };
 }
@@ -85,29 +87,45 @@ export function createCalendarModal({ dom }) {
   tooltip.hidden = true;
   dom.calendarModal.appendChild(tooltip);
 
+  const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let closeTransitionEnd = null;
+  let closeFallbackTimer = null;
+
   function open(episodes, trigger) {
     restoreFocusTo = trigger;
     currentEpisodes = episodes;
     renderHeatmap(episodes);
+    if (closeTransitionEnd) {
+      dom.calendarModal.removeEventListener("transitionend", closeTransitionEnd);
+      closeTransitionEnd = null;
+    }
+    if (closeFallbackTimer !== null) {
+      clearTimeout(closeFallbackTimer);
+      closeFallbackTimer = null;
+    }
+    dom.calendarModal.classList.remove("is-leaving");
     dom.calendarModal.hidden = false;
     dom.calendarModal.setAttribute("aria-hidden", "false");
     dom.app.inert = true;
-    dom.miniPlayer.inert = true;
     document.body.classList.add("calendar-open");
     isOpen = true;
+
+    if (!prefersReducedMotion()) {
+      dom.calendarModal.classList.add("is-entering");
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => dom.calendarModal.classList.remove("is-entering"));
+      });
+    }
+
     requestAnimationFrame(() => dom.calendarClose.focus());
   }
 
-  function close() {
-    if (!isOpen) return;
-    pinnedCell = null;
-    hideTooltip();
+  function finishClose() {
+    dom.calendarModal.classList.remove("is-leaving");
     dom.calendarModal.hidden = true;
     dom.calendarModal.setAttribute("aria-hidden", "true");
     dom.app.inert = false;
-    dom.miniPlayer.inert = false;
     document.body.classList.remove("calendar-open");
-    isOpen = false;
     requestAnimationFrame(() => {
       const target = restoreFocusTo?.isConnected
         ? restoreFocusTo
@@ -115,6 +133,39 @@ export function createCalendarModal({ dom }) {
       target?.focus();
       restoreFocusTo = null;
     });
+  }
+
+  function close() {
+    if (!isOpen) return;
+    pinnedCell = null;
+    hideTooltip();
+    isOpen = false;
+
+    if (prefersReducedMotion()) {
+      finishClose();
+      return;
+    }
+
+    dom.calendarModal.classList.add("is-leaving");
+    closeTransitionEnd = (event) => {
+      if (event.target !== dom.calendarDialog || event.propertyName !== "transform") return;
+      dom.calendarModal.removeEventListener("transitionend", closeTransitionEnd);
+      closeTransitionEnd = null;
+      if (closeFallbackTimer !== null) {
+        clearTimeout(closeFallbackTimer);
+        closeFallbackTimer = null;
+      }
+      finishClose();
+    };
+    dom.calendarModal.addEventListener("transitionend", closeTransitionEnd);
+    closeFallbackTimer = setTimeout(() => {
+      closeFallbackTimer = null;
+      if (closeTransitionEnd) {
+        dom.calendarModal.removeEventListener("transitionend", closeTransitionEnd);
+        closeTransitionEnd = null;
+      }
+      finishClose();
+    }, 460);
   }
 
   function renderHeatmap(episodes) {
@@ -126,6 +177,8 @@ export function createCalendarModal({ dom }) {
     const dayBreakdown = Array.from({ length: 31 }, emptySpread);
     const weekdayCounts = Array.from({ length: 7 }, () => 0);
     const weekdayBreakdown = Array.from({ length: 7 }, emptySpread);
+    const monthCounts = Array.from({ length: 12 }, () => 0);
+    const monthBreakdown = Array.from({ length: 12 }, emptySpread);
 
     for (const episode of episodes) {
       const kind = episode.collectionKind;
@@ -137,6 +190,12 @@ export function createCalendarModal({ dom }) {
         if (kind && dayBreakdown[day - 1][kind] !== undefined) dayBreakdown[day - 1][kind] += 1;
       }
 
+      const month = Number(String(episode.date || "").slice(5, 7));
+      if (month >= 1 && month <= 12) {
+        monthCounts[month - 1] += 1;
+        if (kind && monthBreakdown[month - 1][kind] !== undefined) monthBreakdown[month - 1][kind] += 1;
+      }
+
       const weekday = getWeekday(episode.date);
       if (weekday >= 0) {
         weekdayCounts[weekday] += 1;
@@ -145,6 +204,7 @@ export function createCalendarModal({ dom }) {
     }
 
     renderWeekdayRow(weekdayCounts, weekdayBreakdown);
+    renderMonthRow(monthCounts, monthBreakdown);
     renderMonthGrid(dayCounts, dayBreakdown);
 
     if (legendScale) {
@@ -170,6 +230,26 @@ export function createCalendarModal({ dom }) {
 
     const cells = [...dom.calendarWeekdays.querySelectorAll(".calendar-day")];
     cells.forEach((cell, index) => bindCell(cell, `${WEEKDAYS[index]}s`, breakdown[index]));
+  }
+
+  function renderMonthRow(counts, breakdown) {
+    const max = Math.max(...counts);
+    const min = Math.min(...counts);
+    const range = max - min || 1;
+    dom.calendarMonths.innerHTML = counts.map((count, index) => {
+      const intensity = (count - min) / range;
+      const name = MONTHS[index];
+      const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
+      return `
+        <button type="button" class="calendar-day" aria-label="${label}" style="--day-color: ${colorForIntensity(intensity)}">
+          <strong class="calendar-day__num">${name}</strong>
+          <span class="calendar-day__count">${count}</span>
+        </button>
+      `;
+    }).join("");
+
+    const cells = [...dom.calendarMonths.querySelectorAll(".calendar-day")];
+    cells.forEach((cell, index) => bindCell(cell, MONTHS[index], breakdown[index]));
   }
 
   function renderMonthGrid(counts, breakdown) {
