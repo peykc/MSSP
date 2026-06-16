@@ -68,6 +68,13 @@ body.has-player .app {
   text-align: left;
   background: transparent;
   border: 0;
+  touch-action: none;
+}
+
+body.player-dragging {
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .mini-player__expand:focus-visible {
@@ -199,28 +206,49 @@ body.has-player .app {
   background: rgba(0, 0, 0, 0.62);
   border: 0;
   backdrop-filter: blur(8px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 420ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.player-backdrop.is-open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.player-backdrop.is-dragging {
+  transition: none;
 }
 
 .full-player {
   position: fixed;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  inset: 0;
   z-index: 120;
   display: grid;
   grid-template-rows: auto minmax(120px, 1fr) auto auto auto auto;
   width: 100%;
-  max-height: calc(100dvh - max(12px, env(safe-area-inset-top)));
-  margin: 0 auto;
+  height: 100dvh;
+  margin: 0;
   gap: clamp(14px, 2vh, 22px);
-  padding: 16px clamp(18px, 5vw, 42px) calc(52px + env(safe-area-inset-bottom));
+  padding: max(16px, env(safe-area-inset-top)) clamp(18px, 5vw, 42px) calc(52px + env(safe-area-inset-bottom));
   overflow: auto;
+  overscroll-behavior: contain;
   color: var(--text);
   background: rgba(31, 29, 28, 0.99);
-  border: 1px solid var(--line);
-  border-bottom: 0;
-  border-radius: 8px 8px 0 0;
+  border: 0;
+  border-radius: 16px 16px 0 0;
   box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.5);
+  transform: translateY(100%);
+  transition: transform 420ms cubic-bezier(0.32, 0.72, 0, 1);
+  will-change: transform;
+}
+
+.full-player.is-open {
+  transform: translateY(0);
+}
+
+.full-player.is-dragging {
+  transition: none;
 }
 
 .full-player__collapse {
@@ -230,10 +258,15 @@ body.has-player .app {
   height: 28px;
   place-items: center;
   padding: 0;
-  cursor: pointer;
+  cursor: grab;
   background: transparent;
   border: 0;
   border-radius: 0;
+  touch-action: none;
+}
+
+body.player-dragging .full-player__collapse {
+  cursor: grabbing;
 }
 
 .full-player__grabber {
@@ -547,6 +580,13 @@ body.player-expanded {
   overscroll-behavior: none;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .full-player,
+  .player-backdrop {
+    transition: none;
+  }
+}
+
 @keyframes player-spinner {
   to {
     transform: rotate(360deg);
@@ -593,7 +633,6 @@ body.player-expanded {
 
   .full-player {
     width: 100%;
-    max-height: calc(100dvh - env(safe-area-inset-top));
     border-right: 0;
     border-left: 0;
   }

@@ -33,18 +33,29 @@ const PAUSE_ICON = `
   </svg>
 `;
 
+const DRAG_ACTIVATE_PX = 8;
+const DRAG_VELOCITY_THRESHOLD = 0.45;
+const DRAG_COMPLETE_FRACTION = 0.28;
+const CLICK_SUPPRESS_MS = 350;
+
 export function createPlayerView({ dom, playerState, audioController, favoritesStore }) {
   let restoreFocusTo = null;
   let wasExpanded = false;
   let isScrubbing = false;
   let scrubPreviewTime = 0;
   let suppressNextChange = false;
+  let isDragging = false;
+  let gesture = null;
+  let dragTranslate = 0;
+  let suppressClickUntil = 0;
   const tooltipTimers = new Map();
 
   function render(state) {
     const episode = state.selectedEpisode;
     const hasEpisode = Boolean(episode);
     dom.miniPlayer.hidden = !hasEpisode;
+    dom.fullPlayer.hidden = !hasEpisode;
+    dom.playerBackdrop.hidden = !hasEpisode;
     document.body.classList.toggle("has-player", hasEpisode);
 
     if (!hasEpisode) {
@@ -156,13 +167,176 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   }
 
   function setExpandedUi(isExpanded) {
-    dom.fullPlayer.hidden = !isExpanded;
-    dom.playerBackdrop.hidden = !isExpanded;
+    if (isDragging) return;
+    dom.fullPlayer.classList.toggle("is-open", isExpanded);
+    dom.playerBackdrop.classList.toggle("is-open", isExpanded);
     dom.fullPlayer.setAttribute("aria-hidden", String(!isExpanded));
+    dom.fullPlayer.inert = !isExpanded;
     document.body.classList.toggle("player-expanded", isExpanded);
-    dom.app.inert = isExpanded;
+    dom.app.inert = isExpanded || document.body.classList.contains("calendar-open");
     dom.miniPlayer.inert = isExpanded;
     if (!isExpanded) wasExpanded = false;
+  }
+
+  function clampValue(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function sheetHeight() {
+    return dom.fullPlayer.getBoundingClientRect().height || window.innerHeight;
+  }
+
+  function setSheetTranslate(translate) {
+    const height = gesture?.height || window.innerHeight;
+    dragTranslate = clampValue(translate, 0, height);
+    const progress = height > 0 ? 1 - (dragTranslate / height) : 0;
+    dom.fullPlayer.style.transform = `translateY(${dragTranslate}px)`;
+    dom.playerBackdrop.style.opacity = String(clampValue(progress, 0, 1));
+  }
+
+  function startDragVisuals() {
+    isDragging = true;
+    dom.fullPlayer.hidden = false;
+    dom.playerBackdrop.hidden = false;
+    dom.fullPlayer.inert = false;
+    dom.fullPlayer.setAttribute("aria-hidden", "false");
+    dom.fullPlayer.classList.add("is-dragging");
+    dom.playerBackdrop.classList.add("is-dragging");
+    document.body.classList.add("player-dragging");
+  }
+
+  function endDragVisuals() {
+    isDragging = false;
+    dom.fullPlayer.classList.remove("is-dragging");
+    dom.playerBackdrop.classList.remove("is-dragging");
+    document.body.classList.remove("player-dragging");
+    dom.fullPlayer.style.transform = "";
+    dom.playerBackdrop.style.opacity = "";
+  }
+
+  function onDragPointerDown(mode, event) {
+    if (gesture || isDragging) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    const state = playerState.getState();
+    if (!state.selectedEpisode) return;
+    if (mode === "expand" && state.isExpanded) return;
+    if (mode === "collapse" && !state.isExpanded) return;
+
+    if (mode === "collapse") {
+      const onHandle = Boolean(event.target.closest(".full-player__collapse"));
+      if (!onHandle) {
+        if (dom.fullPlayer.scrollTop > 0) return;
+        if (event.target.closest("button, input, a")) return;
+      }
+    }
+
+    gesture = {
+      mode,
+      startX: event.clientX,
+      startY: event.clientY,
+      lastY: event.clientY,
+      lastTime: event.timeStamp || performance.now(),
+      velocity: 0,
+      height: sheetHeight(),
+      pointerId: event.pointerId,
+      target: event.currentTarget,
+      active: false,
+    };
+  }
+
+  function activateGesture(event) {
+    gesture.active = true;
+    startDragVisuals();
+    setSheetTranslate(gesture.mode === "expand" ? gesture.height : 0);
+    gesture.target.setPointerCapture?.(event.pointerId);
+  }
+
+  function onDragPointerMove(event) {
+    if (!gesture || event.pointerId !== gesture.pointerId) return;
+    const dx = event.clientX - gesture.startX;
+    const dyDown = event.clientY - gesture.startY;
+    const dyUp = -dyDown;
+
+    if (!gesture.active) {
+      const horizontal = Math.abs(dx);
+      if (gesture.mode === "expand") {
+        if (dyUp > DRAG_ACTIVATE_PX && dyUp > horizontal) {
+          activateGesture(event);
+        } else if (dyDown > DRAG_ACTIVATE_PX) {
+          gesture = null;
+          return;
+        } else {
+          return;
+        }
+      } else if (dyDown > DRAG_ACTIVATE_PX && dyDown > horizontal) {
+        activateGesture(event);
+      } else if (dyUp > DRAG_ACTIVATE_PX) {
+        gesture = null;
+        return;
+      } else {
+        return;
+      }
+    }
+
+    event.preventDefault();
+    const height = gesture.height;
+    const translate = gesture.mode === "expand"
+      ? height - Math.max(0, dyUp)
+      : Math.max(0, dyDown);
+    setSheetTranslate(translate);
+
+    const now = event.timeStamp || performance.now();
+    const dt = now - gesture.lastTime;
+    if (dt > 0) gesture.velocity = (event.clientY - gesture.lastY) / dt;
+    gesture.lastY = event.clientY;
+    gesture.lastTime = now;
+  }
+
+  function onDragPointerUp(event) {
+    if (!gesture || event.pointerId !== gesture.pointerId) return;
+    const g = gesture;
+    gesture = null;
+    if (!g.active) return;
+
+    g.target.releasePointerCapture?.(event.pointerId);
+    suppressClickUntil = performance.now() + CLICK_SUPPRESS_MS;
+
+    const height = g.height;
+    const progress = height > 0 ? 1 - (dragTranslate / height) : 0;
+    const velocity = g.velocity;
+
+    let shouldOpen;
+    if (velocity < -DRAG_VELOCITY_THRESHOLD) shouldOpen = true;
+    else if (velocity > DRAG_VELOCITY_THRESHOLD) shouldOpen = false;
+    else shouldOpen = g.mode === "expand"
+      ? progress > DRAG_COMPLETE_FRACTION
+      : progress > (1 - DRAG_COMPLETE_FRACTION);
+
+    settleDrag(shouldOpen);
+  }
+
+  function settleDrag(open) {
+    endDragVisuals();
+    if (open) {
+      if (!playerState.getState().isExpanded) {
+        restoreFocusTo = dom.miniPlayerExpand;
+        playerState.setExpanded(true);
+      } else {
+        setExpandedUi(true);
+      }
+    } else if (playerState.getState().isExpanded) {
+      collapse();
+    } else {
+      setExpandedUi(false);
+    }
+  }
+
+  function maybeSwallowClick(event) {
+    if (performance.now() < suppressClickUntil) {
+      event.stopPropagation();
+      event.preventDefault();
+      suppressClickUntil = 0;
+    }
   }
 
   function seekBy(offset, surface) {
@@ -246,6 +420,13 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   dom.miniPlayerExpand.addEventListener("click", (event) => expand(event.currentTarget));
   dom.fullPlayerCollapse.addEventListener("click", collapse);
   dom.playerBackdrop.addEventListener("click", collapse);
+  dom.miniPlayer.addEventListener("pointerdown", (event) => onDragPointerDown("expand", event));
+  dom.fullPlayer.addEventListener("pointerdown", (event) => onDragPointerDown("collapse", event));
+  dom.miniPlayer.addEventListener("click", maybeSwallowClick, true);
+  dom.fullPlayer.addEventListener("click", maybeSwallowClick, true);
+  window.addEventListener("pointermove", onDragPointerMove, { passive: false });
+  window.addEventListener("pointerup", onDragPointerUp);
+  window.addEventListener("pointercancel", onDragPointerUp);
   dom.playerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "full"));
   dom.playerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "full"));
   dom.miniPlayerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "mini"));

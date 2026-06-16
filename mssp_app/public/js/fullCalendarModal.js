@@ -176,8 +176,12 @@ export function createFullCalendarModal({ dom }) {
     dom.fullCalendarModal.classList.remove("is-leaving");
     dom.fullCalendarModal.hidden = true;
     dom.fullCalendarModal.setAttribute("aria-hidden", "true");
-    dom.app.inert = false;
     document.body.classList.remove("calendar-open");
+    dom.app.inert = document.body.classList.contains("player-expanded");
+    if (document.body.classList.contains("player-expanded")) {
+      restoreFocusTo = null;
+      return;
+    }
     requestAnimationFrame(() => {
       const target = restoreFocusTo?.isConnected
         ? restoreFocusTo
@@ -222,7 +226,7 @@ export function createFullCalendarModal({ dom }) {
     closeFallbackTimer = setTimeout(() => {
       clearPendingClose();
       finishClose();
-    }, 460);
+    }, 420);
   }
 
   function render(episodes) {
