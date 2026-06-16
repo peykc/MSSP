@@ -50,6 +50,9 @@ async function init() {
     playerState,
     audioController,
     favoritesStore,
+    getSourceStatusForEpisode,
+    onSelectRequest: requestSelect,
+    onPlayRequest: requestPlay,
   });
   createMediaSessionController({ playerState, audioController });
   const queueCache = new Map();
@@ -145,20 +148,44 @@ async function init() {
   });
   await playerState.restore(apiClient);
 
-  async function requestPlay(episode) {
+  async function requestSelect(episode, options) {
+    await loadEpisodeForPlayer(episode, {
+      ...normalizePlayerRequestOptions(options),
+      playbackIntent: false,
+    });
+  }
+
+  async function requestPlay(episode, options) {
+    await loadEpisodeForPlayer(episode, {
+      ...normalizePlayerRequestOptions(options),
+      playbackIntent: Boolean(getPublicSourceForEpisode(episode)),
+    });
+  }
+
+  async function loadEpisodeForPlayer(episode, { collectionId: requestedCollectionId, preserveExpanded = false, playbackIntent = false } = {}) {
     state.selectedEpisodeId = episode.id;
     episodeDetails.renderDetails();
     episodeList.renderVisibleRows();
 
-    const collectionId = state.activeCollection?.id || episode.collectionKind || "anthology";
+    const collectionId = requestedCollectionId || state.activeCollection?.id || episode.collectionKind || "anthology";
     let queue = queueCache.get(collectionId);
+    const currentPlayerQueue = playerState.getState().queue;
+    if (!queue && requestedCollectionId && playerState.getState().collectionId === requestedCollectionId && currentPlayerQueue.length) {
+      queue = currentPlayerQueue;
+      if (queue.length) queueCache.set(collectionId, queue);
+    }
     if (!queue && state.activeCollection?.id === collectionId && !state.query) {
       queue = state.episodes;
       queueCache.set(collectionId, queue);
     }
 
-    playerState.loadEpisode({ episode, collectionId, queue: queue || [], isExpanded: false });
-    void audioController.loadSelected({ playbackIntent: Boolean(getPublicSourceForEpisode(episode)) });
+    playerState.loadEpisode({
+      episode,
+      collectionId,
+      queue: queue || [],
+      isExpanded: preserveExpanded ? playerState.getState().isExpanded : false,
+    });
+    void audioController.loadSelected({ playbackIntent });
 
     if (!queue) {
       const result = await apiClient.getEpisodes({ collection: collectionId, query: "" });
@@ -171,6 +198,11 @@ async function init() {
         playerState.setQueue(queue);
       }
     }
+  }
+
+  function normalizePlayerRequestOptions(options) {
+    if (!options || typeof options !== "object" || "nodeType" in options) return {};
+    return options;
   }
 
   function stepPlayer(offset, { playbackIntent = true } = {}) {

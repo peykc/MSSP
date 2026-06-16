@@ -140,6 +140,18 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     };
   }
 
+  function getUpNextWindow(limit = 20) {
+    const { index, hasPrevious, hasNext } = getQueuePosition();
+    const total = state.queue.length;
+    return {
+      index,
+      total,
+      hasPrevious,
+      hasNext,
+      items: index >= 0 ? state.queue.slice(index, index + limit + 1) : [],
+    };
+  }
+
   async function restore(apiClient) {
     const saved = readPersistedState();
     if (!saved) return null;
@@ -167,6 +179,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
 
   return {
     getQueuePosition,
+    getUpNextWindow,
     getState,
     loadEpisode,
     restore,

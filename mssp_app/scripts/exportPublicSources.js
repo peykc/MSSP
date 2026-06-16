@@ -76,6 +76,14 @@ async function main() {
   });
 
   if (report) {
+    report = enrichMatchReport({
+      report,
+      episodes,
+      ntR2Sources,
+      rssSources,
+      mergedSources,
+      overrides,
+    });
     writeMatchReport({ filePath: REPORT_FILE, report });
   }
 
@@ -93,6 +101,11 @@ async function main() {
       `RSS match summary: eligible=${summary.eligibleEpisodes}, auto=${summary.autoMatched}, `
       + `manual=${summary.manualMatched}, lowConfidence=${summary.lowConfidence}, `
       + `unmatchedEpisodes=${summary.unmatchedEpisodes}, unmatchedRssItems=${summary.unmatchedRssItems}`,
+    );
+    console.log(
+      `New Testament source coverage: rss=${summary.rssMatched}, `
+      + `r2Overrides=${summary.r2OverrideMatched}, playable=${summary.playableNewTestament}, `
+      + `unresolved=${summary.unresolvedNewTestament}`,
     );
   }
 }
@@ -177,6 +190,65 @@ function mergeSources(otR2Sources, ntR2Sources, rssSources) {
   }
 
   return merged;
+}
+
+function enrichMatchReport({ report, episodes, ntR2Sources, rssSources, mergedSources, overrides = {} }) {
+  const episodeByKey = new Map(episodes.map((episode) => [episode.episodeKey, episode]));
+  const eligibleEpisodes = episodes.filter((episode) => episode.collectionKind === "new");
+  const r2Matches = overrides.r2Matches && typeof overrides.r2Matches === "object"
+    ? overrides.r2Matches
+    : {};
+
+  const r2OverrideEpisodes = Object.keys(ntR2Sources)
+    .map((episodeKey) => {
+      const episode = episodeByKey.get(episodeKey);
+      const source = ntR2Sources[episodeKey];
+      return {
+        episodeKey,
+        date: episode?.date || "",
+        episode: episode?.episode || "",
+        title: episode?.title || "",
+        reason: r2Matches[episodeKey]?.reason || "New Testament archival R2 fallback",
+        sourceType: source.sourceType,
+        objectKey: source.objectKey,
+        url: source.url,
+        credit: source.credit,
+      };
+    })
+    .sort((left, right) => {
+      const leftEpisode = episodeByKey.get(left.episodeKey);
+      const rightEpisode = episodeByKey.get(right.episodeKey);
+      return Number(leftEpisode?.globalIndex || 0) - Number(rightEpisode?.globalIndex || 0);
+    });
+
+  const unresolvedEpisodes = eligibleEpisodes
+    .filter((episode) => !mergedSources[episode.episodeKey])
+    .map((episode) => ({
+      episodeKey: episode.episodeKey,
+      date: episode.date,
+      episode: episode.episode,
+      title: episode.title,
+      reason: "No public RSS or New Testament R2 fallback source is available",
+    }));
+
+  const rssMatched = Object.keys(rssSources).length;
+  const r2OverrideMatched = Object.keys(ntR2Sources).length;
+
+  return {
+    ...report,
+    summary: {
+      ...report.summary,
+      eligibleEpisodes: eligibleEpisodes.length,
+      rssMatched,
+      r2OverrideMatched,
+      playableNewTestament: rssMatched + r2OverrideMatched,
+      unmatchedEpisodes: unresolvedEpisodes.length,
+      unresolvedEpisodes: unresolvedEpisodes.length,
+      unresolvedNewTestament: unresolvedEpisodes.length,
+    },
+    r2OverrideEpisodes,
+    unmatchedEpisodes: unresolvedEpisodes,
+  };
 }
 
 function buildFailureReport(error, rssSources) {

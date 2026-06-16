@@ -33,10 +33,24 @@ const DRAG_ACTIVATE_PX = 8;
 const DRAG_VELOCITY_THRESHOLD = 0.45;
 const DRAG_COMPLETE_FRACTION = 0.28;
 const CLICK_SUPPRESS_MS = 350;
+const QUEUE_WINDOW_LIMIT = 20;
+const FULL_PLAYER_MODES = Object.freeze({
+  PLAYER: "player",
+  QUEUE: "queue",
+});
 
-export function createPlayerView({ dom, playerState, audioController, favoritesStore }) {
+export function createPlayerView({
+  dom,
+  playerState,
+  audioController,
+  favoritesStore,
+  getSourceStatusForEpisode = () => ({ id: SOURCE_STATUSES.MISSING, label: "Source unavailable" }),
+  onSelectRequest = () => {},
+  onPlayRequest = () => {},
+}) {
   let restoreFocusTo = null;
   let wasExpanded = false;
+  let fullPlayerMode = FULL_PLAYER_MODES.PLAYER;
   let isScrubbing = false;
   let scrubPreviewTime = 0;
   let suppressNextChange = false;
@@ -181,6 +195,11 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     dom.fullPlayerEyebrow.textContent = `${episode.type || "MSSP"} ${accessLabel} ${episodeLabel}`;
     dom.fullPlayerTitle.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.date || "Unknown date"} · ${accessLabel}`;
+    dom.fullPlayerCompactCover.src = episode.coverUrl;
+    dom.fullPlayerCompactCover.alt = "";
+    dom.fullPlayerCompactTitle.textContent = formatQueueTitle(episode);
+    dom.fullPlayerCompactMeta.textContent = formatQueueMeta(episode);
+    dom.fullPlayerCompact.setAttribute("aria-label", `Show Now Playing for ${episode.title || "selected episode"}`);
     renderFavorite();
     dom.fullPlayer.classList.toggle("is-playback-active", ACTIVE_PLAYBACK_STATUSES.has(state.playbackStatus));
 
@@ -195,6 +214,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
 
     renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackRequested);
     renderPlaybackControl(dom.playerPlay, source, state.playbackRequested);
+    renderQueueMode(state);
     setExpandedUi(state.isExpanded);
     if (state.isExpanded && !wasExpanded) {
       requestAnimationFrame(() => dom.fullPlayerCollapse.focus());
@@ -250,11 +270,139 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     const episode = playerState.getState().selectedEpisode;
     const isFavorite = Boolean(episode && favoritesStore.has(episode));
     dom.fullPlayerFavorite.setAttribute("aria-pressed", String(isFavorite));
-    dom.fullPlayerFavorite.textContent = isFavorite ? "Favorited" : "Favorite";
+    dom.fullPlayerFavorite.setAttribute(
+      "aria-label",
+      isFavorite ? "Remove from favorites" : "Add to favorites"
+    );
+  }
+
+  function renderQueueMode(state) {
+    const queueWindow = playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT);
+    const canOpenQueue = Boolean(state.selectedEpisode && queueWindow.index >= 0 && queueWindow.total > 0);
+    if (!canOpenQueue && fullPlayerMode === FULL_PLAYER_MODES.QUEUE) {
+      setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
+    } else {
+      setFullPlayerMode(fullPlayerMode);
+    }
+
+    dom.playerQueueToggle.disabled = !canOpenQueue;
+    renderQueuePanel(state, queueWindow);
+  }
+
+  function renderQueuePanel(state, queueWindow = playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT)) {
+    const [currentItem = state.selectedEpisode, ...upcomingItems] = queueWindow.items;
+    if (currentItem) {
+      dom.fullPlayerCompactCover.src = currentItem.coverUrl;
+      dom.fullPlayerCompactTitle.textContent = formatQueueTitle(currentItem);
+      dom.fullPlayerCompactMeta.textContent = formatQueueMeta(currentItem);
+    }
+
+    dom.fullPlayerQueueTitle.textContent = "Continue Playing";
+    dom.fullPlayerQueueMeta.textContent = queueWindow.index >= 0
+      ? `${queueWindow.index + 1} of ${queueWindow.total} · ${formatCollectionLabel(state.collectionId)}`
+      : formatCollectionLabel(state.collectionId);
+
+    const rows = upcomingItems.map((episode) => createQueueRow(episode));
+    if (!rows.length) {
+      const emptyItem = document.createElement("li");
+      emptyItem.className = "full-player__queue-empty";
+      emptyItem.textContent = queueWindow.total ? "End of queue." : "Queue loading...";
+      rows.push(emptyItem);
+    }
+    dom.fullPlayerQueueList.replaceChildren(...rows);
+  }
+
+  function createQueueRow(episode) {
+    const sourceStatus = getSourceStatusForEpisode(episode);
+    const isReady = sourceStatus.id === SOURCE_STATUSES.READY;
+    const isLocked = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED;
+    const item = document.createElement("li");
+    item.className = "full-player__queue-item";
+    item.classList.toggle("is-locked", isLocked);
+    item.classList.toggle("is-unavailable", !isReady && !isLocked);
+
+    const bodyButton = document.createElement("button");
+    bodyButton.className = "full-player__queue-body";
+    bodyButton.type = "button";
+    bodyButton.setAttribute("aria-label", `Select ${episode.title || "episode"}`);
+    bodyButton.addEventListener("click", () => {
+      void onSelectRequest(episode, getQueueRequestOptions());
+    });
+
+    const cover = document.createElement("img");
+    cover.src = episode.coverUrl;
+    cover.alt = "";
+    bodyButton.append(cover);
+
+    const copy = document.createElement("span");
+    copy.className = "full-player__queue-copy";
+    const title = document.createElement("span");
+    title.className = "full-player__queue-item-title";
+    title.textContent = formatQueueTitle(episode);
+    const meta = document.createElement("span");
+    meta.className = "full-player__queue-item-meta";
+    meta.textContent = formatQueueMeta(episode);
+    copy.append(title, meta);
+    bodyButton.append(copy);
+
+    const actionButton = document.createElement("button");
+    actionButton.className = "full-player__queue-action";
+    actionButton.type = "button";
+    actionButton.innerHTML = isLocked ? LOCK_ICON : PLAY_ICON;
+    actionButton.classList.toggle("is-locked", isLocked);
+    actionButton.classList.toggle("is-unavailable", !isReady && !isLocked);
+    actionButton.setAttribute(
+      "aria-label",
+      isReady
+        ? `Play ${episode.title || "episode"}`
+        : isLocked
+          ? `Connect Patreon RSS for ${episode.title || "episode"}`
+          : `Open player for ${episode.title || "episode"}`
+    );
+    actionButton.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const request = isReady ? onPlayRequest : onSelectRequest;
+      void request(episode, getQueueRequestOptions());
+    });
+
+    item.append(bodyButton, actionButton);
+    return item;
+  }
+
+  function getQueueRequestOptions() {
+    return {
+      collectionId: playerState.getState().collectionId,
+      preserveExpanded: true,
+    };
+  }
+
+  function setFullPlayerMode(mode) {
+    fullPlayerMode = mode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.QUEUE : FULL_PLAYER_MODES.PLAYER;
+    const isQueueMode = fullPlayerMode === FULL_PLAYER_MODES.QUEUE;
+    dom.fullPlayer.dataset.mode = fullPlayerMode;
+    dom.fullPlayerHero.inert = isQueueMode;
+    dom.fullPlayerHero.setAttribute("aria-hidden", String(isQueueMode));
+    dom.fullPlayerCompact.inert = !isQueueMode;
+    dom.fullPlayerCompact.setAttribute("aria-hidden", String(!isQueueMode));
+    dom.fullPlayerQueuePanel.inert = !isQueueMode;
+    dom.fullPlayerQueuePanel.setAttribute("aria-hidden", String(!isQueueMode));
+    dom.playerQueueToggle.setAttribute("aria-pressed", String(isQueueMode));
+    dom.playerQueueToggle.setAttribute("aria-label", isQueueMode ? "Show Now Playing" : "Show Up Next");
+  }
+
+  function toggleQueueMode() {
+    const state = playerState.getState();
+    const queueWindow = playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT);
+    if (!state.selectedEpisode || queueWindow.index < 0 || queueWindow.total === 0) return;
+    setFullPlayerMode(
+      fullPlayerMode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.PLAYER : FULL_PLAYER_MODES.QUEUE
+    );
+    renderQueuePanel(state, queueWindow);
   }
 
   function collapse() {
     if (!playerState.getState().isExpanded) return;
+    setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
     playerState.setExpanded(false);
     requestAnimationFrame(() => {
       const target = restoreFocusTo?.isConnected ? restoreFocusTo : dom.miniPlayerExpand;
@@ -323,7 +471,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
       const onHandle = Boolean(event.target.closest(".full-player__collapse"));
       if (!onHandle) {
         if (dom.fullPlayer.scrollTop > 0) return;
-        if (event.target.closest("button, input, a, .full-player__timeline")) return;
+        if (event.target.closest("button, input, a, .full-player__timeline, .full-player__queue-panel")) return;
       }
     }
 
@@ -547,7 +695,8 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     }
     if (event.key !== "Tab" || !playerState.getState().isExpanded) return;
 
-    const focusable = [...dom.fullPlayer.querySelectorAll("button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex='-1'])")];
+    const focusable = [...dom.fullPlayer.querySelectorAll("button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex='-1'])")]
+      .filter((element) => !element.closest("[aria-hidden='true']") && element.offsetParent !== null);
     if (!focusable.length) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -595,6 +744,8 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
   dom.miniPlayerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "mini"));
   dom.playerPlay.addEventListener("click", () => audioController.toggle());
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
+  dom.playerQueueToggle.addEventListener("click", toggleQueueMode);
+  dom.fullPlayerCompact.addEventListener("click", () => setFullPlayerMode(FULL_PLAYER_MODES.PLAYER));
   (timelineScrubber || dom.playerTimeline).addEventListener("pointerdown", beginScrub);
   dom.playerTimeline.addEventListener("input", (event) => {
     if (isScrubbing) updateScrubPreview(event.currentTarget.value);
@@ -615,6 +766,7 @@ export function createPlayerView({ dom, playerState, audioController, favoritesS
     if (episode) favoritesStore.toggle(episode);
   });
   document.addEventListener("keydown", trapFocus);
+  setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
   playerState.subscribe(render);
   favoritesStore.subscribe(renderFavorite);
 
@@ -638,6 +790,38 @@ function canSeek(state) {
 function formatMiniPlayerSubtitle(episode) {
   const sectionType = episode.paytch === "PAYTCH" ? "PAYTCH" : (episode.type || "MSSP");
   return `${sectionType} - ${episode.date || "Unknown date"}`;
+}
+
+function formatQueueTitle(episode) {
+  const prefix = episode?.episode ? `Ep ${episode.episode}` : "Extra";
+  return `${prefix} - ${episode?.title || "Untitled episode"}`;
+}
+
+function formatQueueMeta(episode) {
+  const parts = [];
+  if (episode?.date) parts.push(episode.date);
+  const duration = formatDurationLabel(episode?.durationSeconds);
+  if (duration) parts.push(duration);
+  if (episode?.paytch === "PAYTCH") parts.push("PAYTCH");
+  return parts.join(" · ");
+}
+
+function formatDurationLabel(durationSeconds) {
+  const seconds = Number(durationSeconds);
+  if (!Number.isFinite(seconds) || seconds <= 0) return "";
+  const totalMinutes = Math.max(1, Math.round(seconds / 60));
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (!hours) return `${minutes}m`;
+  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
+}
+
+function formatCollectionLabel(collectionId) {
+  if (collectionId === "anthology") return "The Holy Trinity";
+  if (collectionId === "old") return "The Old Testament";
+  if (collectionId === "new") return "The New Testament";
+  if (collectionId === "paytch") return "The PAYTCH";
+  return "Current queue";
 }
 
 function getProgressPercent(state) {

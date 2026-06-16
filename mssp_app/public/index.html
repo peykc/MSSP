@@ -131,20 +131,37 @@
       </section>
     </div>
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
-    <section class="full-player" id="fullPlayer" role="dialog" aria-modal="true" aria-labelledby="fullPlayerTitle" tabindex="-1" hidden>
+    <section class="full-player" id="fullPlayer" role="dialog" aria-modal="true" aria-labelledby="fullPlayerTitle" tabindex="-1" data-mode="player" hidden>
       <button class="full-player__collapse" id="fullPlayerCollapse" type="button" aria-label="Collapse full player">
         <span class="full-player__grabber" aria-hidden="true"></span>
       </button>
-      <img class="full-player__cover" id="fullPlayerCover" alt="">
-      <div class="full-player__copy">
-        <p class="full-player__eyebrow" id="fullPlayerEyebrow"></p>
-        <h2 class="full-player__title" id="fullPlayerTitle"></h2>
-        <p class="full-player__meta" id="fullPlayerMeta"></p>
-        <button class="full-player__favorite" id="fullPlayerFavorite" type="button" aria-pressed="false">Favorite</button>
+      <div class="full-player__now-playing-area">
+        <div class="full-player__hero" id="fullPlayerHero">
+          <img class="full-player__cover" id="fullPlayerCover" alt="">
+          <div class="full-player__copy">
+            <p class="full-player__eyebrow" id="fullPlayerEyebrow"></p>
+            <h2 class="full-player__title" id="fullPlayerTitle"></h2>
+            <p class="full-player__meta" id="fullPlayerMeta"></p>
+          </div>
+          <div class="full-player__status" id="fullPlayerStatusPanel" role="status">
+            <strong id="fullPlayerStatus"></strong>
+            <span id="fullPlayerStatusDetail"></span>
+          </div>
+        </div>
+        <button class="full-player__compact" id="fullPlayerCompact" type="button" aria-label="Select current episode">
+          <img id="fullPlayerCompactCover" alt="">
+          <span class="full-player__compact-copy">
+            <span class="full-player__compact-title" id="fullPlayerCompactTitle"></span>
+            <span class="full-player__compact-meta" id="fullPlayerCompactMeta"></span>
+          </span>
+        </button>
       </div>
-      <div class="full-player__status" id="fullPlayerStatusPanel" role="status">
-        <strong id="fullPlayerStatus"></strong>
-        <span id="fullPlayerStatusDetail"></span>
+      <div class="full-player__queue-panel" id="fullPlayerQueuePanel" aria-labelledby="fullPlayerQueueTitle">
+        <div class="full-player__queue-header">
+          <h3 id="fullPlayerQueueTitle">Continue Playing</h3>
+          <span id="fullPlayerQueueMeta"></span>
+        </div>
+        <ol class="full-player__queue-list" id="fullPlayerQueueList" aria-label="Upcoming episodes"></ol>
       </div>
       <div class="full-player__timeline" aria-label="Playback timeline">
         <span id="playerTimelineStart">00:00</span>
@@ -172,6 +189,23 @@
             <path d="M27.88 9.51A15 15 0 1 0 38.49 20.12"></path>
             <path class="seek-arrow" d="M33.68 11.06 27.84 5.77 25.98 12.73Z"></path>
             <text x="24" y="24" dy=".34em">30</text>
+          </svg>
+        </button>
+      </div>
+      <div class="full-player__utility-row" aria-label="Player utilities">
+        <button class="full-player__utility full-player__favorite" id="fullPlayerFavorite" type="button" aria-label="Add to favorites" aria-pressed="false">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m12 3.5 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 17.02l-5.3 2.79 1.01-5.9-4.29-4.18 5.93-.86L12 3.5Z"></path>
+          </svg>
+        </button>
+        <button class="full-player__utility" id="playerQueueToggle" type="button" aria-label="Show Up Next" aria-pressed="false">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="M8 6h12"></path>
+            <path d="M8 12h12"></path>
+            <path d="M8 18h12"></path>
+            <path d="M4 6h.01"></path>
+            <path d="M4 12h.01"></path>
+            <path d="M4 18h.01"></path>
           </svg>
         </button>
       </div>

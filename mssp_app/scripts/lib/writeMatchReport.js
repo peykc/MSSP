@@ -6,6 +6,7 @@ function writeMatchReport({ filePath, report }) {
     feeds: report.feeds || [],
     summary: report.summary,
     lowConfidenceMatches: report.lowConfidenceMatches || [],
+    r2OverrideEpisodes: report.r2OverrideEpisodes || [],
     unmatchedEpisodes: report.unmatchedEpisodes || [],
     unmatchedRssItems: report.unmatchedRssItems || [],
   };
