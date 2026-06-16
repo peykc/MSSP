@@ -67,6 +67,7 @@ export function createPlayerView({
   let lastBurstHadError = false;
   let lastBurstWasEnded = false;
   let queueSelectionTimer = null;
+  let queueReindexAnimationActive = false;
   const timelineScrubber = dom.playerTimeline.closest(".player-timeline__scrubber");
   const miniPlayerEpisode = dom.miniPlayerTitle.querySelector(".mini-player__episode");
   const miniPlayerTitleText = dom.miniPlayerTitle.querySelector(".mini-player__title-text");
@@ -303,6 +304,8 @@ export function createPlayerView({
       ? `${queueWindow.index + 1} of ${queueWindow.total} · ${formatCollectionLabel(state.collectionId)}`
       : formatCollectionLabel(state.collectionId);
 
+    if (queueReindexAnimationActive) return;
+
     const rows = upcomingItems.map((episode) => createQueueRow(episode));
     if (!rows.length) {
       const emptyItem = document.createElement("li");
@@ -372,7 +375,7 @@ export function createPlayerView({
   }
 
   function animateQueueSelection(episode, request, { deferRequest = true } = {}) {
-    window.clearTimeout(queueSelectionTimer);
+    cancelQueueReindexAnimation({ render: false });
     const rows = [...dom.fullPlayerQueueList.querySelectorAll(".full-player__queue-item")];
     const selectedIndex = rows.findIndex((row) => row.dataset.episodeKey === episode.episodeKey);
     if (selectedIndex <= 0) {
@@ -393,19 +396,37 @@ export function createPlayerView({
       row.classList.add("is-queue-shifting");
     });
 
+    queueReindexAnimationActive = true;
     if (!deferRequest) {
       void request(episode, getQueueRequestOptions());
-      return;
     }
 
     queueSelectionTimer = window.setTimeout(() => {
       queueSelectionTimer = null;
-      rows.forEach((row) => {
-        row.classList.remove("is-queue-removing", "is-queue-shifting");
-        row.style.removeProperty("--queue-shift");
-      });
-      void request(episode, getQueueRequestOptions());
+      resetQueueAnimationRows(rows);
+      queueReindexAnimationActive = false;
+      if (deferRequest) {
+        void request(episode, getQueueRequestOptions());
+      } else {
+        renderQueuePanel(playerState.getState());
+      }
     }, 190);
+  }
+
+  function cancelQueueReindexAnimation({ render = true } = {}) {
+    if (!queueReindexAnimationActive && !queueSelectionTimer) return;
+    window.clearTimeout(queueSelectionTimer);
+    queueSelectionTimer = null;
+    resetQueueAnimationRows([...dom.fullPlayerQueueList.querySelectorAll(".full-player__queue-item")]);
+    queueReindexAnimationActive = false;
+    if (render) renderQueuePanel(playerState.getState());
+  }
+
+  function resetQueueAnimationRows(rows) {
+    rows.forEach((row) => {
+      row.classList.remove("is-queue-removing", "is-queue-shifting");
+      row.style.removeProperty("--queue-shift");
+    });
   }
 
   function getQueueRequestOptions() {
@@ -416,6 +437,7 @@ export function createPlayerView({
   }
 
   function setFullPlayerMode(mode) {
+    if (mode !== FULL_PLAYER_MODES.QUEUE) cancelQueueReindexAnimation({ render: false });
     fullPlayerMode = mode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.QUEUE : FULL_PLAYER_MODES.PLAYER;
     const isQueueMode = fullPlayerMode === FULL_PLAYER_MODES.QUEUE;
     dom.fullPlayer.dataset.mode = fullPlayerMode;

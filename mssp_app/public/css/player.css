@@ -477,6 +477,7 @@ body.player-dragging .full-player__collapse {
 }
 
 .full-player__queue-panel {
+  position: relative;
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   width: min(100%, 1180px);
@@ -489,6 +490,23 @@ body.player-dragging .full-player__collapse {
   pointer-events: none;
   transform: translateY(76px);
   transition: none;
+}
+
+.full-player__queue-panel::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  height: 54px;
+  pointer-events: none;
+  content: "";
+  background: linear-gradient(
+    to bottom,
+    rgba(31, 29, 28, 0),
+    rgba(31, 29, 28, 0.92) 72%,
+    rgba(31, 29, 28, 0.99)
+  );
 }
 
 .full-player[data-mode="queue"] .full-player__queue-panel {
@@ -526,7 +544,7 @@ body.player-dragging .full-player__collapse {
   gap: 6px;
   min-height: 0;
   margin: 0;
-  padding: 0 2px 10px 0;
+  padding: 0 2px 34px 0;
   overflow: auto;
   list-style: none;
   overscroll-behavior: contain;
