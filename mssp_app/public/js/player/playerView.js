@@ -33,7 +33,7 @@ const DRAG_ACTIVATE_PX = 8;
 const DRAG_VELOCITY_THRESHOLD = 0.45;
 const DRAG_COMPLETE_FRACTION = 0.28;
 const CLICK_SUPPRESS_MS = 350;
-const QUEUE_WINDOW_LIMIT = 20;
+const QUEUE_WINDOW_LIMIT = 10;
 const FULL_PLAYER_MODES = Object.freeze({
   PLAYER: "player",
   QUEUE: "queue",
@@ -66,6 +66,7 @@ export function createPlayerView({
   let lastBurstSourceKey = null;
   let lastBurstHadError = false;
   let lastBurstWasEnded = false;
+  let queueSelectionTimer = null;
   const timelineScrubber = dom.playerTimeline.closest(".player-timeline__scrubber");
   const miniPlayerEpisode = dom.miniPlayerTitle.querySelector(".mini-player__episode");
   const miniPlayerTitleText = dom.miniPlayerTitle.querySelector(".mini-player__title-text");
@@ -318,15 +319,16 @@ export function createPlayerView({
     const isLocked = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED;
     const item = document.createElement("li");
     item.className = "full-player__queue-item";
+    item.dataset.episodeKey = episode.episodeKey;
     item.classList.toggle("is-locked", isLocked);
     item.classList.toggle("is-unavailable", !isReady && !isLocked);
 
     const bodyButton = document.createElement("button");
     bodyButton.className = "full-player__queue-body";
     bodyButton.type = "button";
-    bodyButton.setAttribute("aria-label", `Select ${episode.title || "episode"}`);
+    bodyButton.setAttribute("aria-label", isReady ? `Play ${episode.title || "episode"}` : `Select ${episode.title || "episode"}`);
     bodyButton.addEventListener("click", () => {
-      void onSelectRequest(episode, getQueueRequestOptions());
+      animateQueueSelection(episode, isReady ? onPlayRequest : onSelectRequest);
     });
 
     const cover = document.createElement("img");
@@ -362,11 +364,43 @@ export function createPlayerView({
     actionButton.addEventListener("click", (event) => {
       event.stopPropagation();
       const request = isReady ? onPlayRequest : onSelectRequest;
-      void request(episode, getQueueRequestOptions());
+      animateQueueSelection(episode, request);
     });
 
     item.append(bodyButton, actionButton);
     return item;
+  }
+
+  function animateQueueSelection(episode, request) {
+    window.clearTimeout(queueSelectionTimer);
+    const rows = [...dom.fullPlayerQueueList.querySelectorAll(".full-player__queue-item")];
+    const selectedIndex = rows.findIndex((row) => row.dataset.episodeKey === episode.episodeKey);
+    if (selectedIndex <= 0) {
+      void request(episode, getQueueRequestOptions());
+      return;
+    }
+
+    const gap = parseFloat(window.getComputedStyle(dom.fullPlayerQueueList).rowGap) || 0;
+    const removedRows = rows.slice(0, selectedIndex);
+    const shiftDistance = removedRows.reduce(
+      (total, row) => total + row.getBoundingClientRect().height + gap,
+      0
+    );
+
+    removedRows.forEach((row) => row.classList.add("is-queue-removing"));
+    rows.slice(selectedIndex).forEach((row) => {
+      row.style.setProperty("--queue-shift", `-${shiftDistance}px`);
+      row.classList.add("is-queue-shifting");
+    });
+
+    queueSelectionTimer = window.setTimeout(() => {
+      queueSelectionTimer = null;
+      rows.forEach((row) => {
+        row.classList.remove("is-queue-removing", "is-queue-shifting");
+        row.style.removeProperty("--queue-shift");
+      });
+      void request(episode, getQueueRequestOptions());
+    }, 190);
   }
 
   function getQueueRequestOptions() {

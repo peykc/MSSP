@@ -164,8 +164,10 @@ async function init() {
 
   async function loadEpisodeForPlayer(episode, { collectionId: requestedCollectionId, preserveExpanded = false, playbackIntent = false } = {}) {
     state.selectedEpisodeId = episode.id;
-    episodeDetails.renderDetails();
-    episodeList.renderVisibleRows();
+    if (state.activeCollection) {
+      episodeDetails.renderDetails();
+      episodeList.renderVisibleRows();
+    }
 
     const collectionId = requestedCollectionId || state.activeCollection?.id || episode.collectionKind || "anthology";
     let queue = queueCache.get(collectionId);
