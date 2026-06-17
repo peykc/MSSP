@@ -71,6 +71,8 @@ export function createPlayerView({
   const timelineScrubber = dom.playerTimeline.closest(".player-timeline__scrubber");
   const miniPlayerEpisode = dom.miniPlayerTitle.querySelector(".mini-player__episode");
   const miniPlayerTitleText = dom.miniPlayerTitle.querySelector(".mini-player__title-text");
+  const fullPlayerEpisode = dom.fullPlayerTitle.querySelector(".full-player__episode");
+  const fullPlayerTitleText = dom.fullPlayerTitle.querySelector(".full-player__title-text");
   const tooltipTimers = new Map();
 
   function getSourceKey(state) {
@@ -194,9 +196,10 @@ export function createPlayerView({
 
     dom.fullPlayerCover.src = episode.coverUrl;
     dom.fullPlayerCover.alt = `${episode.title || "Selected episode"} cover`;
-    dom.fullPlayerEyebrow.textContent = `${episode.type || "MSSP"} ${accessLabel} ${episodeLabel}`;
-    dom.fullPlayerTitle.textContent = episode.title || "Untitled episode";
-    dom.fullPlayerMeta.textContent = `${episode.date || "Unknown date"} · ${accessLabel}`;
+    dom.fullPlayerEyebrow.textContent = formatPlayerDate(episode.date);
+    fullPlayerEpisode.textContent = episodeLabel;
+    fullPlayerTitleText.textContent = episode.title || "Untitled episode";
+    dom.fullPlayerMeta.textContent = `${episode.type || "MSSP"} · ${accessLabel}`;
     dom.fullPlayerCompactCover.src = episode.coverUrl;
     dom.fullPlayerCompactCover.alt = "";
     dom.fullPlayerCompactTitle.textContent = formatQueueTitle(episode);
@@ -860,11 +863,42 @@ function formatQueueTitle(episode) {
 
 function formatQueueMeta(episode) {
   const parts = [];
-  if (episode?.date) parts.push(episode.date);
+  const dateLabel = formatQueueDate(episode?.date);
+  if (dateLabel) parts.push(dateLabel);
   const duration = formatDurationLabel(episode?.durationSeconds);
   if (duration) parts.push(duration);
   if (episode?.paytch === "PAYTCH") parts.push("PAYTCH");
   return parts.join(" · ");
+}
+
+function formatPlayerDate(dateString) {
+  if (!dateString) return "Unknown date";
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  if (!match) return dateString;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) return dateString;
+
+  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
+}
+
+function formatQueueDate(dateString) {
+  if (!dateString) return "";
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
+  if (!match) return dateString;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(year, month - 1, day);
+  if (Number.isNaN(date.getTime())) return dateString;
+
+  const monthLabel = date.toLocaleDateString("en-US", { month: "short" });
+  if (year === new Date().getFullYear()) return `${monthLabel} ${day}`;
+  return `${monthLabel} ${day}, ${year}`;
 }
 
 function formatDurationLabel(durationSeconds) {

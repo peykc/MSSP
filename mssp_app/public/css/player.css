@@ -362,6 +362,7 @@ body.player-dragging .full-player__collapse {
 }
 
 .full-player[data-mode="queue"] .full-player__compact {
+  margin-bottom: 20px;
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -435,8 +436,13 @@ body.player-dragging .full-player__collapse {
 }
 
 .full-player__copy {
+  display: grid;
+  gap: 3px;
+  width: fit-content;
+  max-width: 100%;
   min-width: 0;
-  text-align: center;
+  margin-inline: auto;
+  text-align: left;
 }
 
 .full-player__eyebrow,
@@ -448,13 +454,33 @@ body.player-dragging .full-player__collapse {
 .full-player__eyebrow,
 .full-player__meta {
   color: var(--muted);
-  font-size: 0.84rem;
+  font-size: 0.72rem;
+  line-height: 1.3;
 }
 
 .full-player__title {
-  margin: 5px 0;
+  display: flex;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: flex-start;
+  gap: clamp(6px, 1.5vw, 10px);
+  margin: 4px 0;
   font-size: clamp(1.3rem, 4vw, 2rem);
   line-height: 1.08;
+}
+
+.full-player__episode {
+  flex: 0 0 auto;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 0.92em;
+  font-weight: 650;
+}
+
+.full-player__title-text {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: var(--text);
+  font-weight: 780;
 }
 
 .full-player__status {
@@ -523,7 +549,7 @@ body.player-dragging .full-player__collapse {
   justify-content: space-between;
   gap: 12px;
   min-width: 0;
-  padding-bottom: 8px;
+  padding-bottom: 20px;
 }
 
 .full-player__queue-header h3 {
