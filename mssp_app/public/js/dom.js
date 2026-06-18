@@ -62,6 +62,7 @@ export const dom = {
   playerSeekBack: getRequiredElement("playerSeekBack"),
   playerPlay: getRequiredElement("playerPlay"),
   playerSeekForward: getRequiredElement("playerSeekForward"),
+  playerTranscriptsToggle: getRequiredElement("playerTranscriptsToggle"),
   playerQueueToggle: getRequiredElement("playerQueueToggle"),
   miniPlayer: getRequiredElement("miniPlayer"),
   miniPlayerTimelineTooltip: getRequiredElement("miniPlayerTimelineTooltip"),

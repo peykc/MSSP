@@ -877,7 +877,7 @@ body.player-dragging .full-player__collapse {
 
 .full-player__utility-row {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: center;
   width: min(100%, 390px);
   min-height: 36px;
@@ -892,6 +892,7 @@ body.player-dragging .full-player__collapse {
   width: 40px;
   height: 40px;
   place-items: center;
+  justify-self: center;
   padding: 0;
   color: var(--text);
   cursor: pointer;
@@ -900,14 +901,6 @@ body.player-dragging .full-player__collapse {
   border-radius: 8px;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
-}
-
-.full-player__utility:first-child {
-  justify-self: center;
-}
-
-.full-player__utility:last-child {
-  justify-self: center;
 }
 
 .full-player__utility:disabled {
