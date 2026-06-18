@@ -68,7 +68,7 @@ class RunConfig:
     language: str | None = None
     device: str = "cuda"
     align_device: str = "cuda"
-    diarize_device: str = "cpu"
+    diarize_device: str = "cuda"
     recursive: bool = False
     preserve_folders: bool = False
     diarize: bool = False
@@ -241,7 +241,7 @@ def parse_args() -> argparse.Namespace:
         "--diarize-device",
         default=None,
         choices=["cuda", "cpu"],
-        help="Diarization device (default: cpu on GPUs with <8GB VRAM)",
+        help="Diarization device (default: cuda when GPU available; align moves to CPU on <8GB VRAM)",
     )
     parser.add_argument("--diarize", action="store_true", help="Enable speaker diarization (requires HF token)")
     parser.add_argument("--hf-token", default=None, help="HuggingFace token (or set HF_TOKEN / .env)")
@@ -332,6 +332,13 @@ def resolve_diarize_device(requested: str | None, asr_device: str, align_device:
     if requested:
         return requested
     if asr_device != "cuda":
+        import torch
+
+        if not torch.cuda.is_available():
+            print(
+                "NOTE: CUDA unavailable (CPU-only PyTorch or no GPU) — ASR, align, and diarization all run on CPU. "
+                "Re-run setup.bat with Python 3.12 to get GPU diarization on 6GB cards."
+            )
         return "cpu"
     if _gpu_vram_under_8gb():
         import torch

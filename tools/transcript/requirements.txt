@@ -14,6 +14,5 @@
 #
 # Prerequisites: ffmpeg on PATH (winget install Gyan.FFmpeg)
 
-torch
-torchaudio
+# torch + torchaudio: installed by setup.bat from the CUDA wheel index (do not pip install from here — pulls CPU wheels)
 whisperx
