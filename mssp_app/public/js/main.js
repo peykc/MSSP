@@ -66,9 +66,6 @@ async function init() {
   const episodeDetails = createEpisodeDetails({
     dom,
     state,
-    favoritesStore,
-    onPlayRequest: requestPlay,
-    getSourceStatusForEpisode,
   });
 
   let coverFilters;

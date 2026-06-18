@@ -978,25 +978,6 @@ body.player-dragging .full-player__collapse {
   fill: currentColor;
 }
 
-.episode-details__play {
-  width: 100%;
-  min-height: 40px;
-  margin-top: 4px;
-  padding: 8px 12px;
-  color: var(--text);
-  cursor: pointer;
-  background: var(--soft);
-  border: 1px solid var(--line);
-  border-radius: 8px;
-}
-
-.episode-details__play:hover,
-.episode-details__play:focus-visible {
-  background: rgba(255, 255, 255, 0.12);
-  border-color: rgba(255, 255, 255, 0.32);
-  outline: none;
-}
-
 body.player-expanded {
   overscroll-behavior: none;
 }

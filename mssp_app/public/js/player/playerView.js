@@ -1,5 +1,6 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
+import { formatPlayerDate } from "../utils.js";
 
 const SEEK_BACK_SECONDS = 15;
 const SEEK_FORWARD_SECONDS = 30;
@@ -869,20 +870,6 @@ function formatQueueMeta(episode) {
   if (duration) parts.push(duration);
   if (episode?.paytch === "PAYTCH") parts.push("PAYTCH");
   return parts.join(" · ");
-}
-
-function formatPlayerDate(dateString) {
-  if (!dateString) return "Unknown date";
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
-  if (!match) return dateString;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
-  if (Number.isNaN(date.getTime())) return dateString;
-
-  return date.toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" });
 }
 
 function formatQueueDate(dateString) {

@@ -16,10 +16,10 @@
     grid-template-columns: clamp(118px, 24vw, 168px) minmax(0, 1fr);
     grid-template-rows: auto;
     gap: clamp(14px, 2.8vw, 24px);
-    align-items: center;
-    align-content: center;
+    align-items: stretch;
+    align-content: start;
     justify-items: stretch;
-    padding: clamp(14px, 2.4vw, 20px) clamp(66px, 9vw, 82px) clamp(14px, 2.4vw, 20px) clamp(14px, 2.8vw, 22px);
+    padding: clamp(14px, 2.4vw, 20px) clamp(14px, 2.8vw, 22px);
     overflow: hidden;
     background: var(--bg);
     border-right: 1px solid var(--line);
@@ -30,9 +30,10 @@
 
   .back-button {
     position: absolute;
-    top: 0px;
-    right: 16px;
+    top: max(clamp(14px, 2.4vw, 20px), env(safe-area-inset-top, 0px));
+    right: max(clamp(14px, 2.8vw, 22px), env(safe-area-inset-right, 0px));
     left: auto;
+    z-index: 2;
   }
 
   .episode-panel {
@@ -41,6 +42,7 @@
 
   .hero-cover {
     grid-row: auto;
+    align-self: start;
     width: 100%;
     height: auto;
     max-width: 168px;
@@ -52,50 +54,60 @@
   }
 
   .hero-details {
+    display: grid;
+    grid-template-rows: auto 1fr auto 1fr auto;
     grid-row: auto;
     grid-column: auto;
+    align-self: stretch;
     width: 100%;
+    min-height: 0;
     margin: 0;
-    gap: 9px;
+    gap: 0;
     padding: 0;
     text-align: left;
     border-top: 0;
   }
 
-  .hero-details > span {
-    white-space: normal;
+  .hero-details__copy {
+    grid-row: 1;
+    min-width: 0;
+    padding-right: 50px;
   }
 
-  .hero-details__heading {
-    text-align: left;
-  }
-
-  .hero-details__heading-inner {
-    width: 100%;
-    justify-content: flex-start;
+  .hero-details__divider {
+    display: block;
+    grid-row: 3;
     margin: 0;
-    gap: 10px;
   }
 
-  .hero-details__title,
-  .hero-details__title-text {
-    white-space: nowrap;
+  .hero-details .full-player__title {
+    margin: 2px 0;
+    font-size: clamp(0.88rem, 2.4vw, 1rem);
+    font-weight: 500;
   }
 
-  .hero-details__episode {
-    font-size: clamp(1rem, 2vw, 1.18rem);
+  .hero-details .full-player__episode {
+    font-weight: 500;
   }
 
-  .hero-details > span:not(.hero-details__heading) {
-    color: rgba(255, 255, 255, 0.76);
-    font-size: clamp(0.95rem, 2.2vw, 1.08rem);
-    line-height: 1.24;
+  .hero-details .full-player__title-text {
+    font-weight: 500;
   }
 
-  .hero-details__title {
-    flex: 1 1 auto;
-    margin-bottom: 0;
-    font-size: clamp(1rem, 2vw, 1.18rem);
+  .hero-details__stats {
+    grid-row: 5;
+    column-gap: 10px;
+    margin-top: 0;
+    padding-top: 0;
+  }
+
+  .hero-details__stat {
+    gap: 1px;
+  }
+
+  .hero-details__stat-value {
+    font-size: 0.88rem;
+    font-weight: 500;
   }
 
   .panel-top h2 {
@@ -182,26 +194,23 @@
     --row: 72px;
   }
 
-  .hero-details__heading-inner {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 4px;
+  .hero-details .full-player__title {
+    margin: 2px 0;
+    font-size: clamp(0.88rem, 2.4vw, 1rem);
+    font-weight: 500;
   }
 
-  .hero-details__episode {
-    font-size: 0.76rem;
-    font-weight: 600;
+  .hero-details .full-player__title-text {
+    font-weight: 500;
   }
 
-  .hero-details__title,
-  .hero-details__title-text {
-    width: 100%;
-    font-size: 0.92rem;
-    font-weight: 650;
-    line-height: 1.28;
-    white-space: normal;
-    overflow: visible;
-    text-overflow: unset;
+  .hero-details__stat {
+    gap: 1px;
+  }
+
+  .hero-details__stat-value {
+    font-size: 0.88rem;
+    font-weight: 500;
   }
 
   .episode-row {
