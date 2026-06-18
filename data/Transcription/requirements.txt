@@ -1,0 +1,19 @@
+# Windows + NVIDIA GPU — install in this order:
+#   python -m venv .venv
+#   .\.venv\Scripts\Activate.ps1
+#   pip install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
+#   pip install whisperx transformers
+#   pip install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
+#     (re-pin CUDA torch if whisperx pulled CPU wheels)
+#
+# Windows: if HuggingFace model download fails with WinError 1314, either enable
+# Developer Mode or set:  $env:HF_HUB_DISABLE_SYMLINKS = "1"
+#
+# Diarization (--diarize): accept pyannote license and set HF_TOKEN in .env or environment:
+#   https://huggingface.co/pyannote/speaker-diarization-community-1
+#
+# Prerequisites: ffmpeg on PATH (winget install Gyan.FFmpeg)
+
+torch
+torchaudio
+whisperx

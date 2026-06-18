@@ -1,0 +1,1475 @@
+#!/usr/bin/env python3
+"""
+Bulk-transcribe podcast audio with WhisperX and export player-ready MSSP transcript JSON.
+
+Output: readable timed display segments with nested word timestamps, flat wordSegments,
+rawSegments archive, optional speaker diarization, per-file diagnostics, and index.json.
+"""
+
+from __future__ import annotations
+
+import argparse
+import gc
+import json
+import os
+import platform
+import re
+import sys
+import traceback
+from dataclasses import dataclass
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any
+
+from pipeline_monitor import PipelineMonitor
+from row_builder import compute_display_diagnostics, normalize_speakers, rebuild_display_rows
+
+MODEL_FALLBACK_CHAIN = ["large-v3-turbo", "large-v3", "distil-large-v3"]
+LOW_RAM_FALLBACK_CHAIN = ["medium.en", "small.en", "base.en"]
+DEFAULT_EXTENSIONS = [".mp3", ".m4a", ".mp4", ".wav", ".flac", ".aac", ".ogg", ".opus"]
+INVALID_WIN_CHARS = re.compile(r'[<>:"/\\|?*]')
+CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
+MANIFEST_NAME = "index.json"
+SCRIPT_DIR = Path(__file__).resolve().parent
+DEFAULT_INPUT_DIR = SCRIPT_DIR.parent
+DEFAULT_OUTPUT_DIR = SCRIPT_DIR
+TRANSCRIPT_FORMAT = "mssp-transcript"
+TRANSCRIPT_VERSION = "1.1.0"
+ROW_STRATEGY_DEFAULT = "speaker-turn-v1"
+SAMPLE_RATE = 16000
+HF_SETUP_MSG = (
+    "HuggingFace token required for --diarize:\n"
+    "  1. Create token: https://huggingface.co/settings/tokens\n"
+    "  2. Accept license: https://huggingface.co/pyannote/speaker-diarization-community-1\n"
+    "  3. Set HF_TOKEN in .env or environment, or pass --hf-token"
+)
+
+
+@dataclass
+class RunConfig:
+    input_dir: Path
+    output_dir: Path
+    requested_model: str
+    actual_model: str | None = None
+    compute_type: str = "int8"
+    batch_size: int = 4
+    align_batch_size: int | None = None
+    language: str | None = None
+    device: str = "cuda"
+    align_device: str = "cuda"
+    diarize_device: str = "cpu"
+    recursive: bool = False
+    preserve_folders: bool = False
+    diarize: bool = False
+    hf_token: str | None = None
+    min_speakers: int = 1
+    max_speakers: int = 6
+    row_strategy: str = ROW_STRATEGY_DEFAULT
+    row_min_words: int = 6
+    row_max_words: int = 40
+    row_hard_max_words: int = 56
+    row_pause_sec: float = 1.5
+    row_turn_pause_sec: float = 2.5
+    show_progress: bool = True
+    diarize_cpu_fallback: bool = False
+
+    def row_settings_dict(self) -> dict[str, Any]:
+        return {
+            "row_min_words": self.row_min_words,
+            "row_max_words": self.row_max_words,
+            "row_hard_max_words": self.row_hard_max_words,
+            "row_pause_sec": self.row_pause_sec,
+            "row_turn_pause_sec": self.row_turn_pause_sec,
+        }
+
+
+@dataclass
+class RunStats:
+    processed: int = 0
+    skipped: int = 0
+    failed: int = 0
+    remaining: int = 0
+
+
+@dataclass
+class AlignCache:
+    model: Any = None
+    metadata: Any = None
+    language: str | None = None
+    device: str | None = None
+
+
+@dataclass
+class DiarizeCache:
+    model: Any = None
+    device: str | None = None
+
+
+@dataclass
+class ManifestItem:
+    source_file: str
+    filename_stem: str
+    transcript_file: str
+    status: str
+    reason: str | None = None
+    error: str | None = None
+    duration_seconds: float | None = None
+    word_count: int | None = None
+    segment_count: int | None = None
+    version: str | None = None
+    diarized: bool | None = None
+    speaker_count: int | None = None
+    raw_segment_count: int | None = None
+    quality_flags: list[str] | None = None
+    single_word_segment_percent: float | None = None
+
+    def to_dict(self) -> dict[str, Any]:
+        item: dict[str, Any] = {
+            "sourceFile": self.source_file,
+            "filenameStem": self.filename_stem,
+            "transcriptFile": self.transcript_file,
+            "status": self.status,
+        }
+        if self.reason:
+            item["reason"] = self.reason
+        if self.error:
+            item["error"] = self.error
+        if self.duration_seconds is not None:
+            item["durationSeconds"] = round(self.duration_seconds, 3)
+        if self.word_count is not None:
+            item["wordCount"] = self.word_count
+        if self.segment_count is not None:
+            item["segmentCount"] = self.segment_count
+        if self.version:
+            item["version"] = self.version
+        if self.diarized is not None:
+            item["diarized"] = self.diarized
+        if self.speaker_count is not None:
+            item["speakerCount"] = self.speaker_count
+        if self.raw_segment_count is not None:
+            item["rawSegmentCount"] = self.raw_segment_count
+        if self.quality_flags:
+            item["qualityFlags"] = self.quality_flags
+        if self.single_word_segment_percent is not None:
+            item["singleWordSegmentPercent"] = self.single_word_segment_percent
+        return item
+
+
+def configure_windows_hf_cache() -> None:
+    if platform.system() == "Windows":
+        os.environ.setdefault("HF_HUB_DISABLE_SYMLINKS", "1")
+    os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+
+
+def load_dotenv_hf_token() -> None:
+    """Load HF_TOKEN from .env next to script, parent folder, or cwd."""
+    if os.environ.get("HF_TOKEN"):
+        return
+    for env_path in (
+        Path.cwd() / ".env",
+        SCRIPT_DIR / ".env",
+        SCRIPT_DIR.parent / ".env",
+    ):
+        if not env_path.is_file():
+            continue
+        for line in env_path.read_text(encoding="utf-8").splitlines():
+            line = line.strip()
+            if not line or line.startswith("#") or "=" not in line:
+                continue
+            key, _, value = line.partition("=")
+            if key.strip() == "HF_TOKEN":
+                os.environ.setdefault("HF_TOKEN", value.strip().strip('"').strip("'"))
+                return
+
+
+def resolve_hf_token(explicit: str | None) -> str | None:
+    if explicit:
+        return explicit
+    load_dotenv_hf_token()
+    return os.environ.get("HF_TOKEN")
+
+
+def warn_if_cpu_torch_on_cuda_device(device: str) -> None:
+    if device != "cuda":
+        return
+    import torch
+
+    if "+cpu" in torch.__version__ or not torch.cuda.is_available():
+        print(
+            "WARNING: CUDA device selected but PyTorch has no GPU backend. "
+            "Reinstall CUDA torch after whisperx:\n"
+            "  pip install torch torchaudio --index-url https://download.pytorch.org/whl/cu124",
+            file=sys.stderr,
+        )
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Bulk-transcribe podcast audio with WhisperX and export player-ready JSON."
+    )
+    parser.add_argument("-i", "--input", type=Path, default=DEFAULT_INPUT_DIR, help="Input folder (audio)")
+    parser.add_argument("-o", "--output", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output folder (transcript JSON)")
+    parser.add_argument("--recursive", action="store_true", help="Scan subdirectories for audio")
+    parser.add_argument("--preserve-folders", action="store_true", help="Mirror input subfolder structure under output")
+    parser.add_argument("--test", action="store_true", help="Process only the first eligible file")
+    parser.add_argument("--only", default=None, help="Process only this exact filename")
+    parser.add_argument("--force", action="store_true", help="Re-transcribe even if output JSON exists")
+    parser.add_argument("--language", default=None, help="Force language code (e.g. en)")
+    parser.add_argument("--model", default="large-v3-turbo", help="Target ASR model name")
+    parser.add_argument("--compute-type", default="int8", help="CTranslate2 compute type")
+    parser.add_argument("--batch-size", type=int, default=4, help="ASR inference batch size")
+    parser.add_argument("--align-batch-size", type=int, default=None, help="Reserved for future use")
+    parser.add_argument("--device", default=None, help="ASR device: cuda or cpu (auto-detect if omitted)")
+    parser.add_argument(
+        "--align-device",
+        default=None,
+        choices=["cuda", "cpu"],
+        help="Alignment device (default: cpu on GPUs with <8GB VRAM)",
+    )
+    parser.add_argument(
+        "--diarize-device",
+        default=None,
+        choices=["cuda", "cpu"],
+        help="Diarization device (default: cpu on GPUs with <8GB VRAM)",
+    )
+    parser.add_argument("--diarize", action="store_true", help="Enable speaker diarization (requires HF token)")
+    parser.add_argument("--hf-token", default=None, help="HuggingFace token (or set HF_TOKEN / .env)")
+    parser.add_argument("--min-speakers", type=int, default=1, help="Min speakers for diarization")
+    parser.add_argument("--max-speakers", type=int, default=6, help="Max speakers for diarization")
+    parser.add_argument("--row-strategy", default=ROW_STRATEGY_DEFAULT, help="Display row rebuild strategy")
+    parser.add_argument("--row-min-words", type=int, default=6, help="Min words before sentence can split a row")
+    parser.add_argument("--row-max-words", type=int, default=40, help="Soft target max words per display row")
+    parser.add_argument(
+        "--row-hard-max-words",
+        type=int,
+        default=56,
+        help="Hard ceiling for row length; splits at best boundary when reached",
+    )
+    parser.add_argument("--row-pause-sec", type=float, default=1.5, help="Gap (seconds) before new display row")
+    parser.add_argument("--row-turn-pause-sec", type=float, default=2.5, help="Gap (seconds) before new turnId")
+    parser.add_argument(
+        "--no-progress",
+        action="store_true",
+        help="Disable per-stage progress % and timing logs",
+    )
+    parser.add_argument(
+        "--diarize-cpu-fallback",
+        action="store_true",
+        help="On CUDA diarization OOM, retry on CPU (can take hours per episode)",
+    )
+    parser.add_argument(
+        "--extensions",
+        default=",".join(DEFAULT_EXTENSIONS),
+        help="Comma-separated audio extensions to scan",
+    )
+    parser.add_argument("--limit", type=int, default=None, help="Process at most N files")
+    parser.add_argument("--start-after", default=None, help="Skip until after this exact filename")
+    align_group = parser.add_mutually_exclusive_group()
+    align_group.add_argument(
+        "--reuse-align-model",
+        dest="reuse_align_model",
+        action="store_true",
+        help="Reuse alignment model across files (default)",
+    )
+    align_group.add_argument(
+        "--no-reuse-align-model",
+        dest="reuse_align_model",
+        action="store_false",
+        help="Free/reload alignment model per file (VRAM safety)",
+    )
+    parser.set_defaults(reuse_align_model=True)
+    return parser.parse_args()
+
+
+def resolve_device(requested: str | None) -> str:
+    import torch
+
+    if requested:
+        if requested == "cuda" and not torch.cuda.is_available():
+            print("ERROR: --device cuda requested but CUDA is not available.", file=sys.stderr)
+            sys.exit(1)
+        return requested
+    return "cuda" if torch.cuda.is_available() else "cpu"
+
+
+def _gpu_vram_under_8gb() -> bool:
+    import torch
+
+    if not torch.cuda.is_available():
+        return True
+    return torch.cuda.get_device_properties(0).total_memory < 8 * 1024**3
+
+
+def resolve_align_device(requested: str | None, asr_device: str) -> str:
+    if requested:
+        return requested
+    if asr_device != "cuda":
+        return asr_device
+    if _gpu_vram_under_8gb():
+        import torch
+
+        vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        print(
+            f"NOTE: GPU VRAM is {vram_gb:.1f}GB — using CPU for alignment to avoid OOM. "
+            "Pass --align-device cuda to force GPU alignment."
+        )
+        return "cpu"
+    return "cuda"
+
+
+def resolve_diarize_device(requested: str | None, asr_device: str, align_device: str) -> str:
+    if requested:
+        return requested
+    if asr_device != "cuda":
+        return "cpu"
+    if _gpu_vram_under_8gb():
+        import torch
+
+        vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        if align_device == "cpu":
+            print(
+                f"NOTE: GPU VRAM is {vram_gb:.1f}GB — using CUDA for diarization "
+                "(alignment on CPU leaves VRAM for pyannote). "
+                "Pass --diarize-device cpu only if you accept multi-hour runs."
+            )
+        else:
+            print(
+                f"NOTE: GPU VRAM is {vram_gb:.1f}GB — diarization on CUDA with align also on CUDA "
+                "may OOM on long episodes. Prefer default --align-device cpu, or the pipeline "
+                "will unload the align model from GPU before diarization."
+            )
+        return "cuda"
+    return "cuda"
+
+
+def release_align_cache_from_gpu(align_cache: AlignCache) -> None:
+    """Free alignment weights from GPU so diarization can use VRAM."""
+    if align_cache.model is None:
+        return
+    free_gpu(align_cache.model)
+    align_cache.model = None
+
+
+def is_host_ram_oom(exc: BaseException) -> bool:
+    message = str(exc).lower()
+    if "mkl_malloc" in message:
+        return True
+    if "failed to allocate memory" in message and "cuda" not in message:
+        return True
+    cause = exc.__cause__
+    return is_host_ram_oom(cause) if cause is not None else False
+
+
+def is_cuda_oom(exc: BaseException) -> bool:
+    if is_host_ram_oom(exc):
+        return False
+    message = str(exc).lower()
+    if "cuda" not in message:
+        return False
+    return "out of memory" in message or "cuda failed" in message
+
+
+def is_cuda_asr_recoverable(exc: BaseException) -> bool:
+    """CUDA failures where a different compute type or CPU may succeed."""
+    if is_host_ram_oom(exc):
+        return False
+    if is_cuda_oom(exc):
+        return True
+    message = str(exc).lower()
+    if "cublas" in message:
+        return True
+    return "cuda" in message and ("failed" in message or "error" in message)
+
+
+def asr_attempt_plan(device: str, compute_type: str) -> list[tuple[str, str]]:
+    """Ordered (device, compute_type) fallbacks for ASR."""
+    plan: list[tuple[str, str]] = [(device, compute_type)]
+    if device == "cuda":
+        if compute_type != "float16":
+            plan.append((device, "float16"))
+        plan.append(("cpu", compute_type))
+    return plan
+
+
+def log_gpu_memory(label: str) -> None:
+    import torch
+
+    if not torch.cuda.is_available():
+        return
+    free_b, total_b = torch.cuda.mem_get_info()
+    alloc_b = torch.cuda.memory_allocated()
+    reserved_b = torch.cuda.memory_reserved()
+    print(
+        f"  GPU memory ({label}): "
+        f"{alloc_b / 1024**3:.2f}GB allocated, "
+        f"{reserved_b / 1024**3:.2f}GB reserved, "
+        f"{free_b / 1024**3:.2f}GB free / {total_b / 1024**3:.1f}GB total"
+    )
+
+
+def parse_extensions(raw: str) -> set[str]:
+    extensions: set[str] = set()
+    for part in raw.split(","):
+        part = part.strip().lower()
+        if not part:
+            continue
+        if not part.startswith("."):
+            part = f".{part}"
+        extensions.add(part)
+    return extensions or set(DEFAULT_EXTENSIONS)
+
+
+def discover_audio_files(input_dir: Path, extensions: set[str], recursive: bool) -> list[Path]:
+    input_dir = input_dir.resolve()
+    if not input_dir.is_dir():
+        raise FileNotFoundError(f"Input directory not found: {input_dir}")
+
+    files: list[Path] = []
+    iterator = input_dir.rglob("*") if recursive else input_dir.glob("*")
+    for path in iterator:
+        if path.is_file() and path.suffix.lower() in extensions:
+            files.append(path.resolve())
+    return sorted(files, key=lambda p: str(p).lower())
+
+
+def apply_file_filters(
+    files: list[Path],
+    start_after: str | None,
+    limit: int | None,
+    test: bool,
+    only: str | None,
+) -> list[Path]:
+    if only:
+        files = [f for f in files if f.name == only]
+        if not files:
+            print(f"WARNING: --only file not found: {only}", file=sys.stderr)
+        return files
+
+    if start_after:
+        idx = None
+        for i, path in enumerate(files):
+            if path.name == start_after:
+                idx = i
+                break
+        if idx is None:
+            print(f"WARNING: --start-after file not found: {start_after}", file=sys.stderr)
+        else:
+            files = files[idx + 1 :]
+
+    if limit is not None:
+        files = files[:limit]
+
+    if test and files:
+        files = files[:1]
+
+    return files
+
+
+def filename_stem(source_path: Path) -> str:
+    return source_path.stem
+
+
+def safe_filename_component(name: str) -> str:
+    return INVALID_WIN_CHARS.sub("_", name)
+
+
+def source_relative_path(source_path: Path, input_dir: Path) -> str:
+    try:
+        return source_path.resolve().relative_to(input_dir.resolve()).as_posix()
+    except ValueError:
+        return source_path.name
+
+
+def transcript_output_path(
+    source_path: Path,
+    input_dir: Path,
+    output_dir: Path,
+    preserve_folders: bool,
+) -> Path:
+    stem = safe_filename_component(source_path.stem)
+    if preserve_folders:
+        rel = source_path.resolve().relative_to(input_dir.resolve())
+        parent = rel.parent
+        return output_dir / parent / f"{stem}.json"
+    return output_dir / f"{stem}.json"
+
+
+def transcript_file_manifest_path(output_path: Path, output_dir: Path) -> str:
+    try:
+        return output_path.resolve().relative_to(output_dir.resolve()).as_posix()
+    except ValueError:
+        return output_path.name
+
+
+def free_gpu(*objects: Any) -> None:
+    import torch
+
+    for obj in objects:
+        try:
+            del obj
+        except Exception:
+            pass
+    gc.collect()
+    if torch.cuda.is_available():
+        torch.cuda.synchronize()
+        torch.cuda.empty_cache()
+
+
+def round_time(value: float | None) -> float | None:
+    if value is None:
+        return None
+    return round(float(value), 3)
+
+
+class TranscriptValidationError(ValueError):
+    """Raised when a transcript document fails structural or JSON validation."""
+
+
+def sanitize_text(text: str) -> str:
+    """Strip raw control characters that can break JSON consumers."""
+    return CONTROL_CHAR_RE.sub("", text)
+
+
+def sanitize_json_value(value: Any) -> Any:
+    if isinstance(value, str):
+        return sanitize_text(value)
+    if isinstance(value, list):
+        return [sanitize_json_value(item) for item in value]
+    if isinstance(value, dict):
+        return {key: sanitize_json_value(item) for key, item in value.items()}
+    return value
+
+
+def sanitize_transcript_document(document: dict[str, Any]) -> dict[str, Any]:
+    return sanitize_json_value(document)
+
+
+def validate_transcript_document(document: dict[str, Any]) -> None:
+    """Structural checks after json.load round-trip."""
+    required_top = ("version", "format", "metadata", "segments", "wordSegments", "rawSegments", "diagnostics")
+    for key in required_top:
+        if key not in document:
+            raise TranscriptValidationError(f"Missing required field: {key}")
+
+    if document.get("format") != TRANSCRIPT_FORMAT:
+        raise TranscriptValidationError(f"Unexpected format: {document.get('format')!r}")
+
+    metadata = document["metadata"]
+    if not isinstance(metadata, dict):
+        raise TranscriptValidationError("metadata must be an object")
+
+    for field_name in ("segments", "wordSegments", "rawSegments"):
+        value = document[field_name]
+        if not isinstance(value, list):
+            raise TranscriptValidationError(f"{field_name} must be an array")
+
+    diagnostics = document["diagnostics"]
+    if not isinstance(diagnostics, dict):
+        raise TranscriptValidationError("diagnostics must be an object")
+
+    word_count = diagnostics.get("wordCount")
+    if word_count is not None and word_count != len(document["wordSegments"]):
+        raise TranscriptValidationError(
+            f"diagnostics.wordCount ({word_count}) != len(wordSegments) ({len(document['wordSegments'])})"
+        )
+
+    segment_count = diagnostics.get("segmentCount")
+    if segment_count is not None and segment_count != len(document["segments"]):
+        raise TranscriptValidationError(
+            f"diagnostics.segmentCount ({segment_count}) != len(segments) ({len(document['segments'])})"
+        )
+
+
+def validate_json_file(path: Path) -> dict[str, Any]:
+    with path.open("r", encoding="utf-8") as f:
+        data = json.load(f)
+    return data
+
+
+def atomic_write_json(
+    path: Path,
+    data: dict[str, Any],
+    *,
+    post_load_validate: Any | None = None,
+) -> None:
+    """Write JSON atomically: .tmp → parse-validate → os.replace."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    tmp_path = path.with_suffix(path.suffix + ".tmp")
+
+    json.dumps(data, ensure_ascii=False)
+
+    try:
+        with tmp_path.open("w", encoding="utf-8", newline="\n") as f:
+            json.dump(data, f, ensure_ascii=False, indent=2)
+            f.write("\n")
+            f.flush()
+            os.fsync(f.fileno())
+
+        loaded = validate_json_file(tmp_path)
+        if post_load_validate is not None:
+            post_load_validate(loaded)
+
+        os.replace(tmp_path, path)
+    finally:
+        if tmp_path.exists():
+            tmp_path.unlink(missing_ok=True)
+
+
+def save_transcript_json(path: Path, document: dict[str, Any]) -> None:
+    """Sanitize, write, round-trip json.load, structure-validate, then commit."""
+    clean = sanitize_transcript_document(document)
+    atomic_write_json(path, clean, post_load_validate=validate_transcript_document)
+
+
+def load_manifest(manifest_path: Path) -> dict[str, Any]:
+    if not manifest_path.exists():
+        return {"items": []}
+    with manifest_path.open("r", encoding="utf-8") as f:
+        return json.load(f)
+
+
+def update_manifest_atomic(output_dir: Path, item: ManifestItem, run_config: RunConfig) -> None:
+    manifest_path = output_dir / MANIFEST_NAME
+    manifest = load_manifest(manifest_path)
+    items: list[dict[str, Any]] = manifest.get("items", [])
+    item_dict = item.to_dict()
+    replaced = False
+    for i, existing in enumerate(items):
+        if existing.get("sourceFile") == item.source_file:
+            items[i] = item_dict
+            replaced = True
+            break
+    if not replaced:
+        items.append(item_dict)
+
+    manifest["generatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    manifest["model"] = run_config.actual_model or run_config.requested_model
+    manifest["computeType"] = run_config.compute_type
+    manifest["inputDir"] = str(run_config.input_dir)
+    manifest["items"] = items
+    atomic_write_json(manifest_path, manifest)
+
+
+def resolve_batch_size(batch_size: int, device: str, diarize: bool) -> int:
+    """Cap batch size on low-VRAM GPUs; diarize runs keep extra headroom for ASR."""
+    if device != "cuda" or not _gpu_vram_under_8gb():
+        return batch_size
+    cap = 1 if diarize else min(batch_size, 4)
+    effective = min(batch_size, cap)
+    if effective < batch_size:
+        import torch
+
+        vram_gb = torch.cuda.get_device_properties(0).total_memory / (1024**3)
+        print(
+            f"NOTE: GPU VRAM is {vram_gb:.1f}GB — using batch_size={effective} "
+            f"(requested {batch_size})" + (" for --diarize run" if diarize else "")
+        )
+    return effective
+
+
+def resolve_and_load_asr_model(
+    requested: str,
+    device: str,
+    compute_type: str,
+) -> tuple[Any, str]:
+    import whisperx
+
+    def dedupe(names: list[str]) -> list[str]:
+        out: list[str] = []
+        for name in names:
+            if name not in out:
+                out.append(name)
+        return out
+
+    chains: list[list[str]] = [dedupe([requested, *MODEL_FALLBACK_CHAIN])]
+    last_error: Exception | None = None
+    saw_host_oom = False
+
+    for chain_idx, candidates in enumerate(chains):
+        if chain_idx > 0:
+            print("  NOTE: Retrying with smaller ASR models due to low system RAM")
+        for model_name in candidates:
+            try:
+                free_gpu()
+                print(f"  Loading ASR model: {model_name} (device={device}, compute_type={compute_type})")
+                model = whisperx.load_model(
+                    model_name,
+                    device,
+                    compute_type=compute_type,
+                )
+                if model_name != requested:
+                    print(f"  NOTE: Requested model '{requested}' unavailable; using '{model_name}'")
+                else:
+                    print(f"  Using ASR model: {model_name}")
+                return model, model_name
+            except Exception as exc:
+                last_error = exc
+                print(f"  WARNING: Failed to load model '{model_name}': {exc}")
+                if is_host_ram_oom(exc):
+                    saw_host_oom = True
+                    break
+
+        if saw_host_oom and chain_idx == 0:
+            chains.append(dedupe(LOW_RAM_FALLBACK_CHAIN))
+
+    raise RuntimeError(
+        "Could not load any ASR model. "
+        + (
+            "Close other apps to free system RAM and retry, or pass --model medium.en / small.en."
+            if saw_host_oom
+            else f"Tried: {chains[0]}"
+        )
+    ) from last_error
+
+
+def clean_word_from_whisper(word_data: dict[str, Any]) -> dict[str, Any] | None:
+    body = sanitize_text(str(word_data.get("word", word_data.get("body", ""))).strip())
+    if not body:
+        return None
+
+    cleaned: dict[str, Any] = {"body": body}
+    start = round_time(word_data.get("start", word_data.get("startTime")))
+    end = round_time(word_data.get("end", word_data.get("endTime")))
+    if start is not None:
+        cleaned["startTime"] = start
+    if end is not None:
+        cleaned["endTime"] = end
+    speaker = word_data.get("speaker")
+    if speaker:
+        cleaned["speaker"] = str(speaker)
+    return cleaned
+
+
+def extract_raw_segments(
+    aligned_result: dict[str, Any],
+) -> tuple[list[dict[str, Any]], list[dict[str, Any]], int]:
+    """Return (rawSegments, flat_words, missing_word_timestamps)."""
+    raw_segments: list[dict[str, Any]] = []
+    flat_words: list[dict[str, Any]] = []
+    missing_word_timestamps = 0
+
+    for segment in aligned_result.get("segments", []):
+        words_out: list[dict[str, Any]] = []
+        for word_data in segment.get("words", []):
+            cleaned = clean_word_from_whisper(word_data)
+            if cleaned is None:
+                continue
+            if "startTime" not in cleaned or "endTime" not in cleaned:
+                missing_word_timestamps += 1
+            words_out.append(
+                {k: v for k, v in cleaned.items() if k in ("body", "startTime", "endTime")}
+            )
+            flat_words.append(cleaned)
+
+        if not words_out:
+            continue
+
+        segment_text = str(segment.get("text", "")).strip()
+        body = segment_text if segment_text else " ".join(w["body"] for w in words_out)
+
+        seg_start = round_time(segment.get("start"))
+        seg_end = round_time(segment.get("end"))
+        if seg_start is None and words_out[0].get("startTime") is not None:
+            seg_start = words_out[0]["startTime"]
+        if seg_end is None and words_out[-1].get("endTime") is not None:
+            seg_end = words_out[-1]["endTime"]
+
+        raw_segments.append(
+            {
+                "startTime": seg_start,
+                "endTime": seg_end,
+                "body": body,
+                "words": words_out,
+            }
+        )
+
+    return raw_segments, flat_words, missing_word_timestamps
+
+
+def build_transcript_document(
+    raw_segments: list[dict[str, Any]],
+    display_segments: list[dict[str, Any]],
+    word_segments: list[dict[str, Any]],
+    source_path: Path,
+    input_dir: Path,
+    language: str,
+    requested_model: str,
+    actual_model: str,
+    compute_type: str,
+    duration_seconds: float,
+    diarized: bool,
+    row_strategy: str,
+    row_settings: dict[str, Any],
+    missing_word_timestamps: int,
+    missing_speaker_assignments: int,
+    pipeline_timing: dict[str, Any] | None = None,
+) -> dict[str, Any]:
+    speakers: set[str] = set()
+    if diarized:
+        for w in word_segments:
+            sp = w.get("speaker")
+            if sp:
+                speakers.add(str(sp))
+
+    diagnostics: dict[str, Any] = {
+        "wordCount": len(word_segments),
+        "segmentCount": len(display_segments),
+        "rawSegmentCount": len(raw_segments),
+        "missingWordTimestamps": missing_word_timestamps,
+        "durationSeconds": round(duration_seconds, 3),
+    }
+    display_diag = compute_display_diagnostics(
+        display_segments,
+        word_segments,
+        diarized=diarized,
+        row_settings=row_settings,
+    )
+    if diarized:
+        diagnostics["speakerCount"] = len(speakers)
+        diagnostics["missingSpeakerAssignments"] = missing_speaker_assignments
+    diagnostics.update(display_diag)
+    if pipeline_timing is not None:
+        diagnostics["pipelineTiming"] = pipeline_timing
+
+    stem = filename_stem(source_path)
+    return {
+        "version": TRANSCRIPT_VERSION,
+        "format": TRANSCRIPT_FORMAT,
+        "metadata": {
+            "source_file": source_path.name,
+            "source_path": source_relative_path(source_path, input_dir),
+            "filenameStem": stem,
+            "language": language,
+            "requested_model": requested_model,
+            "model": actual_model,
+            "compute_type": compute_type,
+            "aligned": True,
+            "diarized": diarized,
+            "row_strategy": row_strategy,
+        },
+        "segments": display_segments,
+        "wordSegments": word_segments,
+        "rawSegments": raw_segments,
+        "diagnostics": diagnostics,
+    }
+
+
+def _run_asr_transcribe(
+    audio: Any,
+    device: str,
+    requested_model: str,
+    compute_type: str,
+    language: str | None,
+    batch_size: int,
+    progress_callback: Any | None = None,
+) -> tuple[dict[str, Any], str]:
+    batch_sizes: list[int] = []
+    bs = batch_size
+    while True:
+        if bs not in batch_sizes:
+            batch_sizes.append(bs)
+        if bs <= 1:
+            break
+        bs = max(1, bs // 2)
+
+    free_gpu()
+    if device == "cuda":
+        log_gpu_memory("before ASR load")
+    model, actual_model = resolve_and_load_asr_model(requested_model, device, compute_type)
+    if device == "cuda":
+        log_gpu_memory("after ASR load")
+
+    last_error: BaseException | None = None
+    try:
+        for try_bs in batch_sizes:
+            transcribe_kwargs: dict[str, Any] = {"batch_size": try_bs}
+            if language:
+                transcribe_kwargs["language"] = language
+            if progress_callback is not None:
+                transcribe_kwargs["progress_callback"] = progress_callback
+            try:
+                if try_bs < batch_size:
+                    print(f"  Retrying transcription with batch_size={try_bs}")
+                result = model.transcribe(audio, **transcribe_kwargs)
+                return result, actual_model
+            except Exception as exc:
+                last_error = exc
+                if device == "cuda" and is_cuda_asr_recoverable(exc) and try_bs > batch_sizes[-1]:
+                    print(
+                        f"  WARNING: CUDA error at batch_size={try_bs} — "
+                        "retrying with smaller batch (same model)"
+                    )
+                    free_gpu()
+                    continue
+                raise
+    finally:
+        free_gpu(model)
+
+    assert last_error is not None
+    raise last_error
+
+
+def transcribe_audio(
+    audio_path: Path,
+    device: str,
+    requested_model: str,
+    compute_type: str,
+    language: str | None,
+    batch_size: int,
+    monitor: PipelineMonitor | None = None,
+) -> tuple[dict[str, Any], Any, str, float, str]:
+    import whisperx
+
+    audio = whisperx.load_audio(str(audio_path))
+    duration_seconds = len(audio) / SAMPLE_RATE
+
+    attempts = asr_attempt_plan(device, compute_type)
+    last_error: BaseException | None = None
+    progress_callback = monitor.callback_for_current_stage() if monitor else None
+    for attempt_idx, (attempt_device, attempt_compute) in enumerate(attempts):
+        if attempt_idx > 0:
+            prev_device, prev_compute = attempts[attempt_idx - 1]
+            print(
+                f"  WARNING: ASR failed on {prev_device} ({prev_compute}) — "
+                f"retrying on {attempt_device} ({attempt_compute})"
+            )
+            free_gpu()
+        try:
+            result, actual_model = _run_asr_transcribe(
+                audio,
+                attempt_device,
+                requested_model,
+                attempt_compute,
+                language,
+                batch_size,
+                progress_callback,
+            )
+            if attempt_idx > 0:
+                print(
+                    f"  NOTE: ASR completed on {attempt_device} ({attempt_compute}) "
+                    "after earlier failure"
+                )
+            return result, audio, actual_model, duration_seconds, attempt_compute
+        except Exception as exc:
+            last_error = exc
+            if (
+                attempt_device == "cuda"
+                and is_cuda_asr_recoverable(exc)
+                and attempt_idx < len(attempts) - 1
+            ):
+                continue
+            raise
+
+    raise RuntimeError("Transcription failed on all attempted ASR configurations") from last_error
+
+
+def _load_align_model(
+    language: str,
+    align_device: str,
+    align_cache: AlignCache,
+    reuse_align_model: bool,
+) -> tuple[Any, Any, AlignCache]:
+    import whisperx
+
+    if (
+        reuse_align_model
+        and align_cache.model is not None
+        and align_cache.language == language
+        and align_cache.device == align_device
+    ):
+        return align_cache.model, align_cache.metadata, align_cache
+
+    if align_cache.model is not None:
+        free_gpu(align_cache.model)
+        align_cache.model = None
+        align_cache.metadata = None
+        align_cache.language = None
+        align_cache.device = None
+
+    print(f"  Loading alignment model on {align_device}")
+    model_a, metadata = whisperx.load_align_model(language_code=language, device=align_device)
+    if reuse_align_model:
+        align_cache.model = model_a
+        align_cache.metadata = metadata
+        align_cache.language = language
+        align_cache.device = align_device
+    return model_a, metadata, align_cache
+
+
+def align_words(
+    segments: list[dict[str, Any]],
+    audio: Any,
+    language: str,
+    align_device: str,
+    align_cache: AlignCache,
+    reuse_align_model: bool,
+    monitor: PipelineMonitor | None = None,
+) -> tuple[dict[str, Any], AlignCache]:
+    import whisperx
+
+    free_gpu()
+    devices_to_try = [align_device]
+    if align_device == "cuda":
+        devices_to_try.append("cpu")
+
+    last_error: BaseException | None = None
+    progress_callback = monitor.callback_for_current_stage() if monitor else None
+    for attempt_device in devices_to_try:
+        if attempt_device != align_device:
+            print("  WARNING: CUDA OOM during alignment — retrying on CPU")
+            free_gpu(align_cache.model)
+            align_cache.model = None
+            align_cache.metadata = None
+            align_cache.language = None
+            align_cache.device = None
+            reuse_align_model = False
+
+        try:
+            model_a, metadata, align_cache = _load_align_model(
+                language, attempt_device, align_cache, reuse_align_model
+            )
+            aligned = whisperx.align(
+                segments,
+                model_a,
+                metadata,
+                audio,
+                attempt_device,
+                return_char_alignments=False,
+                progress_callback=progress_callback,
+            )
+            if not reuse_align_model:
+                free_gpu(model_a)
+            return aligned, align_cache
+        except Exception as exc:
+            last_error = exc
+            if attempt_device == "cuda" and is_cuda_oom(exc):
+                continue
+            raise
+
+    raise RuntimeError("Alignment failed on all attempted devices") from last_error
+
+
+def _load_diarize_model(
+    hf_token: str,
+    diarize_device: str,
+    diarize_cache: DiarizeCache,
+    reuse: bool,
+) -> tuple[Any, DiarizeCache]:
+    from whisperx.diarize import DiarizationPipeline
+
+    if reuse and diarize_cache.model is not None and diarize_cache.device == diarize_device:
+        return diarize_cache.model, diarize_cache
+
+    if diarize_cache.model is not None:
+        free_gpu(diarize_cache.model)
+        diarize_cache.model = None
+        diarize_cache.device = None
+
+    print(f"  Loading diarization model on {diarize_device}")
+    model = DiarizationPipeline(token=hf_token, device=diarize_device)
+    if reuse:
+        diarize_cache.model = model
+        diarize_cache.device = diarize_device
+    return model, diarize_cache
+
+
+def diarize_and_assign(
+    audio: Any,
+    aligned_result: dict[str, Any],
+    hf_token: str,
+    diarize_device: str,
+    min_speakers: int,
+    max_speakers: int,
+    diarize_cache: DiarizeCache,
+    reuse_diarize_model: bool,
+    monitor: PipelineMonitor | None = None,
+    cpu_fallback: bool = False,
+) -> tuple[dict[str, Any], DiarizeCache]:
+    from whisperx.diarize import assign_word_speakers
+
+    free_gpu()
+    devices_to_try = [diarize_device]
+    if diarize_device == "cuda" and cpu_fallback:
+        devices_to_try.append("cpu")
+
+    last_error: BaseException | None = None
+    progress_callback = monitor.callback_for_current_stage() if monitor else None
+    for attempt_device in devices_to_try:
+        if attempt_device != diarize_device:
+            print(
+                "  WARNING: CUDA OOM during diarization — retrying on CPU "
+                "(this can take hours; omit --diarize-cpu-fallback to fail fast)",
+                file=sys.stderr,
+            )
+            free_gpu(diarize_cache.model)
+            diarize_cache.model = None
+            diarize_cache.device = None
+            reuse_diarize_model = False
+
+        try:
+            model, diarize_cache = _load_diarize_model(
+                hf_token, attempt_device, diarize_cache, reuse_diarize_model
+            )
+            diarize_segments = model(
+                audio,
+                min_speakers=min_speakers,
+                max_speakers=max_speakers,
+                progress_callback=progress_callback,
+            )
+            if monitor and monitor.enabled:
+                word_count = sum(len(seg.get("words", [])) for seg in aligned_result.get("segments", []))
+                print(
+                    f"  [diarize] assigning speakers to {word_count} words...",
+                    flush=True,
+                )
+            result = assign_word_speakers(diarize_segments, aligned_result)
+            if not reuse_diarize_model:
+                free_gpu(model)
+            return result, diarize_cache
+        except Exception as exc:
+            last_error = exc
+            if attempt_device == "cuda" and is_cuda_oom(exc):
+                continue
+            raise
+
+    raise RuntimeError(
+        "Diarization failed on all attempted devices. "
+        + (
+            "CUDA OOM: use default --align-device cpu (keep --diarize-device cuda), "
+            "close other GPU apps, and avoid --align-device cuda on 6GB GPUs. "
+            "Pass --diarize-cpu-fallback only if you accept multi-hour CPU diarization."
+            if diarize_device == "cuda" and not cpu_fallback
+            else "See error above."
+        )
+    ) from last_error
+
+
+def process_file(
+    source_path: Path,
+    input_dir: Path,
+    output_dir: Path,
+    run_config: RunConfig,
+    reuse_align_model: bool,
+    align_cache: AlignCache,
+    diarize_cache: DiarizeCache,
+    reuse_diarize_model: bool,
+    force: bool,
+) -> tuple[ManifestItem, AlignCache, DiarizeCache]:
+    stem = filename_stem(source_path)
+    output_path = transcript_output_path(
+        source_path, input_dir, output_dir, run_config.preserve_folders
+    )
+    manifest_rel = transcript_file_manifest_path(output_path, output_dir)
+
+    if output_path.exists() and not force:
+        print(f"SKIP: {source_path.name} (transcript exists)")
+        item = ManifestItem(
+            source_file=source_path.name,
+            filename_stem=stem,
+            transcript_file=manifest_rel,
+            status="skipped",
+            reason="already_exists",
+        )
+        update_manifest_atomic(output_dir, item, run_config)
+        return item, align_cache, diarize_cache
+
+    total_steps = 5 if run_config.diarize else 4
+    print(f"Processing: {source_path.name}")
+    free_gpu(align_cache.model, diarize_cache.model)
+
+    effective_batch = resolve_batch_size(
+        run_config.batch_size, run_config.device, run_config.diarize
+    )
+
+    monitor = PipelineMonitor(source_path.name, enabled=run_config.show_progress)
+    try:
+        print(f"  [1/{total_steps}] Transcribing: {source_path.name}")
+        monitor.start_stage("transcribe", run_config.device)
+        asr_result, audio, actual_model, duration_seconds, actual_compute = transcribe_audio(
+            source_path,
+            run_config.device,
+            run_config.requested_model,
+            run_config.compute_type,
+            run_config.language,
+            effective_batch,
+            monitor=monitor,
+        )
+        monitor.end_stage()
+        run_config.actual_model = actual_model
+        run_config.compute_type = actual_compute
+        language = asr_result.get("language") or run_config.language or "en"
+
+        print(f"  [2/{total_steps}] Aligning: {source_path.name} (device={run_config.align_device})")
+        monitor.start_stage("align", run_config.align_device)
+        aligned_result, align_cache = align_words(
+            asr_result["segments"],
+            audio,
+            language,
+            run_config.align_device,
+            align_cache,
+            reuse_align_model,
+            monitor=monitor,
+        )
+        monitor.end_stage()
+
+        if run_config.diarize:
+            if not run_config.hf_token:
+                raise RuntimeError(HF_SETUP_MSG)
+            if (
+                run_config.diarize_device == "cuda"
+                and align_cache.device == "cuda"
+                and align_cache.model is not None
+            ):
+                print(
+                    "  NOTE: Unloading alignment model from GPU before diarization "
+                    "(frees VRAM for pyannote on 6GB GPUs)"
+                )
+                release_align_cache_from_gpu(align_cache)
+                free_gpu()
+            print(
+                f"  [3/{total_steps}] Diarizing + assigning speakers: {source_path.name} "
+                f"(device={run_config.diarize_device})"
+            )
+            monitor.start_stage("diarize", run_config.diarize_device)
+            aligned_result, diarize_cache = diarize_and_assign(
+                audio,
+                aligned_result,
+                run_config.hf_token,
+                run_config.diarize_device,
+                run_config.min_speakers,
+                run_config.max_speakers,
+                diarize_cache,
+                reuse_diarize_model,
+                monitor=monitor,
+                cpu_fallback=run_config.diarize_cpu_fallback,
+            )
+            monitor.end_stage()
+
+        build_step = 4 if run_config.diarize else 3
+        save_step = 5 if run_config.diarize else 4
+
+        print(f"  [{build_step}/{total_steps}] Building display rows: {source_path.name}")
+        monitor.start_stage("rows", None)
+        raw_segments, flat_words, missing_ts = extract_raw_segments(aligned_result)
+        flat_words, missing_speakers = normalize_speakers(
+            flat_words,
+            run_config.row_pause_sec,
+            run_config.diarize,
+        )
+        display_segments, word_segments = rebuild_display_rows(
+            flat_words,
+            strategy=run_config.row_strategy,
+            row_min_words=run_config.row_min_words,
+            row_max_words=run_config.row_max_words,
+            row_hard_max_words=run_config.row_hard_max_words,
+            row_pause_sec=run_config.row_pause_sec,
+            turn_pause_sec=run_config.row_turn_pause_sec,
+            diarized=run_config.diarize,
+        )
+        monitor.end_stage()
+
+        pipeline_timing = monitor.to_diagnostics()
+        transcript = build_transcript_document(
+            raw_segments=raw_segments,
+            display_segments=display_segments,
+            word_segments=word_segments,
+            source_path=source_path,
+            input_dir=input_dir,
+            language=language,
+            requested_model=run_config.requested_model,
+            actual_model=actual_model,
+            compute_type=run_config.compute_type,
+            duration_seconds=duration_seconds,
+            diarized=run_config.diarize,
+            row_strategy=run_config.row_strategy,
+            row_settings=run_config.row_settings_dict(),
+            missing_word_timestamps=missing_ts,
+            missing_speaker_assignments=missing_speakers,
+            pipeline_timing=pipeline_timing,
+        )
+
+        print(f"  [{save_step}/{total_steps}] Saving: {output_path.name}")
+        monitor.start_stage("save", None)
+        save_transcript_json(output_path, transcript)
+        monitor.end_stage()
+    except Exception as exc:
+        monitor.fail_current(str(exc))
+        raise
+
+    diag = transcript["diagnostics"]
+    item = ManifestItem(
+        source_file=source_path.name,
+        filename_stem=stem,
+        transcript_file=manifest_rel,
+        status="ok",
+        duration_seconds=diag["durationSeconds"],
+        word_count=diag["wordCount"],
+        segment_count=diag["segmentCount"],
+        version=TRANSCRIPT_VERSION,
+        diarized=run_config.diarize,
+        speaker_count=diag.get("speakerCount"),
+        raw_segment_count=diag.get("rawSegmentCount"),
+        quality_flags=diag.get("qualityFlags") or None,
+        single_word_segment_percent=diag.get("singleWordSegmentPercent"),
+    )
+    update_manifest_atomic(output_dir, item, run_config)
+    flag_note = ""
+    if diag.get("qualityFlags"):
+        flag_note = f", flags={','.join(diag['qualityFlags'])}"
+    print(
+        f"  Done: {diag['wordCount']} words, {diag['segmentCount']} display rows, "
+        f"{diag['rawSegmentCount']} raw segments"
+        + (f", {diag.get('speakerCount', 0)} speakers" if run_config.diarize else "")
+        + f", single-word rows {diag.get('singleWordSegmentPercent', 0)}%"
+        + flag_note
+    )
+    if run_config.show_progress and "pipelineTiming" in diag:
+        timing = diag["pipelineTiming"]
+        print(f"  Pipeline: {timing['totalSeconds']}s total")
+        for stage in timing.get("stages", []):
+            dev = f" ({stage['device']})" if stage.get("device") else ""
+            print(f"    {stage['name']}{dev}: {stage['elapsedSeconds']}s")
+    return item, align_cache, diarize_cache
+
+
+def print_summary(stats: RunStats, interrupted: bool = False) -> None:
+    label = "Interrupted — run summary" if interrupted else "Run summary"
+    print(f"\n{label}:")
+    print(f"  Processed: {stats.processed}")
+    print(f"  Skipped:   {stats.skipped}")
+    print(f"  Failed:    {stats.failed}")
+    if interrupted:
+        print(f"  Remaining: {stats.remaining}")
+
+
+def main() -> int:
+    configure_windows_hf_cache()
+    load_dotenv_hf_token()
+    args = parse_args()
+    reuse_align_model = args.reuse_align_model
+    device = resolve_device(args.device)
+    align_device = resolve_align_device(args.align_device, device)
+    diarize_device = resolve_diarize_device(args.diarize_device, device, align_device)
+    warn_if_cpu_torch_on_cuda_device(device)
+    extensions = parse_extensions(args.extensions)
+
+    hf_token = resolve_hf_token(args.hf_token) if args.diarize else None
+    if args.diarize and not hf_token:
+        print(f"ERROR: {HF_SETUP_MSG}", file=sys.stderr)
+        return 1
+
+    input_dir = args.input.resolve()
+    output_dir = args.output.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    if args.preserve_folders and not args.recursive:
+        print("NOTE: --preserve-folders is most useful with --recursive for nested archives.")
+
+    if args.align_batch_size is not None:
+        print(f"NOTE: --align-batch-size={args.align_batch_size} is reserved for future use.")
+
+    run_config = RunConfig(
+        input_dir=input_dir,
+        output_dir=output_dir,
+        requested_model=args.model,
+        compute_type=args.compute_type,
+        batch_size=args.batch_size,
+        align_batch_size=args.align_batch_size,
+        language=args.language,
+        device=device,
+        align_device=align_device,
+        diarize_device=diarize_device,
+        recursive=args.recursive,
+        preserve_folders=args.preserve_folders,
+        diarize=args.diarize,
+        hf_token=hf_token,
+        min_speakers=args.min_speakers,
+        max_speakers=args.max_speakers,
+        row_strategy=args.row_strategy,
+        row_min_words=args.row_min_words,
+        row_max_words=args.row_max_words,
+        row_hard_max_words=args.row_hard_max_words,
+        row_pause_sec=args.row_pause_sec,
+        row_turn_pause_sec=args.row_turn_pause_sec,
+        show_progress=not args.no_progress,
+        diarize_cpu_fallback=args.diarize_cpu_fallback,
+    )
+
+    try:
+        all_files = discover_audio_files(input_dir, extensions, args.recursive)
+    except FileNotFoundError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
+
+    files = apply_file_filters(
+        all_files, args.start_after, args.limit, args.test, args.only
+    )
+
+    mode = "diarize + rows" if args.diarize else "rows only"
+    print(f"Device: {device} (ASR) | {align_device} (align)" + (f" | {diarize_device} (diarize)" if args.diarize else ""))
+    print(f"Mode:   {mode} | strategy={args.row_strategy}")
+    print(f"Input:  {input_dir}")
+    print(f"Output: {output_dir}")
+    print(f"Found {len(all_files)} audio file(s); {len(files)} queued for this run")
+    if not files:
+        print("Nothing to process.")
+        return 0
+
+    stats = RunStats(remaining=len(files))
+    align_cache = AlignCache()
+    diarize_cache = DiarizeCache()
+    reuse_diarize_model = args.diarize
+    interrupted = False
+
+    try:
+        for i, source_path in enumerate(files):
+            stats.remaining = len(files) - i
+            try:
+                item, align_cache, diarize_cache = process_file(
+                    source_path,
+                    input_dir,
+                    output_dir,
+                    run_config,
+                    reuse_align_model,
+                    align_cache,
+                    diarize_cache,
+                    reuse_diarize_model,
+                    args.force,
+                )
+                if item.status == "ok":
+                    stats.processed += 1
+                elif item.status == "skipped":
+                    stats.skipped += 1
+            except Exception as exc:
+                stats.failed += 1
+                stem = filename_stem(source_path)
+                output_path = transcript_output_path(
+                    source_path, input_dir, output_dir, run_config.preserve_folders
+                )
+                manifest_rel = transcript_file_manifest_path(output_path, output_dir)
+                print(f"ERROR: {source_path.name}: {exc}", file=sys.stderr)
+                traceback.print_exc()
+                item = ManifestItem(
+                    source_file=source_path.name,
+                    filename_stem=stem,
+                    transcript_file=manifest_rel,
+                    status="error",
+                    error=str(exc),
+                )
+                update_manifest_atomic(output_dir, item, run_config)
+    except KeyboardInterrupt:
+        interrupted = True
+        print("\nInterrupted — saving progress...")
+        free_gpu(align_cache.model, diarize_cache.model)
+        align_cache.model = None
+        diarize_cache.model = None
+        print_summary(stats, interrupted=True)
+        return 130
+
+    free_gpu(align_cache.model, diarize_cache.model)
+    print_summary(stats)
+    return 1 if stats.failed else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
