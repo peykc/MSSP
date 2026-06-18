@@ -260,7 +260,7 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
       setPlaybackIntent(false);
       clearBufferingTimer();
       if (loadedEpisodeKey) {
-        playbackProgressStore?.removePosition(loadedEpisodeKey);
+        playbackProgressStore?.markCompleted(loadedEpisodeKey);
       }
       updateTimeline();
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.ENDED);

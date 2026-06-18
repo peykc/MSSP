@@ -39,7 +39,13 @@ async function init() {
   await loadPublicSources();
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode });
-  const playbackProgressStore = createPlaybackProgressStore();
+  let episodeList;
+  const playbackProgressStore = createPlaybackProgressStore({
+    onChange: () => {
+      if (dom.libraryView.classList.contains("is-hidden")) return;
+      episodeList?.renderVisibleRows();
+    },
+  });
   const audioController = createAudioController({
     playerState,
     playbackProgressStore,
@@ -57,7 +63,6 @@ async function init() {
   createMediaSessionController({ playerState, audioController });
   const queueCache = new Map();
 
-  let episodeList;
   const episodeDetails = createEpisodeDetails({
     dom,
     state,
@@ -75,6 +80,8 @@ async function init() {
     dismissGlobalTooltip,
     onPlayRequest: requestPlay,
     getSourceStatusForEpisode,
+    playbackProgressStore,
+    favoritesStore,
   });
 
   coverFilters = createCoverFilters({
@@ -93,6 +100,7 @@ async function init() {
     state,
     apiClient,
     renderCoverFilters: coverFilters.renderCoverFilters,
+    closeFilterMenu: coverFilters.closeFilterMenu,
     applyEpisodeFilters: episodeList.applyEpisodeFilters,
     clearRows: episodeList.clearRows,
     renderDetails: episodeDetails.renderDetails,

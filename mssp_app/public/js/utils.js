@@ -9,6 +9,10 @@ export function formatDateRange(collection) {
   return startYear === endYear ? startYear : `${startYear} - ${endYear}`;
 }
 
+export function formatEpisodeLabel(episode) {
+  return episode.episode ? `Ep. ${episode.episode}` : "Extra";
+}
+
 export function debounce(fn, wait) {
   let timeout;
   return (...args) => {

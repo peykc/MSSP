@@ -3,6 +3,7 @@ export function createLibraryView({
   state,
   apiClient,
   renderCoverFilters,
+  closeFilterMenu,
   applyEpisodeFilters,
   clearRows,
   renderDetails,
@@ -79,6 +80,7 @@ export function createLibraryView({
     state.selectedCoverKinds = new Set();
     state.favoritesOnly = false;
     clearRows();
+    closeFilterMenu?.();
     dom.coverFilters.innerHTML = "";
   }
 

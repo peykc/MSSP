@@ -535,7 +535,7 @@ export function createPlayerView({
       const onHandle = Boolean(event.target.closest(".full-player__collapse"));
       if (!onHandle) {
         if (dom.fullPlayer.scrollTop > 0) return;
-        if (event.target.closest("button, input, a, .full-player__timeline, .full-player__queue-panel")) return;
+        if (event.target.closest("button, input, a, .full-player__aside, .full-player__queue-panel")) return;
       }
     }
 

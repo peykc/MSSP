@@ -14,8 +14,12 @@ export function isRestorablePosition(currentTime, duration) {
   return true;
 }
 
-export function createPlaybackProgressStore() {
+export function createPlaybackProgressStore({ onChange } = {}) {
   let positions = readPositions();
+
+  function notifyChange() {
+    onChange?.();
+  }
 
   function savePosition({ episodeKey, currentTime, duration }) {
     if (!episodeKey) return;
@@ -25,24 +29,57 @@ export function createPlaybackProgressStore() {
     positions[episodeKey] = {
       currentTime,
       duration,
+      completed: false,
       updatedAt: Date.now(),
     };
     prunePositions();
     persist();
+    notifyChange();
   }
 
   function getRestorablePosition(episodeKey, duration) {
     if (!episodeKey) return null;
     const saved = positions[episodeKey];
-    if (!saved || !Number.isFinite(saved.currentTime)) return null;
+    if (!saved || saved.completed || !Number.isFinite(saved.currentTime)) return null;
     if (!isRestorablePosition(saved.currentTime, duration)) return null;
     return saved.currentTime;
+  }
+
+  function getEpisodeProgress(episodeKey) {
+    if (!episodeKey) return { status: "none" };
+    const saved = positions[episodeKey];
+    if (!saved) return { status: "none" };
+    if (saved.completed) return { status: "completed" };
+    if (
+      Number.isFinite(saved.currentTime)
+      && saved.currentTime >= MIN_SAVE_SECONDS
+      && Number.isFinite(saved.duration)
+      && saved.duration > 0
+    ) {
+      return {
+        status: "in-progress",
+        fraction: Math.max(0, Math.min(1, saved.currentTime / saved.duration)),
+      };
+    }
+    return { status: "none" };
+  }
+
+  function markCompleted(episodeKey) {
+    if (!episodeKey) return;
+    positions[episodeKey] = {
+      completed: true,
+      updatedAt: Date.now(),
+    };
+    prunePositions();
+    persist();
+    notifyChange();
   }
 
   function removePosition(episodeKey) {
     if (!episodeKey || !positions[episodeKey]) return;
     delete positions[episodeKey];
     persist();
+    notifyChange();
   }
 
   function prunePositions() {
@@ -69,7 +106,9 @@ export function createPlaybackProgressStore() {
   }
 
   return {
+    getEpisodeProgress,
     getRestorablePosition,
+    markCompleted,
     removePosition,
     savePosition,
   };

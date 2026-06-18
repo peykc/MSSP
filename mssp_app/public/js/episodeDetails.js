@@ -1,4 +1,5 @@
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
+import { formatEpisodeLabel } from "./utils.js";
 
 export function createEpisodeDetails({ dom, state, favoritesStore, onPlayRequest, getSourceStatusForEpisode }) {
   function renderDetails() {
@@ -12,7 +13,7 @@ export function createEpisodeDetails({ dom, state, favoritesStore, onPlayRequest
 
     dom.heroCover.src = episode.coverUrl;
     dom.heroCover.alt = `${episode.title || "Selected episode"} cover`;
-    const episodeLabel = episode.episode ? `Ep. ${episode.episode}` : "Extra";
+    const episodeLabel = formatEpisodeLabel(episode);
     const accessLabel = episode.paytch ? "PAYTCH" : "Public";
     const sourceStatus = getSourceStatusForEpisode(episode);
     const actionLabel = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED

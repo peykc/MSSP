@@ -24,10 +24,9 @@ body.has-player .library {
 .library__hero,
 .episode-panel {
   min-height: 0;
-  background: var(--panel);
+  background: var(--bg);
   border: 1px solid var(--line);
   border-radius: 8px;
-  backdrop-filter: blur(24px);
 }
 
 .library__hero {
@@ -112,11 +111,13 @@ body.has-player .library {
 .episode-panel {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
-  overflow: hidden;
+  overflow: visible;
   border-radius: 0 8px 8px 0;
 }
 
 .panel-top {
+  position: relative;
+  z-index: 3;
   display: flex;
   gap: 18px;
   align-items: center;
@@ -125,15 +126,25 @@ body.has-player .library {
   border-bottom: 1px solid var(--line);
 }
 
+.panel-controls {
+  display: flex;
+  flex: 0 1 auto;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  margin-left: auto;
+}
+
 
 .search {
   display: flex;
-  width: min(340px, 42%);
+  width: min(340px, 42vw);
   min-width: 190px;
   height: 42px;
+  flex: 1 1 auto;
   align-items: center;
   gap: 8px;
-  margin-left: auto;
+  margin-left: 0;
   padding: 0 12px;
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid var(--line);
