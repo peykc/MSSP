@@ -1,0 +1,10 @@
+# Generated transcripts (portable output)
+gen/
+
+# Secrets
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/

@@ -2,8 +2,18 @@
 """
 Bulk-transcribe podcast audio with WhisperX and export player-ready MSSP transcript JSON.
 
-Output: readable timed display segments with nested word timestamps, flat wordSegments,
-rawSegments archive, optional speaker diarization, per-file diagnostics, and index.json.
+Portable folder layout (copy this entire directory next to your audio files):
+
+  YourAudioFolder/
+    *.mp3
+    Transcription/          # or rename to transcripts/
+      transcribe.py
+      transcribe.bat
+      gen/                  # created on first run (default output)
+        index.json
+        {episode-stem}.json
+
+Defaults: input = parent folder (audio), output = ./gen/
 """
 
 from __future__ import annotations
@@ -30,9 +40,10 @@ DEFAULT_EXTENSIONS = [".mp3", ".m4a", ".mp4", ".wav", ".flac", ".aac", ".ogg", "
 INVALID_WIN_CHARS = re.compile(r'[<>:"/\\|?*]')
 CONTROL_CHAR_RE = re.compile(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]")
 MANIFEST_NAME = "index.json"
+OUTPUT_SUBDIR = "gen"
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_DIR = SCRIPT_DIR.parent
-DEFAULT_OUTPUT_DIR = SCRIPT_DIR
+DEFAULT_OUTPUT_DIR = SCRIPT_DIR / OUTPUT_SUBDIR
 TRANSCRIPT_FORMAT = "mssp-transcript"
 TRANSCRIPT_VERSION = "1.1.0"
 ROW_STRATEGY_DEFAULT = "speaker-turn-v1"
@@ -207,8 +218,8 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Bulk-transcribe podcast audio with WhisperX and export player-ready JSON."
     )
-    parser.add_argument("-i", "--input", type=Path, default=DEFAULT_INPUT_DIR, help="Input folder (audio)")
-    parser.add_argument("-o", "--output", type=Path, default=DEFAULT_OUTPUT_DIR, help="Output folder (transcript JSON)")
+    parser.add_argument("-i", "--input", type=Path, default=DEFAULT_INPUT_DIR, help="Audio folder (default: parent of this script)")
+    parser.add_argument("-o", "--output", type=Path, default=DEFAULT_OUTPUT_DIR, help="Transcript JSON folder (default: ./gen/)")
     parser.add_argument("--recursive", action="store_true", help="Scan subdirectories for audio")
     parser.add_argument("--preserve-folders", action="store_true", help="Mirror input subfolder structure under output")
     parser.add_argument("--test", action="store_true", help="Process only the first eligible file")
