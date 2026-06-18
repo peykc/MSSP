@@ -142,12 +142,9 @@
   }
 
   .episode-row__select {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    row-gap: 2px;
-    align-content: center;
-    padding: 8px 0;
+    display: block;
+    width: 100%;
+    padding: 0;
   }
 
   .episode-row__aside {
@@ -155,7 +152,7 @@
     justify-content: center;
     gap: 4px;
     padding: 8px 0;
-    min-width: 5.75rem;
+    min-width: 4rem;
   }
 
   .episode-row__date {
@@ -210,7 +207,7 @@
   .episode-row {
     left: 0;
     right: 0;
-    grid-template-columns: 44px 36px minmax(0, 1fr);
+    grid-template-columns: 44px 36px minmax(0, 1fr) auto;
     height: var(--row);
     align-items: stretch;
     border: 0;
@@ -223,36 +220,25 @@
     align-self: center;
   }
 
-  .episode-row__details {
-    display: grid;
-    grid-column: 3;
-    grid-template-columns: minmax(0, 1fr) auto;
-    column-gap: 8px;
-    min-width: 0;
-    height: 100%;
-  }
-
-  .episode-row__select {
+  .episode-row__body {
     display: flex;
     align-items: center;
     min-width: 0;
     height: 100%;
+    overflow: hidden;
+  }
+
+  .episode-row__select {
+    width: 100%;
+    height: auto;
     padding: 0;
     overflow: hidden;
   }
 
-  .episode-row__main {
-    width: 100%;
-    min-width: 0;
-    overflow: hidden;
-  }
-
   .episode-row__line {
-    display: flex;
     flex-direction: column;
+    align-items: stretch;
     gap: 2px;
-    width: 100%;
-    min-width: 0;
     white-space: normal;
   }
 
@@ -262,8 +248,8 @@
     justify-content: center;
     align-items: flex-end;
     gap: 2px;
+    flex-shrink: 0;
     padding: 0;
-    z-index: 3;
   }
 
   .episode-row__date {
@@ -282,11 +268,6 @@
     line-height: 1.15;
   }
 
-  .episode-row__actions {
-    position: relative;
-    z-index: 3;
-  }
-
   .episode-row__episode {
     font-size: 0.72rem;
     font-weight: 600;
@@ -294,9 +275,13 @@
     letter-spacing: 0.02em;
   }
 
+  .episode-row__meta {
+    width: 100%;
+  }
+
   .episode-row__progress {
-    flex-basis: 44px;
-    width: 44px;
+    flex: 0 0 35%;
+    width: 35%;
   }
 
   .episode-row.is-selected .episode-row__title {

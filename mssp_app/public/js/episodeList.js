@@ -145,7 +145,7 @@ export function createEpisodeList({
         <img src="${episode.coverUrl}" alt="">
       </button>
       <button class="episode-row__play" type="button"></button>
-      <div class="episode-row__details">
+      <div class="episode-row__body">
         <button class="episode-row__select" type="button">
           <span class="episode-row__main">
             <span class="episode-row__line">
@@ -162,34 +162,34 @@ export function createEpisodeList({
             </span>
           </span>
         </button>
-        <div class="episode-row__aside">
-          <button class="episode-row__date" type="button"></button>
-          <div class="episode-row__actions">
+      </div>
+      <div class="episode-row__aside">
+        <button class="episode-row__date" type="button"></button>
+        <div class="episode-row__actions">
+          <button
+            class="episode-row__favorite"
+            type="button"
+            aria-pressed="false"
+            aria-label="Add to favorites"
+          >${FAVORITE_ICON}</button>
+          <div class="episode-row__menu">
             <button
-              class="episode-row__favorite"
+              class="episode-row__menu-toggle"
               type="button"
-              aria-pressed="false"
-              aria-label="Add to favorites"
-            >${FAVORITE_ICON}</button>
-            <div class="episode-row__menu">
-              <button
-                class="episode-row__menu-toggle"
-                type="button"
-                aria-expanded="false"
-                aria-haspopup="menu"
-                aria-label="Episode options"
-              >${MENU_ICON}</button>
-              <div class="episode-row__menu-panel" role="menu" hidden>
-                <button class="episode-row__menu-item" type="button" role="menuitem" data-action="mark-listened" hidden>
-                  Mark as listened
-                </button>
-                <button class="episode-row__menu-item" type="button" role="menuitem" data-action="unmark-listened" hidden>
-                  Unmark as listened
-                </button>
-                <button class="episode-row__menu-item" type="button" role="menuitem" data-action="share">
-                  Share episode
-                </button>
-              </div>
+              aria-expanded="false"
+              aria-haspopup="menu"
+              aria-label="Episode options"
+            >${MENU_ICON}</button>
+            <div class="episode-row__menu-panel" role="menu" hidden>
+              <button class="episode-row__menu-item" type="button" role="menuitem" data-action="mark-listened" hidden>
+                Mark as listened
+              </button>
+              <button class="episode-row__menu-item" type="button" role="menuitem" data-action="unmark-listened" hidden>
+                Unmark as listened
+              </button>
+              <button class="episode-row__menu-item" type="button" role="menuitem" data-action="share">
+                Share episode
+              </button>
             </div>
           </div>
         </div>

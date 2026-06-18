@@ -40,12 +40,16 @@
   border-color: rgba(255, 255, 255, 0.1);
 }
 
-.episode-row__details {
-  display: contents;
+.episode-row__body {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  height: 100%;
 }
 
 .episode-row__select {
   display: block;
+  width: 100%;
   min-width: 0;
   height: 100%;
   padding: 8px 0;
