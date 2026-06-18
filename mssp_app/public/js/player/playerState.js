@@ -140,16 +140,51 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     };
   }
 
-  function getUpNextWindow(limit = 20) {
-    const { index, hasPrevious, hasNext } = getQueuePosition();
+  function getUpNextWindow(limit = 20, { skipEpisode } = {}) {
+    const { index, hasPrevious } = getQueuePosition();
     const total = state.queue.length;
+    if (index < 0) {
+      return {
+        index,
+        total,
+        hasPrevious,
+        hasNext: false,
+        items: [],
+      };
+    }
+
+    const current = state.queue[index];
+    const upcoming = [];
+    let hasNext = false;
+
+    for (let i = index + 1; i < state.queue.length; i += 1) {
+      const episode = state.queue[i];
+      if (skipEpisode?.(episode)) continue;
+      upcoming.push(episode);
+      if (upcoming.length >= limit) {
+        hasNext = state.queue.slice(i + 1).some((item) => !skipEpisode?.(item));
+        break;
+      }
+    }
+
     return {
       index,
       total,
       hasPrevious,
       hasNext,
-      items: index >= 0 ? state.queue.slice(index, index + limit + 1) : [],
+      items: [current, ...upcoming],
     };
+  }
+
+  function getNextPlayableEpisode(fromEpisodeKey, isEpisodePlayable) {
+    if (!fromEpisodeKey || !state.queue.length || typeof isEpisodePlayable !== "function") return null;
+    const index = state.queue.findIndex((episode) => episode.episodeKey === fromEpisodeKey);
+    if (index < 0) return null;
+    for (let i = index + 1; i < state.queue.length; i += 1) {
+      const episode = state.queue[i];
+      if (isEpisodePlayable(episode)) return episode;
+    }
+    return null;
   }
 
   async function restore(apiClient) {
@@ -178,6 +213,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
   }
 
   return {
+    getNextPlayableEpisode,
     getQueuePosition,
     getUpNextWindow,
     getState,

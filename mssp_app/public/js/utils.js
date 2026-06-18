@@ -37,6 +37,12 @@ export function formatEpisodeDuration(durationSeconds) {
   return minutes ? `${hours}h\u00a0${minutes}m` : `${hours}h`;
 }
 
+export function formatTimeRemaining(remainingSeconds) {
+  const label = formatEpisodeDuration(remainingSeconds);
+  if (label === "—") return "";
+  return `${label} left`;
+}
+
 export function debounce(fn, wait) {
   let timeout;
   return (...args) => {

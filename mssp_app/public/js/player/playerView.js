@@ -1,6 +1,14 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
 import { formatPlayerDate } from "../utils.js";
+import {
+  createEpisodeRow,
+  createEpisodeRowMenuManager,
+  refreshEpisodeRow,
+  updateEpisodeRowMarquee,
+  updateEpisodeRowMenuItems,
+  updateEpisodeRowProgress,
+} from "../episodeRow.js";
 
 const SEEK_BACK_SECONDS = 15;
 const SEEK_FORWARD_SECONDS = 30;
@@ -45,9 +53,11 @@ export function createPlayerView({
   playerState,
   audioController,
   favoritesStore,
+  playbackProgressStore,
   getSourceStatusForEpisode = () => ({ id: SOURCE_STATUSES.MISSING, label: "Source unavailable" }),
   onSelectRequest = () => {},
   onPlayRequest = () => {},
+  onRegisterQueueRefresh = () => {},
 }) {
   let restoreFocusTo = null;
   let wasExpanded = false;
@@ -69,6 +79,64 @@ export function createPlayerView({
   let lastBurstWasEnded = false;
   let queueSelectionTimer = null;
   let queueReindexAnimationActive = false;
+  let queueRenderLocked = false;
+  let compactQueueRow = null;
+  const queueMenuManager = createEpisodeRowMenuManager({ scrollRoot: dom.fullPlayerQueueList });
+  function isEpisodeCompleted(episode) {
+    return playbackProgressStore?.getEpisodeProgress(episode.episodeKey)?.status === "completed";
+  }
+
+  function finishQueueMarkListened() {
+    queueRenderLocked = false;
+  }
+
+  function advanceToNextPlayableEpisode(fromEpisode) {
+    const nextEpisode = playerState.getNextPlayableEpisode(
+      fromEpisode.episodeKey,
+      (episode) => !isEpisodeCompleted(episode),
+    );
+    if (!nextEpisode) {
+      finishQueueMarkListened();
+      renderQueuePanel(playerState.getState());
+      return;
+    }
+
+    animateQueueSelection(nextEpisode, async (episode, options) => {
+      finishQueueMarkListened();
+      await onPlayRequest(episode, options);
+    });
+  }
+
+  function handleQueueMarkListened(episode, row) {
+    queueMenuManager.closeEpisodeMenu();
+    queueRenderLocked = true;
+    playbackProgressStore?.markCompleted(episode.episodeKey);
+    if (row) {
+      updateEpisodeRowProgress(row, episode, playbackProgressStore);
+      updateEpisodeRowMenuItems(row, episode, playbackProgressStore);
+    }
+
+    const state = playerState.getState();
+    if (state.selectedEpisode?.episodeKey === episode.episodeKey) {
+      advanceToNextPlayableEpisode(episode);
+      return;
+    }
+
+    animateQueueItemRemoval(episode, () => {
+      finishQueueMarkListened();
+      renderQueuePanel(playerState.getState());
+    });
+  }
+
+  const queueRowOptions = {
+    includePlay: false,
+    marqueeAlways: true,
+    playbackProgressStore,
+    favoritesStore,
+    getSourceStatusForEpisode,
+    menuManager: queueMenuManager,
+    onMarkListened: handleQueueMarkListened,
+  };
   const timelineScrubber = dom.playerTimeline.closest(".player-timeline__scrubber");
   const miniPlayerEpisode = dom.miniPlayerTitle.querySelector(".mini-player__episode");
   const miniPlayerTitleText = dom.miniPlayerTitle.querySelector(".mini-player__title-text");
@@ -201,11 +269,6 @@ export function createPlayerView({
     fullPlayerEpisode.textContent = episodeLabel;
     fullPlayerTitleText.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.type || "MSSP"} · ${accessLabel}`;
-    dom.fullPlayerCompactCover.src = episode.coverUrl;
-    dom.fullPlayerCompactCover.alt = "";
-    dom.fullPlayerCompactTitle.textContent = formatQueueTitle(episode);
-    dom.fullPlayerCompactMeta.textContent = formatQueueMeta(episode);
-    dom.fullPlayerCompact.setAttribute("aria-label", `Show Now Playing for ${episode.title || "selected episode"}`);
     renderFavorite();
     dom.fullPlayer.classList.toggle("is-playback-active", ACTIVE_PLAYBACK_STATUSES.has(state.playbackStatus));
 
@@ -222,10 +285,64 @@ export function createPlayerView({
     renderPlaybackControl(dom.playerPlay, source, state.playbackRequested);
     renderQueueMode(state);
     setExpandedUi(state.isExpanded);
+    requestAnimationFrame(updateFullPlayerTitleMarquee);
     if (state.isExpanded && !wasExpanded) {
       requestAnimationFrame(() => dom.fullPlayerCollapse.focus());
     }
     wasExpanded = state.isExpanded;
+  }
+
+  function updateFullPlayerTitleMarquee() {
+    const viewport = dom.fullPlayerTitle.querySelector(".full-player__title-viewport");
+    if (!viewport || !fullPlayerTitleText) return;
+
+    fullPlayerTitleText.getAnimations().forEach((animation) => animation.cancel());
+    fullPlayerTitleText.style.transform = "";
+    fullPlayerTitleText.style.opacity = "";
+
+    const distance = fullPlayerTitleText.scrollWidth - viewport.clientWidth;
+    if (distance <= 2) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    const holdMs = 1000;
+    const fadeMs = 280;
+    const resetMs = 120;
+    const speedPxPerSecond = 42;
+    const scrollMs = Math.max(4200, Math.min(18000, (distance / speedPxPerSecond) * 1000));
+    const duration = holdMs + scrollMs + holdMs + fadeMs + resetMs + fadeMs;
+
+    fullPlayerTitleText.animate(
+      [
+        { transform: "translateX(0)", opacity: 1, offset: 0 },
+        { transform: "translateX(0)", opacity: 1, offset: holdMs / duration },
+        {
+          transform: `translateX(${-distance}px)`,
+          opacity: 1,
+          offset: (holdMs + scrollMs) / duration,
+        },
+        {
+          transform: `translateX(${-distance}px)`,
+          opacity: 1,
+          offset: (holdMs + scrollMs + holdMs) / duration,
+        },
+        {
+          transform: `translateX(${-distance}px)`,
+          opacity: 0,
+          offset: (holdMs + scrollMs + holdMs + fadeMs) / duration,
+        },
+        {
+          transform: "translateX(0)",
+          opacity: 0,
+          offset: (holdMs + scrollMs + holdMs + fadeMs + resetMs) / duration,
+        },
+        { transform: "translateX(0)", opacity: 1, offset: 1 },
+      ],
+      {
+        duration,
+        easing: "linear",
+        iterations: Infinity,
+      },
+    );
   }
 
   function renderTimeline(state) {
@@ -282,8 +399,14 @@ export function createPlayerView({
     );
   }
 
+  function getQueueWindow() {
+    return playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT, {
+      skipEpisode: (episode) => isEpisodeCompleted(episode),
+    });
+  }
+
   function renderQueueMode(state) {
-    const queueWindow = playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT);
+    const queueWindow = getQueueWindow();
     const canOpenQueue = Boolean(state.selectedEpisode && queueWindow.index >= 0 && queueWindow.total > 0);
     if (!canOpenQueue && fullPlayerMode === FULL_PLAYER_MODES.QUEUE) {
       setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
@@ -295,22 +418,19 @@ export function createPlayerView({
     renderQueuePanel(state, queueWindow);
   }
 
-  function renderQueuePanel(state, queueWindow = playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT)) {
-    const [currentItem = state.selectedEpisode, ...upcomingItems] = queueWindow.items;
-    if (currentItem) {
-      dom.fullPlayerCompactCover.src = currentItem.coverUrl;
-      dom.fullPlayerCompactTitle.textContent = formatQueueTitle(currentItem);
-      dom.fullPlayerCompactMeta.textContent = formatQueueMeta(currentItem);
-    }
+  function renderQueuePanel(state, queueWindow = getQueueWindow()) {
+    const [currentItem = state.selectedEpisode, ...visibleUpcoming] = queueWindow.items;
 
     dom.fullPlayerQueueTitle.textContent = "Continue Playing";
     dom.fullPlayerQueueMeta.textContent = queueWindow.index >= 0
       ? `${queueWindow.index + 1} of ${queueWindow.total} · ${formatCollectionLabel(state.collectionId)}`
       : formatCollectionLabel(state.collectionId);
 
-    if (queueReindexAnimationActive) return;
+    renderCompactQueueRow(currentItem);
 
-    const rows = upcomingItems.map((episode) => createQueueRow(episode));
+    if (queueReindexAnimationActive || queueRenderLocked) return;
+
+    const rows = visibleUpcoming.map((episode) => createQueueListItem(episode));
     if (!rows.length) {
       const emptyItem = document.createElement("li");
       emptyItem.className = "full-player__queue-empty";
@@ -318,9 +438,44 @@ export function createPlayerView({
       rows.push(emptyItem);
     }
     dom.fullPlayerQueueList.replaceChildren(...rows);
+    rows.forEach((item) => {
+      const row = item.querySelector?.(".episode-row");
+      if (row) updateEpisodeRowMarquee(row, true);
+    });
   }
 
-  function createQueueRow(episode) {
+  function refreshQueueEpisodeRow(row, episode, { isSelected = false } = {}) {
+    if (!row || !episode) return;
+    refreshEpisodeRow(row, episode, {
+      ...queueRowOptions,
+      isSelected,
+    });
+    updateEpisodeRowMarquee(row, true);
+  }
+
+  function renderCompactQueueRow(episode) {
+    if (!episode) {
+      compactQueueRow = null;
+      dom.fullPlayerCompact.replaceChildren();
+      return;
+    }
+
+    if (!compactQueueRow || compactQueueRow.dataset.episodeKey !== episode.episodeKey) {
+      dom.fullPlayerCompact.replaceChildren();
+      compactQueueRow = createEpisodeRow(episode, {
+        ...queueRowOptions,
+        isSelected: true,
+        onActivate: () => setFullPlayerMode(FULL_PLAYER_MODES.PLAYER),
+      });
+      dom.fullPlayerCompact.append(compactQueueRow);
+      updateEpisodeRowMarquee(compactQueueRow, true);
+      return;
+    }
+
+    refreshQueueEpisodeRow(compactQueueRow, episode, { isSelected: true });
+  }
+
+  function createQueueListItem(episode) {
     const sourceStatus = getSourceStatusForEpisode(episode);
     const isReady = sourceStatus.id === SOURCE_STATUSES.READY;
     const isLocked = sourceStatus.id === SOURCE_STATUSES.RSS_REQUIRED;
@@ -330,51 +485,18 @@ export function createPlayerView({
     item.classList.toggle("is-locked", isLocked);
     item.classList.toggle("is-unavailable", !isReady && !isLocked);
 
-    const bodyButton = document.createElement("button");
-    bodyButton.className = "full-player__queue-body";
-    bodyButton.type = "button";
-    bodyButton.setAttribute("aria-label", isReady ? `Play ${episode.title || "episode"}` : `Select ${episode.title || "episode"}`);
-    bodyButton.addEventListener("click", () => {
-      animateQueueSelection(episode, isReady ? onPlayRequest : onSelectRequest, { deferRequest: !isReady });
+    const row = createEpisodeRow(episode, {
+      ...queueRowOptions,
+      isSelected: false,
+      onActivate: () => {
+        animateQueueSelection(
+          episode,
+          isReady ? onPlayRequest : onSelectRequest,
+          { deferRequest: !isReady },
+        );
+      },
     });
-
-    const cover = document.createElement("img");
-    cover.src = episode.coverUrl;
-    cover.alt = "";
-    bodyButton.append(cover);
-
-    const copy = document.createElement("span");
-    copy.className = "full-player__queue-copy";
-    const title = document.createElement("span");
-    title.className = "full-player__queue-item-title";
-    title.textContent = formatQueueTitle(episode);
-    const meta = document.createElement("span");
-    meta.className = "full-player__queue-item-meta";
-    meta.textContent = formatQueueMeta(episode);
-    copy.append(title, meta);
-    bodyButton.append(copy);
-
-    const actionButton = document.createElement("button");
-    actionButton.className = "full-player__queue-action";
-    actionButton.type = "button";
-    actionButton.innerHTML = isLocked ? LOCK_ICON : PLAY_ICON;
-    actionButton.classList.toggle("is-locked", isLocked);
-    actionButton.classList.toggle("is-unavailable", !isReady && !isLocked);
-    actionButton.setAttribute(
-      "aria-label",
-      isReady
-        ? `Play ${episode.title || "episode"}`
-        : isLocked
-          ? `Connect Patreon RSS for ${episode.title || "episode"}`
-          : `Open player for ${episode.title || "episode"}`
-    );
-    actionButton.addEventListener("click", (event) => {
-      event.stopPropagation();
-      const request = isReady ? onPlayRequest : onSelectRequest;
-      animateQueueSelection(episode, request, { deferRequest: !isReady });
-    });
-
-    item.append(bodyButton, actionButton);
+    item.append(row);
     return item;
   }
 
@@ -383,6 +505,7 @@ export function createPlayerView({
     const rows = [...dom.fullPlayerQueueList.querySelectorAll(".full-player__queue-item")];
     const selectedIndex = rows.findIndex((row) => row.dataset.episodeKey === episode.episodeKey);
     if (selectedIndex <= 0) {
+      finishQueueMarkListened();
       void request(episode, getQueueRequestOptions());
       return;
     }
@@ -399,6 +522,7 @@ export function createPlayerView({
       row.style.setProperty("--queue-shift", `-${shiftDistance}px`);
       row.classList.add("is-queue-shifting");
     });
+    void dom.fullPlayerQueueList.offsetHeight;
 
     queueReindexAnimationActive = true;
     if (!deferRequest) {
@@ -410,10 +534,41 @@ export function createPlayerView({
       resetQueueAnimationRows(rows);
       queueReindexAnimationActive = false;
       if (deferRequest) {
+        finishQueueMarkListened();
         void request(episode, getQueueRequestOptions());
       } else {
+        finishQueueMarkListened();
         renderQueuePanel(playerState.getState());
       }
+    }, 190);
+  }
+
+  function animateQueueItemRemoval(episode, onComplete) {
+    cancelQueueReindexAnimation({ render: false });
+    const rows = [...dom.fullPlayerQueueList.querySelectorAll(".full-player__queue-item")];
+    const removeIndex = rows.findIndex((row) => row.dataset.episodeKey === episode.episodeKey);
+    if (removeIndex < 0) {
+      onComplete?.();
+      return;
+    }
+
+    const gap = parseFloat(window.getComputedStyle(dom.fullPlayerQueueList).rowGap) || 0;
+    const removedRow = rows[removeIndex];
+    const shiftDistance = removedRow.getBoundingClientRect().height + gap;
+
+    removedRow.classList.add("is-queue-removing");
+    rows.slice(removeIndex + 1).forEach((row) => {
+      row.style.setProperty("--queue-shift", `-${shiftDistance}px`);
+      row.classList.add("is-queue-shifting");
+    });
+    void dom.fullPlayerQueueList.offsetHeight;
+
+    queueReindexAnimationActive = true;
+    queueSelectionTimer = window.setTimeout(() => {
+      queueSelectionTimer = null;
+      resetQueueAnimationRows(rows);
+      queueReindexAnimationActive = false;
+      onComplete?.();
     }, 190);
   }
 
@@ -441,7 +596,10 @@ export function createPlayerView({
   }
 
   function setFullPlayerMode(mode) {
-    if (mode !== FULL_PLAYER_MODES.QUEUE) cancelQueueReindexAnimation({ render: false });
+    if (mode !== FULL_PLAYER_MODES.QUEUE) {
+      cancelQueueReindexAnimation({ render: false });
+      queueMenuManager.closeEpisodeMenu();
+    }
     fullPlayerMode = mode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.QUEUE : FULL_PLAYER_MODES.PLAYER;
     const isQueueMode = fullPlayerMode === FULL_PLAYER_MODES.QUEUE;
     dom.fullPlayer.dataset.mode = fullPlayerMode;
@@ -457,7 +615,7 @@ export function createPlayerView({
 
   function toggleQueueMode() {
     const state = playerState.getState();
-    const queueWindow = playerState.getUpNextWindow(QUEUE_WINDOW_LIMIT);
+    const queueWindow = getQueueWindow();
     if (!state.selectedEpisode || queueWindow.index < 0 || queueWindow.total === 0) return;
     setFullPlayerMode(
       fullPlayerMode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.PLAYER : FULL_PLAYER_MODES.QUEUE
@@ -810,7 +968,6 @@ export function createPlayerView({
   dom.playerPlay.addEventListener("click", () => audioController.toggle());
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
   dom.playerQueueToggle.addEventListener("click", toggleQueueMode);
-  dom.fullPlayerCompact.addEventListener("click", () => setFullPlayerMode(FULL_PLAYER_MODES.PLAYER));
   (timelineScrubber || dom.playerTimeline).addEventListener("pointerdown", beginScrub);
   dom.playerTimeline.addEventListener("input", (event) => {
     if (isScrubbing) updateScrubPreview(event.currentTarget.value);
@@ -831,9 +988,26 @@ export function createPlayerView({
     if (episode) favoritesStore.toggle(episode);
   });
   document.addEventListener("keydown", trapFocus);
+  window.addEventListener("resize", () => {
+    requestAnimationFrame(updateFullPlayerTitleMarquee);
+    if (fullPlayerMode === FULL_PLAYER_MODES.QUEUE && compactQueueRow) {
+      const episode = playerState.getState().selectedEpisode;
+      if (episode) refreshQueueEpisodeRow(compactQueueRow, episode, { isSelected: true });
+    }
+  });
+  onRegisterQueueRefresh(() => {
+    if (fullPlayerMode !== FULL_PLAYER_MODES.QUEUE) return;
+    if (queueReindexAnimationActive || queueRenderLocked) return;
+    renderQueuePanel(playerState.getState());
+  });
   setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
   playerState.subscribe(render);
-  favoritesStore.subscribe(renderFavorite);
+  favoritesStore.subscribe(() => {
+    renderFavorite();
+    if (fullPlayerMode === FULL_PLAYER_MODES.QUEUE) {
+      renderQueuePanel(playerState.getState());
+    }
+  });
 
   return {
     collapse,
@@ -855,47 +1029,6 @@ function canSeek(state) {
 function formatMiniPlayerSubtitle(episode) {
   const sectionType = episode.paytch === "PAYTCH" ? "PAYTCH" : (episode.type || "MSSP");
   return `${sectionType} - ${episode.date || "Unknown date"}`;
-}
-
-function formatQueueTitle(episode) {
-  const prefix = episode?.episode ? `Ep ${episode.episode}` : "Extra";
-  return `${prefix} - ${episode?.title || "Untitled episode"}`;
-}
-
-function formatQueueMeta(episode) {
-  const parts = [];
-  const dateLabel = formatQueueDate(episode?.date);
-  if (dateLabel) parts.push(dateLabel);
-  const duration = formatDurationLabel(episode?.durationSeconds);
-  if (duration) parts.push(duration);
-  if (episode?.paytch === "PAYTCH") parts.push("PAYTCH");
-  return parts.join(" · ");
-}
-
-function formatQueueDate(dateString) {
-  if (!dateString) return "";
-  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateString);
-  if (!match) return dateString;
-
-  const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
-  if (Number.isNaN(date.getTime())) return dateString;
-
-  const monthLabel = date.toLocaleDateString("en-US", { month: "short" });
-  if (year === new Date().getFullYear()) return `${monthLabel} ${day}`;
-  return `${monthLabel} ${day}, ${year}`;
-}
-
-function formatDurationLabel(durationSeconds) {
-  const seconds = Number(durationSeconds);
-  if (!Number.isFinite(seconds) || seconds <= 0) return "";
-  const totalMinutes = Math.max(1, Math.round(seconds / 60));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (!hours) return `${minutes}m`;
-  return minutes ? `${hours}h ${minutes}m` : `${hours}h`;
 }
 
 function formatCollectionLabel(collectionId) {

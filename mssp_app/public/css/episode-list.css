@@ -293,8 +293,19 @@
 }
 
 .episode-row__progress[hidden],
+.episode-row__time-left[hidden],
 .episode-row__completed[hidden] {
   display: none;
+}
+
+.episode-row__time-left {
+  flex: 0 1 auto;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.72rem;
+  font-weight: 500;
+  line-height: 1.1;
+  white-space: nowrap;
 }
 
 .episode-row__progress-fill {
@@ -338,6 +349,10 @@
   width: max-content;
   min-width: 100%;
   will-change: transform;
+}
+
+.episode-row--no-play {
+  grid-template-columns: 46px minmax(0, 1fr) auto;
 }
 
 .episode-row__episode {

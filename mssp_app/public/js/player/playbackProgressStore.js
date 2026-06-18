@@ -59,6 +59,7 @@ export function createPlaybackProgressStore({ onChange } = {}) {
       return {
         status: "in-progress",
         fraction: Math.max(0, Math.min(1, saved.currentTime / saved.duration)),
+        remainingSeconds: Math.max(0, saved.duration - saved.currentTime),
       };
     }
     return { status: "none" };

@@ -145,13 +145,7 @@
             <span id="fullPlayerStatusDetail"></span>
           </div>
         </div>
-        <button class="full-player__compact" id="fullPlayerCompact" type="button" aria-label="Select current episode">
-          <img id="fullPlayerCompactCover" alt="">
-          <span class="full-player__compact-copy">
-            <span class="full-player__compact-title" id="fullPlayerCompactTitle"></span>
-            <span class="full-player__compact-meta" id="fullPlayerCompactMeta"></span>
-          </span>
-        </button>
+        <div class="full-player__compact" id="fullPlayerCompact" aria-label="Now playing"></div>
       </div>
       <div class="full-player__queue-panel" id="fullPlayerQueuePanel" aria-labelledby="fullPlayerQueueTitle">
         <div class="full-player__queue-header">
@@ -166,7 +160,9 @@
             <p class="full-player__eyebrow" id="fullPlayerEyebrow"></p>
             <h2 class="full-player__title" id="fullPlayerTitle">
               <span class="full-player__episode"></span>
-              <span class="full-player__title-text"></span>
+              <span class="full-player__title-viewport">
+                <span class="full-player__title-text"></span>
+              </span>
             </h2>
             <p class="full-player__meta" id="fullPlayerMeta"></p>
           </div>

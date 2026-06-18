@@ -83,15 +83,11 @@
   .hero-details .full-player__title {
     margin: 2px 0;
     font-size: clamp(0.88rem, 2.4vw, 1rem);
-    font-weight: 500;
   }
 
-  .hero-details .full-player__episode {
-    font-weight: 500;
-  }
-
+  .hero-details .full-player__episode,
   .hero-details .full-player__title-text {
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .hero-details__stats {
@@ -197,11 +193,11 @@
   .hero-details .full-player__title {
     margin: 2px 0;
     font-size: clamp(0.88rem, 2.4vw, 1rem);
-    font-weight: 500;
   }
 
+  .hero-details .full-player__episode,
   .hero-details .full-player__title-text {
-    font-weight: 500;
+    font-weight: 600;
   }
 
   .hero-details__stat {
@@ -293,6 +289,10 @@
     width: 35%;
   }
 
+  .episode-row__time-left {
+    font-size: 0.68rem;
+  }
+
   .episode-row.is-selected .episode-row__title {
     overflow: hidden;
   }
@@ -311,6 +311,43 @@
     white-space: nowrap;
   }
 
+  .full-player__compact .episode-row .episode-row__line,
+  .full-player__queue-list .episode-row .episode-row__line {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    white-space: normal;
+  }
+
+  .full-player__compact .episode-row--no-play,
+  .full-player__queue-list .episode-row--no-play {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    height: var(--row);
+    align-items: center;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    border-radius: 0;
+  }
+
+  .full-player__compact .episode-row .episode-row__meta,
+  .full-player__queue-list .episode-row .episode-row__meta {
+    width: 100%;
+  }
+
+  .full-player__compact .episode-row .episode-row__title-text,
+  .full-player__queue-list .episode-row .episode-row__title-text {
+    width: max-content;
+    min-width: 100%;
+    max-width: none;
+    overflow: visible;
+    text-overflow: clip;
+  }
+
+  .full-player__compact .episode-row.is-selected {
+    background: transparent;
+    border-color: transparent;
+  }
+
   .episode-row.is-selected {
     border: 0;
     border-bottom: 1px solid var(--line);
@@ -323,12 +360,12 @@
 
   .mini-player__episode {
     font-size: 0.78rem;
-    font-weight: 600;
+    font-weight: 500;
   }
 
   .mini-player__title-text {
     font-size: 0.86rem;
-    font-weight: 650;
+    font-weight: 500;
   }
 
   .library {

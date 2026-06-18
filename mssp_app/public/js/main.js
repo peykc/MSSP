@@ -40,10 +40,13 @@ async function init() {
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode });
   let episodeList;
+  let refreshQueueProgress = null;
   const playbackProgressStore = createPlaybackProgressStore({
     onChange: () => {
-      if (dom.libraryView.classList.contains("is-hidden")) return;
-      episodeList?.renderVisibleRows();
+      if (!dom.libraryView.classList.contains("is-hidden")) {
+        episodeList?.renderVisibleRows();
+      }
+      refreshQueueProgress?.();
     },
   });
   const audioController = createAudioController({
@@ -56,9 +59,13 @@ async function init() {
     playerState,
     audioController,
     favoritesStore,
+    playbackProgressStore,
     getSourceStatusForEpisode,
     onSelectRequest: requestSelect,
     onPlayRequest: requestPlay,
+    onRegisterQueueRefresh: (fn) => {
+      refreshQueueProgress = fn;
+    },
   });
   createMediaSessionController({ playerState, audioController });
   const queueCache = new Map();
@@ -213,13 +220,33 @@ async function init() {
   }
 
   function stepPlayer(offset, { playbackIntent = true } = {}) {
-    const episode = playerState.step(offset);
-    if (!episode) return;
-    audioController.loadSelected({ playbackIntent });
+    if (offset <= 0) {
+      const episode = playerState.step(offset);
+      if (!episode) return;
+      void audioController.loadSelected({ playbackIntent });
+      return;
+    }
+
+    const state = playerState.getState();
+    const fromEpisode = state.selectedEpisode;
+    if (!fromEpisode) return;
+
+    const nextEpisode = playerState.getNextPlayableEpisode(
+      fromEpisode.episodeKey,
+      (episode) => playbackProgressStore.getEpisodeProgress(episode.episodeKey).status !== "completed",
+    );
+    if (!nextEpisode) return;
+
+    playerState.loadEpisode({
+      episode: nextEpisode,
+      collectionId: state.collectionId,
+      queue: state.queue,
+      isExpanded: state.isExpanded,
+    });
+    void audioController.loadSelected({ playbackIntent });
   }
 
   function handleEnded() {
-    if (!playerState.getQueuePosition().hasNext) return;
     stepPlayer(1, { playbackIntent: true });
   }
 }

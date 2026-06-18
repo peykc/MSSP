@@ -77,6 +77,7 @@
   min-width: 100%;
   overflow: visible;
   white-space: nowrap;
+  font-weight: 780;
   will-change: transform;
 }
 
