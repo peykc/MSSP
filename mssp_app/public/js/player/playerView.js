@@ -1,5 +1,6 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
+import { createTranscriptView } from "./transcriptView.js";
 import { formatPlayerDate } from "../utils.js";
 import {
   createEpisodeRow,
@@ -46,6 +47,7 @@ const QUEUE_WINDOW_LIMIT = 10;
 const FULL_PLAYER_MODES = Object.freeze({
   PLAYER: "player",
   QUEUE: "queue",
+  TRANSCRIPT: "transcript",
 });
 
 export function createPlayerView({
@@ -82,6 +84,11 @@ export function createPlayerView({
   let queueRenderLocked = false;
   let compactQueueRow = null;
   const queueMenuManager = createEpisodeRowMenuManager({ scrollRoot: dom.fullPlayerQueueList });
+  const transcriptView = createTranscriptView({
+    dom,
+    audioController,
+    onAvailabilityChange: handleTranscriptAvailabilityChange,
+  });
   function isEpisodeCompleted(episode) {
     return playbackProgressStore?.getEpisodeProgress(episode.episodeKey)?.status === "completed";
   }
@@ -238,10 +245,13 @@ export function createPlayerView({
     document.body.classList.toggle("has-player", hasEpisode);
 
     if (!hasEpisode) {
+      void transcriptView.syncEpisode(null);
       maybeResetBurstOnContextChange(state, null);
       setExpandedUi(false);
       return;
     }
+
+    void transcriptView.syncEpisode(episode);
 
     maybeResetBurstOnContextChange(state, episode);
 
@@ -284,6 +294,7 @@ export function createPlayerView({
     renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackRequested);
     renderPlaybackControl(dom.playerPlay, source, state.playbackRequested);
     renderQueueMode(state);
+    renderTranscriptMode(state);
     setExpandedUi(state.isExpanded);
     requestAnimationFrame(updateFullPlayerTitleMarquee);
     if (state.isExpanded && !wasExpanded) {
@@ -416,6 +427,40 @@ export function createPlayerView({
 
     dom.playerQueueToggle.disabled = !canOpenQueue;
     renderQueuePanel(state, queueWindow);
+  }
+
+  function handleTranscriptAvailabilityChange(availability, episodeKey) {
+    if (episodeKey !== playerState.getState().selectedEpisode?.episodeKey) return;
+    if (availability === "unavailable" && fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT) {
+      setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
+    }
+    renderTranscriptControl();
+  }
+
+  function renderTranscriptMode(state) {
+    renderTranscriptControl();
+    transcriptView.setPlaybackActive(state.playbackStatus === PLAYBACK_STATUSES.PLAYING);
+    transcriptView.update(state.currentTime);
+    transcriptView.setModeActive(
+      fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT && state.isExpanded
+    );
+  }
+
+  function renderTranscriptControl() {
+    const availability = transcriptView.getAvailability();
+    const isTranscriptMode = fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT;
+    dom.playerTranscriptsToggle.disabled = availability !== "available";
+    dom.playerTranscriptsToggle.setAttribute("aria-pressed", String(isTranscriptMode));
+    dom.playerTranscriptsToggle.setAttribute(
+      "aria-label",
+      availability === "loading"
+        ? "Loading transcript"
+        : availability !== "available"
+          ? "Transcript unavailable"
+          : isTranscriptMode
+            ? "Show Now Playing"
+            : "Show transcript"
+    );
   }
 
   function renderQueuePanel(state, queueWindow = getQueueWindow()) {
@@ -600,17 +645,27 @@ export function createPlayerView({
       cancelQueueReindexAnimation({ render: false });
       queueMenuManager.closeEpisodeMenu();
     }
-    fullPlayerMode = mode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.QUEUE : FULL_PLAYER_MODES.PLAYER;
+    fullPlayerMode = [FULL_PLAYER_MODES.QUEUE, FULL_PLAYER_MODES.TRANSCRIPT].includes(mode)
+      ? mode
+      : FULL_PLAYER_MODES.PLAYER;
     const isQueueMode = fullPlayerMode === FULL_PLAYER_MODES.QUEUE;
+    const isTranscriptMode = fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT;
+    const isAlternateMode = isQueueMode || isTranscriptMode;
     dom.fullPlayer.dataset.mode = fullPlayerMode;
-    dom.fullPlayerHero.inert = isQueueMode;
-    dom.fullPlayerHero.setAttribute("aria-hidden", String(isQueueMode));
-    dom.fullPlayerCompact.inert = !isQueueMode;
-    dom.fullPlayerCompact.setAttribute("aria-hidden", String(!isQueueMode));
+    dom.fullPlayerHero.inert = isAlternateMode;
+    dom.fullPlayerHero.setAttribute("aria-hidden", String(isAlternateMode));
+    dom.fullPlayerCompact.inert = !isAlternateMode;
+    dom.fullPlayerCompact.setAttribute("aria-hidden", String(!isAlternateMode));
     dom.fullPlayerQueuePanel.inert = !isQueueMode;
     dom.fullPlayerQueuePanel.setAttribute("aria-hidden", String(!isQueueMode));
+    dom.fullPlayerTranscriptPanel.inert = !isTranscriptMode;
+    dom.fullPlayerTranscriptPanel.setAttribute("aria-hidden", String(!isTranscriptMode));
     dom.playerQueueToggle.setAttribute("aria-pressed", String(isQueueMode));
     dom.playerQueueToggle.setAttribute("aria-label", isQueueMode ? "Show Now Playing" : "Show Up Next");
+    transcriptView.setModeActive(
+      isTranscriptMode && playerState.getState().isExpanded
+    );
+    renderTranscriptControl();
   }
 
   function toggleQueueMode() {
@@ -621,6 +676,15 @@ export function createPlayerView({
       fullPlayerMode === FULL_PLAYER_MODES.QUEUE ? FULL_PLAYER_MODES.PLAYER : FULL_PLAYER_MODES.QUEUE
     );
     renderQueuePanel(state, queueWindow);
+  }
+
+  function toggleTranscriptMode() {
+    if (transcriptView.getAvailability() !== "available") return;
+    setFullPlayerMode(
+      fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT
+        ? FULL_PLAYER_MODES.PLAYER
+        : FULL_PLAYER_MODES.TRANSCRIPT
+    );
   }
 
   function collapse() {
@@ -643,6 +707,9 @@ export function createPlayerView({
     document.body.classList.toggle("player-expanded", isExpanded);
     dom.app.inert = isExpanded || document.body.classList.contains("calendar-open");
     dom.miniPlayer.inert = isExpanded;
+    transcriptView.setModeActive(
+      isExpanded && fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT
+    );
     if (!isExpanded) wasExpanded = false;
   }
 
@@ -694,7 +761,7 @@ export function createPlayerView({
       const onHandle = Boolean(event.target.closest(".full-player__collapse"));
       if (!onHandle) {
         if (dom.fullPlayer.scrollTop > 0) return;
-        if (event.target.closest("button, input, a, .full-player__aside, .full-player__queue-panel")) return;
+        if (event.target.closest("button, input, a, .full-player__aside, .full-player__queue-panel, .full-player__transcript-panel")) return;
       }
     }
 
@@ -968,6 +1035,7 @@ export function createPlayerView({
   dom.playerPlay.addEventListener("click", () => audioController.toggle());
   dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
   dom.playerQueueToggle.addEventListener("click", toggleQueueMode);
+  dom.playerTranscriptsToggle.addEventListener("click", toggleTranscriptMode);
   (timelineScrubber || dom.playerTimeline).addEventListener("pointerdown", beginScrub);
   dom.playerTimeline.addEventListener("input", (event) => {
     if (isScrubbing) updateScrubPreview(event.currentTarget.value);
@@ -990,7 +1058,7 @@ export function createPlayerView({
   document.addEventListener("keydown", trapFocus);
   window.addEventListener("resize", () => {
     requestAnimationFrame(updateFullPlayerTitleMarquee);
-    if (fullPlayerMode === FULL_PLAYER_MODES.QUEUE && compactQueueRow) {
+    if (fullPlayerMode !== FULL_PLAYER_MODES.PLAYER && compactQueueRow) {
       const episode = playerState.getState().selectedEpisode;
       if (episode) refreshQueueEpisodeRow(compactQueueRow, episode, { isSelected: true });
     }

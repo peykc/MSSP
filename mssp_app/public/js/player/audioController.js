@@ -355,6 +355,10 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     };
   }
 
+  function getCurrentTime() {
+    return Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+  }
+
   function reconcilePlaybackState() {
     const snapshot = getAudioSnapshot();
     const status = playerState.getState().playbackStatus;
@@ -393,6 +397,7 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
   return {
     destroy,
     getAudioSnapshot,
+    getCurrentTime,
     loadSelected,
     pause,
     play,

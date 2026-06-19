@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v96";
+const CACHE_VERSION = "mssp-v99";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -21,6 +21,7 @@ const SHELL_PATHS = [
   "./css/responsive.css",
   "./css/utilities.css",
   "./css/player.css",
+  "./css/transcript.css?v=live-transcript",
   "./js/apiClient.js?v=static-first-data",
   "./js/main.js?v=frontend-module-split",
   "./js/archiveStats.js",
@@ -38,6 +39,7 @@ const SHELL_PATHS = [
   "./js/player/playerState.js",
   "./js/player/playerView.js",
   "./js/player/sourceStatus.js",
+  "./js/player/transcriptView.js",
   "./js/pwa.js",
   "./js/search.js",
   "./js/sources/publicSources.js",
@@ -71,6 +73,7 @@ const DATA_PATHS = [
 const resolveUrl = (path) => new URL(path, BASE).href;
 const SHELL_URLS = new Set(SHELL_PATHS.map(resolveUrl));
 const DATA_URLS = new Set(DATA_PATHS.map(resolveUrl));
+const TRANSCRIPT_PATH_PREFIX = new URL("./data/transcripts/", BASE).pathname;
 const NAVIGATION_PATHS = new Set([
   new URL("./", BASE).pathname,
   new URL("./index.html", BASE).pathname,
@@ -117,6 +120,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (url.pathname.startsWith(TRANSCRIPT_PATH_PREFIX) && url.pathname.endsWith(".json")) {
+    event.respondWith(networkFirstData(request, { cacheOnlyStatus200: true }));
+    return;
+  }
+
   if (SHELL_URLS.has(url.href)) {
     event.respondWith(cacheFirst(request));
   }
@@ -139,11 +147,13 @@ async function cacheFirstNavigation() {
   return fetch(resolveUrl("./index.html"));
 }
 
-async function networkFirstData(request) {
+async function networkFirstData(request, { cacheOnlyStatus200 = false } = {}) {
   const cache = await caches.open(DATA_CACHE);
   try {
     const response = await fetch(request, { cache: "no-store" });
-    if (response.ok) await cache.put(request, response.clone());
+    if (cacheOnlyStatus200 ? response.status === 200 : response.ok) {
+      await cache.put(request, response.clone());
+    }
     return response;
   } catch (error) {
     const cached = await cache.match(request);

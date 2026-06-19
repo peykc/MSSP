@@ -1,0 +1,197 @@
+.full-player__transcript-panel {
+  position: relative;
+  display: grid;
+  grid-row: 3;
+  width: min(100%, 1180px);
+  min-width: 0;
+  min-height: 0;
+  justify-self: center;
+  overflow: hidden;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateY(76px);
+  transition: none;
+  grid-column: 1;
+}
+
+.full-player[data-mode="transcript"] .full-player__transcript-panel {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translateY(0);
+  transition: opacity 240ms ease, transform 280ms cubic-bezier(0.22, 0.72, 0, 1);
+}
+
+.full-player__transcript-title {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.full-player__transcript-viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  touch-action: pan-y;
+  transform: scale(0.92);
+  transform-origin: center center;
+  transition: transform 220ms ease, opacity 220ms ease;
+}
+
+.full-player__transcript-viewport::-webkit-scrollbar {
+  display: none;
+}
+
+.full-player__transcript-list {
+  width: min(100%, 760px);
+  min-height: 100%;
+  padding: clamp(12px, 3vh, 28px) 2px clamp(92px, 16vh, 150px);
+  margin: 0 auto;
+}
+
+.full-player.is-playback-active .full-player__transcript-viewport {
+  transform: scale(1);
+}
+
+.transcript-passage {
+  display: block;
+  width: 100%;
+  padding: 0;
+  margin: 0 0 clamp(24px, 4.2vh, 46px);
+  color: rgba(248, 242, 236, 0.28);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(1.34rem, 5vw, 2.15rem);
+  font-weight: 650;
+  line-height: 1.24;
+  text-align: left;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  transition: color 180ms ease, opacity 180ms ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.transcript-passage:focus-visible {
+  outline: 1px solid rgba(248, 242, 236, 0.58);
+  outline-offset: 7px;
+}
+
+.transcript-word {
+  color: rgba(248, 242, 236, 0.26);
+  transition: color 120ms linear, text-shadow 120ms linear;
+}
+
+.transcript-passage.is-active .transcript-word {
+  color: rgba(248, 242, 236, 0.42);
+}
+
+.transcript-passage.is-active .transcript-word.is-spoken {
+  color: rgba(248, 242, 236, 0.96);
+}
+
+.transcript-passage.is-active .transcript-word.is-current-word {
+  color: #fff;
+  text-shadow: 0 0 18px rgba(255, 255, 255, 0.15);
+}
+
+.transcript-silence {
+  display: flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 clamp(24px, 4.2vh, 46px);
+  opacity: 0.34;
+  transition: opacity 180ms ease;
+}
+
+.transcript-silence.is-active {
+  opacity: 1;
+}
+
+.transcript-silence__dot {
+  position: relative;
+  display: block;
+  width: 12px;
+  height: 12px;
+  overflow: hidden;
+  background: rgba(248, 242, 236, 0.22);
+  border-radius: 50%;
+}
+
+.transcript-silence__fill {
+  position: absolute;
+  inset: 0;
+  background: rgba(248, 242, 236, 0.96);
+  border-radius: inherit;
+  transform: scaleX(0);
+  transform-origin: left center;
+  will-change: transform;
+}
+
+.full-player__transcript-return {
+  position: absolute;
+  right: 50%;
+  bottom: 18px;
+  z-index: 4;
+  padding: 9px 14px;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  background: rgba(17, 16, 15, 0.94);
+  border: 1px solid rgba(248, 242, 236, 0.24);
+  border-radius: 999px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.34);
+  transform: translateX(50%);
+}
+
+.full-player__transcript-return[hidden] {
+  display: none;
+}
+
+.full-player__transcript-status {
+  margin: 28px 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+@media (min-width: 900px),
+  ((min-width: 640px) and (orientation: landscape)),
+  ((min-width: 768px) and (min-height: 640px)) {
+  .full-player[data-mode="transcript"] .full-player__transcript-panel {
+    grid-column: 1;
+    grid-row: 3 / 6;
+    align-self: center;
+    width: 100%;
+    height: min(430px, 78dvh);
+    justify-self: end;
+    padding-top: 82px;
+    transform: translateY(0);
+  }
+
+  .transcript-passage {
+    font-size: clamp(1.42rem, 2.35vw, 2rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .full-player__transcript-panel,
+  .full-player__transcript-viewport,
+  .transcript-passage,
+  .transcript-word,
+  .transcript-silence {
+    transition: none;
+  }
+}

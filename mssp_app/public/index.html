@@ -25,6 +25,7 @@
     <link rel="stylesheet" href="./css/responsive.css">
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
+    <link rel="stylesheet" href="./css/transcript.css?v=live-transcript">
   </head>
   <body>
     <main class="app" id="app">
@@ -153,6 +154,15 @@
           <span id="fullPlayerQueueMeta"></span>
         </div>
         <ol class="full-player__queue-list" id="fullPlayerQueueList" aria-label="Upcoming episodes"></ol>
+      </div>
+      <div class="full-player__transcript-panel" id="fullPlayerTranscriptPanel" aria-labelledby="fullPlayerTranscriptTitle" aria-hidden="true" inert>
+        <h3 class="full-player__transcript-title" id="fullPlayerTranscriptTitle">Transcript</h3>
+        <div class="full-player__transcript-viewport" id="fullPlayerTranscriptViewport">
+          <div class="full-player__transcript-list" id="fullPlayerTranscriptList" aria-label="Episode transcript"></div>
+        </div>
+        <button class="full-player__transcript-return" id="fullPlayerTranscriptReturn" type="button" hidden>
+          Return to current
+        </button>
       </div>
       <div class="full-player__aside">
         <div class="full-player__playback">
