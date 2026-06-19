@@ -1,4 +1,5 @@
 const SILENCE_THRESHOLD_SECONDS = 3;
+const SPOKEN_HOLD_SECONDS = 0.5;
 const AVAILABILITY = Object.freeze({
   IDLE: "idle",
   LOADING: "loading",
@@ -111,16 +112,27 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
   }
 
   function renderTimeline() {
+    let previousSegment = null;
     entryNodes = timeline.map((entry, index) => {
       if (entry.type === "silence") return createSilenceNode(entry, index);
-      return createSegmentNode(entry, index);
+      const node = createSegmentNode(entry, index, previousSegment);
+      previousSegment = entry;
+      return node;
     });
     dom.fullPlayerTranscriptList.replaceChildren(...entryNodes.map((item) => item.element));
   }
 
-  function createSegmentNode(entry, index) {
+  function createSegmentNode(entry, index, previousSegment) {
     const button = document.createElement("button");
     button.className = "transcript-passage";
+    if (
+      previousSegment?.speaker
+      && entry.speaker
+      && previousSegment.speaker !== entry.speaker
+    ) {
+      button.classList.add("transcript-passage--speaker-change");
+    }
+    if (entry.words.length === 1) button.classList.add("transcript-passage--interjection");
     button.type = "button";
     button.dataset.timelineIndex = String(index);
     button.setAttribute("aria-label", `Seek to ${formatTime(entry.startTime)}. ${entry.body}`);
@@ -132,6 +144,18 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
       button.append(span, document.createTextNode(" "));
       return span;
     });
+
+    if (isTranscriptDebugEnabled()) {
+      const debug = document.createElement("span");
+      debug.className = "transcript-passage__debug";
+      debug.textContent = [
+        `speaker=${entry.speaker || "unknown"}`,
+        `turn=${entry.turnId ?? "unknown"}`,
+        `${entry.startTime.toFixed(3)}\u2013${entry.endTime.toFixed(3)}`,
+        `words=${entry.words.length}`,
+      ].join("  ");
+      button.append(debug);
+    }
 
     button.addEventListener("click", () => {
       following = true;
@@ -326,7 +350,7 @@ export function buildTranscriptTimeline(payload) {
     if (gap >= SILENCE_THRESHOLD_SECONDS) {
       timeline.push({
         type: "silence",
-        startTime: segment.endTime,
+        startTime: Math.min(segment.endTime + SPOKEN_HOLD_SECONDS, next.startTime),
         endTime: next.startTime,
       });
     }
@@ -344,6 +368,7 @@ function normalizeSegment(segment) {
     body: String(word?.body || "").trim(),
     startTime: Number(word?.startTime),
     endTime: Number(word?.endTime),
+    speaker: word?.speaker || null,
   })).filter((word) => (
     word.body
     && Number.isFinite(word.startTime)
@@ -357,8 +382,15 @@ function normalizeSegment(segment) {
     startTime,
     endTime,
     body: words.map((word) => word.body).join(" "),
+    speaker: segment.speaker || words[0]?.speaker || null,
+    turnId: segment.turnId ?? null,
     words,
   };
+}
+
+function isTranscriptDebugEnabled() {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get("transcriptDebug") === "1";
 }
 
 function findEntryIndex(entries, time) {

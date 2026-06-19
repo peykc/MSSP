@@ -11,6 +11,7 @@ YourAudioFolder/
   Transcription/              # this folder (rename to transcripts/ if you prefer)
     transcribe.py
     transcribe.bat            # double-click or run from anywhere
+    transcribe_large_v3.bat   # comparison run using Whisper large-v3
     transcribe.ps1
     row_builder.py
     pipeline_monitor.py
@@ -68,6 +69,16 @@ python transcribe.py --only "episode.mp3" --diarize --force
 ```
 
 Pass extra flags through the launchers: `.\transcribe.bat --test --force`
+
+To compare the full `large-v3` model against the default Turbo model, run:
+
+```powershell
+.\transcribe_large_v3.bat --only "episode.mp3" --force
+```
+
+This uses the same diarization and JSON pipeline as `transcribe.bat`; only the
+Whisper ASR model changes. Test results go to `gen-large-v3/`, keeping the Turbo
+baseline in `gen/` intact. An explicit `--output` flag can override that folder.
 
 ## Key flags
 

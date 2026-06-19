@@ -81,6 +81,32 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+.transcript-passage--speaker-change {
+  margin-top: clamp(10px, 1.8vh, 20px);
+}
+
+.transcript-passage--speaker-change:not(.is-active) .transcript-word {
+  color: rgba(248, 242, 236, 0.32);
+}
+
+.transcript-passage--interjection {
+  width: fit-content;
+  margin-bottom: clamp(16px, 2.8vh, 30px);
+  font-size: clamp(1.12rem, 4.2vw, 1.72rem);
+  line-height: 1.08;
+}
+
+.transcript-passage__debug {
+  display: block;
+  margin-top: 5px;
+  color: rgba(248, 242, 236, 0.46);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.62rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: 0;
+}
+
 .transcript-passage:focus-visible {
   outline: 1px solid rgba(248, 242, 236, 0.58);
   outline-offset: 7px;

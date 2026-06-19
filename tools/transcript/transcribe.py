@@ -133,6 +133,8 @@ class ManifestItem:
     raw_segment_count: int | None = None
     quality_flags: list[str] | None = None
     single_word_segment_percent: float | None = None
+    max_transcript_gap_seconds: float | None = None
+    large_transcript_gap_count: int | None = None
 
     def to_dict(self) -> dict[str, Any]:
         item: dict[str, Any] = {
@@ -163,6 +165,10 @@ class ManifestItem:
             item["qualityFlags"] = self.quality_flags
         if self.single_word_segment_percent is not None:
             item["singleWordSegmentPercent"] = self.single_word_segment_percent
+        if self.max_transcript_gap_seconds is not None:
+            item["maxTranscriptGapSeconds"] = round(self.max_transcript_gap_seconds, 3)
+        if self.large_transcript_gap_count is not None:
+            item["largeTranscriptGapCount"] = self.large_transcript_gap_count
         return item
 
 
@@ -1329,6 +1335,8 @@ def process_file(
         raw_segment_count=diag.get("rawSegmentCount"),
         quality_flags=diag.get("qualityFlags") or None,
         single_word_segment_percent=diag.get("singleWordSegmentPercent"),
+        max_transcript_gap_seconds=diag.get("maxTranscriptGapSeconds"),
+        large_transcript_gap_count=diag.get("largeTranscriptGapCount"),
     )
     update_manifest_atomic(output_dir, item, run_config)
     flag_note = ""

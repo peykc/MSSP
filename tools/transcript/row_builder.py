@@ -7,6 +7,8 @@ from typing import Any
 
 DEFAULT_ROW_HARD_MAX_WORDS = 56
 INTERNAL_GAP_SPLIT_SEC = 0.4
+# Long enough to indicate likely missing coverage rather than a conversational pause.
+LARGE_TRANSCRIPT_GAP_SEC = 5.0
 ORPHAN_MAX_WORDS = 2
 SENTENCE_END_RE = re.compile(r"[.!?]$")
 CLAUSE_END_RE = re.compile(r"[,;:\u2014\u2013-]$")
@@ -367,6 +369,33 @@ def compute_display_diagnostics(
     if speaker_counts and word_count:
         top_share = max(speaker_counts.values()) / word_count * 100.0
 
+    timed_segments = sorted(
+        (
+            segment
+            for segment in display_segments
+            if segment.get("startTime") is not None and segment.get("endTime") is not None
+        ),
+        key=lambda segment: float(segment["startTime"]),
+    )
+    max_transcript_gap = 0.0
+    large_transcript_gaps: list[dict[str, Any]] = []
+    for previous, current in zip(timed_segments, timed_segments[1:]):
+        gap_start = float(previous["endTime"])
+        gap_end = float(current["startTime"])
+        gap_duration = gap_end - gap_start
+        if gap_duration > max_transcript_gap:
+            max_transcript_gap = gap_duration
+        if gap_duration >= LARGE_TRANSCRIPT_GAP_SEC:
+            large_transcript_gaps.append(
+                {
+                    "startTime": round(gap_start, 3),
+                    "endTime": round(gap_end, 3),
+                    "duration": round(gap_duration, 3),
+                    "previous": str(previous.get("body") or ""),
+                    "next": str(current.get("body") or ""),
+                }
+            )
+
     quality_flags: list[str] = []
     if diarized:
         if len(speaker_counts) > 6:
@@ -375,6 +404,8 @@ def compute_display_diagnostics(
             quality_flags.append("high_single_word_segments")
         if unknown_pct > 1.0:
             quality_flags.append("high_unknown_speaker")
+    if large_transcript_gaps:
+        quality_flags.append("large_transcript_gap")
 
     result: dict[str, Any] = {
         "singleWordSegmentCount": single_word_segments,
@@ -382,6 +413,9 @@ def compute_display_diagnostics(
         "maxRowWordCount": max_row_word_count,
         "unknownWordPercent": round(unknown_pct, 1),
         "topSpeakerWordShare": round(top_share, 1),
+        "maxTranscriptGapSeconds": round(max_transcript_gap, 3),
+        "largeTranscriptGapCount": len(large_transcript_gaps),
+        "largeTranscriptGaps": large_transcript_gaps,
         "qualityFlags": quality_flags,
     }
     if row_settings is not None:

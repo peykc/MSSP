@@ -1,6 +1,6 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createTranscriptView } from "./transcriptView.js";
+import { createTranscriptView } from "./transcriptView.js?v=gap-wait-v2";
 import { formatPlayerDate } from "../utils.js";
 import {
   createEpisodeRow,
