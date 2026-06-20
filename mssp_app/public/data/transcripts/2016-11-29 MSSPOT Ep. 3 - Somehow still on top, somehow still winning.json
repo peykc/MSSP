@@ -131536,60 +131536,60 @@
       "stages": [
         {
           "name": "transcribe",
-          "elapsedSeconds": 160.25,
+          "elapsedSeconds": 164.41,
           "lastProgressPercent": 100.0,
           "device": "cuda",
           "gpuMemory": {
             "start": {
-              "allocatedGb": 0.04,
-              "reservedGb": 0.05,
-              "freeGb": 3.0,
+              "allocatedGb": 0.0,
+              "reservedGb": 0.0,
+              "freeGb": 5.01,
               "totalGb": 6.0
             },
             "end": {
-              "allocatedGb": 0.04,
-              "reservedGb": 0.07,
-              "freeGb": 2.98,
+              "allocatedGb": 0.01,
+              "reservedGb": 0.04,
+              "freeGb": 3.02,
               "totalGb": 6.0
             }
           }
         },
         {
           "name": "align",
-          "elapsedSeconds": 112.09,
+          "elapsedSeconds": 111.36,
           "lastProgressPercent": 100.0,
           "device": "cpu",
           "gpuMemory": {
             "start": {
-              "allocatedGb": 0.04,
-              "reservedGb": 0.07,
-              "freeGb": 2.98,
+              "allocatedGb": 0.01,
+              "reservedGb": 0.04,
+              "freeGb": 3.02,
               "totalGb": 6.0
             },
             "end": {
-              "allocatedGb": 0.04,
-              "reservedGb": 0.05,
-              "freeGb": 3.0,
+              "allocatedGb": 0.01,
+              "reservedGb": 0.04,
+              "freeGb": 3.02,
               "totalGb": 6.0
             }
           }
         },
         {
           "name": "diarize",
-          "elapsedSeconds": 56.0,
+          "elapsedSeconds": 56.55,
           "lastProgressPercent": 100.0,
           "device": "cuda",
           "gpuMemory": {
             "start": {
-              "allocatedGb": 0.04,
-              "reservedGb": 0.05,
-              "freeGb": 3.0,
+              "allocatedGb": 0.01,
+              "reservedGb": 0.04,
+              "freeGb": 3.02,
               "totalGb": 6.0
             },
             "end": {
               "allocatedGb": 0.04,
               "reservedGb": 1.96,
-              "freeGb": 1.05,
+              "freeGb": 1.06,
               "totalGb": 6.0
             }
           }
@@ -131602,19 +131602,19 @@
             "start": {
               "allocatedGb": 0.04,
               "reservedGb": 1.96,
-              "freeGb": 1.05,
+              "freeGb": 1.06,
               "totalGb": 6.0
             },
             "end": {
               "allocatedGb": 0.04,
               "reservedGb": 1.96,
-              "freeGb": 1.05,
+              "freeGb": 1.06,
               "totalGb": 6.0
             }
           }
         }
       ],
-      "totalSeconds": 328.37
+      "totalSeconds": 332.35
     }
   }
 }

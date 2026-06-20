@@ -129698,7 +129698,7 @@
       "stages": [
         {
           "name": "transcribe",
-          "elapsedSeconds": 161.63,
+          "elapsedSeconds": 169.98,
           "lastProgressPercent": 100.0,
           "device": "cuda",
           "gpuMemory": {
@@ -129718,7 +129718,7 @@
         },
         {
           "name": "align",
-          "elapsedSeconds": 119.73,
+          "elapsedSeconds": 126.84,
           "lastProgressPercent": 100.0,
           "device": "cpu",
           "gpuMemory": {
@@ -129738,7 +129738,7 @@
         },
         {
           "name": "diarize",
-          "elapsedSeconds": 64.03,
+          "elapsedSeconds": 71.65,
           "lastProgressPercent": 100.0,
           "device": "cuda",
           "gpuMemory": {
@@ -129751,7 +129751,7 @@
             "end": {
               "allocatedGb": 0.04,
               "reservedGb": 1.96,
-              "freeGb": 1.03,
+              "freeGb": 0.9,
               "totalGb": 6.0
             }
           }
@@ -129764,19 +129764,19 @@
             "start": {
               "allocatedGb": 0.04,
               "reservedGb": 1.96,
-              "freeGb": 1.03,
+              "freeGb": 0.9,
               "totalGb": 6.0
             },
             "end": {
               "allocatedGb": 0.04,
               "reservedGb": 1.96,
-              "freeGb": 1.03,
+              "freeGb": 0.96,
               "totalGb": 6.0
             }
           }
         }
       ],
-      "totalSeconds": 345.42
+      "totalSeconds": 368.5
     }
   }
 }

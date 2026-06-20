@@ -6,6 +6,7 @@ import {
   createEpisodeRow,
   createEpisodeRowMenuManager,
   refreshEpisodeRow,
+  updateEpisodeRowFavorite,
   updateEpisodeRowMarquee,
   updateEpisodeRowMenuItems,
   updateEpisodeRowProgress,
@@ -496,6 +497,13 @@ export function createPlayerView({
       isSelected,
     });
     updateEpisodeRowMarquee(row, true);
+  }
+
+  function refreshCompactFavorite() {
+    if (!compactQueueRow) return;
+    const episode = playerState.getState().selectedEpisode;
+    if (!episode || compactQueueRow.dataset.episodeKey !== episode.episodeKey) return;
+    updateEpisodeRowFavorite(compactQueueRow, episode, favoritesStore);
   }
 
   function renderCompactQueueRow(episode) {
@@ -1074,7 +1082,9 @@ export function createPlayerView({
     renderFavorite();
     if (fullPlayerMode === FULL_PLAYER_MODES.QUEUE) {
       renderQueuePanel(playerState.getState());
+      return;
     }
+    refreshCompactFavorite();
   });
 
   return {

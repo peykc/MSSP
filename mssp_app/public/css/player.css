@@ -159,8 +159,8 @@ body.player-dragging {
 }
 
 .mini-player__controls .mini-player__play {
-  width: 48px;
-  height: 48px;
+  width: 56px;
+  height: 56px;
 }
 
 .mini-player__controls svg {
@@ -174,39 +174,24 @@ body.player-dragging {
 }
 
 .mini-player__controls button:not(.mini-player__play) svg {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
 }
 
 .mini-player__controls button:not(.mini-player__play) svg path,
 .full-player__controls button:not(.full-player__play) svg path {
-  fill: none;
-  stroke-width: 3.4;
-}
-
-.mini-player__controls button:not(.mini-player__play) svg .seek-arrow,
-.full-player__controls button:not(.full-player__play) svg .seek-arrow {
   fill: currentColor;
   stroke: none;
-}
-
-.mini-player__controls button:not(.mini-player__play) svg text,
-.full-player__controls button:not(.full-player__play) svg text {
-  fill: currentColor;
-  stroke: none;
-  font-size: 12px;
-  font-weight: 800;
-  text-anchor: middle;
 }
 
 .mini-player__controls .mini-player__play svg {
-  width: 23px;
-  height: 23px;
+  width: 30px;
+  height: 30px;
 }
 
 .mini-player__controls .mini-player__play.is-locked svg {
-  width: 24px;
-  height: 24px;
+  width: 31px;
+  height: 31px;
   stroke: none;
 }
 
@@ -366,6 +351,19 @@ body.player-dragging .full-player__collapse {
   pointer-events: auto;
   transform: translateY(0);
   transition: opacity 220ms ease, transform 220ms ease;
+}
+
+.full-player[data-mode="queue"] .full-player__now-playing-area {
+  height: 65px;
+}
+
+.full-player[data-mode="transcript"] .full-player__now-playing-area {
+  height: auto;
+  align-items: start;
+}
+
+.full-player[data-mode="transcript"] .full-player__compact {
+  margin-bottom: 0;
 }
 
 .full-player__compact .episode-row,
@@ -853,8 +851,8 @@ body.player-dragging .full-player__collapse {
 }
 
 .full-player__controls .full-player__play {
-  width: 68px;
-  height: 68px;
+  width: 80px;
+  height: 80px;
 }
 
 .full-player__controls svg {
@@ -868,13 +866,18 @@ body.player-dragging .full-player__collapse {
 }
 
 .full-player__controls button:not(.full-player__play) svg {
-  width: 35px;
-  height: 35px;
+  width: 30px;
+  height: 30px;
+}
+
+.full-player__controls .full-player__play svg {
+  width: 52px;
+  height: 52px;
 }
 
 .full-player__controls .full-player__play.is-locked svg {
-  width: 27px;
-  height: 27px;
+  width: 32px;
+  height: 32px;
   stroke: none;
 }
 
@@ -924,6 +927,10 @@ body.player-dragging .full-player__collapse {
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 2;
+}
+
+.full-player__utility.full-player__transcripts svg {
+  transform: scaleX(-1);
 }
 
 .full-player__favorite svg {

@@ -59,7 +59,6 @@ export const dom = {
   fullPlayerTranscriptTitle: getRequiredElement("fullPlayerTranscriptTitle"),
   fullPlayerTranscriptViewport: getRequiredElement("fullPlayerTranscriptViewport"),
   fullPlayerTranscriptList: getRequiredElement("fullPlayerTranscriptList"),
-  fullPlayerTranscriptReturn: getRequiredElement("fullPlayerTranscriptReturn"),
   playerTimeline: getRequiredElement("playerTimeline"),
   playerTimelineStart: getRequiredElement("playerTimelineStart"),
   playerTimelineEnd: getRequiredElement("playerTimelineEnd"),

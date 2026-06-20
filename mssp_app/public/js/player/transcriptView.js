@@ -100,7 +100,6 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     activeEntryIndex = -1;
     activeWordIndex = -1;
     following = true;
-    dom.fullPlayerTranscriptReturn.hidden = true;
   }
 
   function renderMessage(message) {
@@ -132,7 +131,6 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     ) {
       button.classList.add("transcript-passage--speaker-change");
     }
-    if (entry.words.length === 1) button.classList.add("transcript-passage--interjection");
     button.type = "button";
     button.dataset.timelineIndex = String(index);
     button.setAttribute("aria-label", `Seek to ${formatTime(entry.startTime)}. ${entry.body}`);
@@ -158,13 +156,12 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     }
 
     button.addEventListener("click", () => {
-      following = true;
-      updateReturnControl();
+      resumeFollowing();
       const seekTime = audioController.seek(entry.startTime);
       if (seekTime !== null) update(seekTime, { forceCenter: true });
     });
 
-    return { element: button, wordNodes, dotFills: [] };
+    return { element: button, wordNodes, dots: [] };
   }
 
   function createSilenceNode(entry, index) {
@@ -173,18 +170,15 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     row.dataset.timelineIndex = String(index);
     row.setAttribute("aria-label", `Silence until ${formatTime(entry.endTime)}`);
 
-    const dotFills = Array.from({ length: 3 }, () => {
+    const dots = Array.from({ length: 3 }, () => {
       const dot = document.createElement("span");
       dot.className = "transcript-silence__dot";
       dot.setAttribute("aria-hidden", "true");
-      const fill = document.createElement("span");
-      fill.className = "transcript-silence__fill";
-      dot.append(fill);
       row.append(dot);
-      return fill;
+      return dot;
     });
 
-    return { element: row, wordNodes: [], dotFills };
+    return { element: row, wordNodes: [], dots };
   }
 
   function setModeActive(active) {
@@ -192,8 +186,7 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     if (modeActive === nextActive) return;
     modeActive = nextActive;
     if (modeActive) {
-      following = true;
-      updateReturnControl();
+      resumeFollowing();
       update(audioController.getCurrentTime(), { forceCenter: true });
     }
     syncAnimationLoop();
@@ -230,10 +223,12 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     if (nextEntryIndex < 0) return;
 
     if (nextEntryIndex !== activeEntryIndex) {
+      if (modeActive && playbackActive && !following) resumeFollowing();
       setActiveEntry(nextEntryIndex);
-      if (modeActive && (following || forceCenter)) centerEntry(nextEntryIndex);
+      if (modeActive && following) scrollEntryIntoView(nextEntryIndex);
+      else if (modeActive && forceCenter) scrollEntryIntoView(nextEntryIndex, { align: "start" });
     } else if (forceCenter && modeActive) {
-      centerEntry(nextEntryIndex);
+      scrollEntryIntoView(nextEntryIndex, { align: "start" });
     }
 
     const entry = timeline[nextEntryIndex];
@@ -251,7 +246,7 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
       previous?.element.classList.remove("is-active");
       previous?.element.removeAttribute("aria-current");
       previous?.wordNodes.forEach((word) => word.classList.remove("is-spoken", "is-current-word"));
-      previous?.dotFills.forEach((fill) => { fill.style.transform = "scaleX(0)"; });
+      previous?.dots.forEach((dot) => { dot.style.removeProperty("--dot-fill"); });
     }
 
     activeEntryIndex = nextIndex;
@@ -283,21 +278,45 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
   function updateSilenceProgress(entry, node, currentTime) {
     const duration = entry.endTime - entry.startTime;
     const progress = duration > 0 ? clamp((currentTime - entry.startTime) / duration, 0, 1) : 1;
-    node.dotFills.forEach((fill, index) => {
-      const dotProgress = clamp((progress * 3) - index, 0, 1);
-      fill.style.transform = `scaleX(${dotProgress})`;
+    node.dots.forEach((dot, index) => {
+      const dotFill = clamp((progress * 3) - index, 0, 1);
+      dot.style.setProperty("--dot-fill", dotFill.toFixed(3));
     });
   }
 
-  function centerEntry(index) {
+  function getEntryScrollTop(element, viewport) {
+    return element.getBoundingClientRect().top
+      - viewport.getBoundingClientRect().top
+      + viewport.scrollTop;
+  }
+
+  function scrollEntryIntoView(index, { align = "nearest" } = {}) {
     const element = entryNodes[index]?.element;
     if (!element) return;
     const viewport = dom.fullPlayerTranscriptViewport;
-    const top = element.offsetTop - ((viewport.clientHeight - element.offsetHeight) / 2);
+    const entryTop = getEntryScrollTop(element, viewport);
+    const entryBottom = entryTop + element.offsetHeight;
+    const viewTop = viewport.scrollTop;
+    const viewBottom = viewTop + viewport.clientHeight;
+    const inset = 8;
+    let nextTop = null;
+
+    if (align === "start") {
+      nextTop = entryTop - inset;
+    } else if (align === "center") {
+      nextTop = entryTop - ((viewport.clientHeight - element.offsetHeight) / 2);
+    } else if (entryTop < viewTop + inset) {
+      nextTop = entryTop - inset;
+    } else if (entryBottom > viewBottom - inset) {
+      nextTop = entryBottom - viewport.clientHeight + inset;
+    }
+
+    if (nextTop === null) return;
+
     window.clearTimeout(programmaticScrollTimer);
     viewport.classList.add("is-auto-scrolling");
     viewport.scrollTo({
-      top: Math.max(0, top),
+      top: Math.max(0, nextTop),
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
     programmaticScrollTimer = window.setTimeout(() => {
@@ -308,22 +327,17 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
   function suspendFollowing() {
     if (!modeActive || !following) return;
     following = false;
-    updateReturnControl();
   }
 
-  function updateReturnControl() {
-    dom.fullPlayerTranscriptReturn.hidden = !modeActive || following;
+  function resumeFollowing() {
+    if (following) return;
+    following = true;
   }
 
   dom.fullPlayerTranscriptViewport.addEventListener("wheel", suspendFollowing, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("touchstart", suspendFollowing, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("pointerdown", (event) => {
     if (!event.target.closest(".transcript-passage")) suspendFollowing();
-  });
-  dom.fullPlayerTranscriptReturn.addEventListener("click", () => {
-    following = true;
-    updateReturnControl();
-    update(audioController.getCurrentTime(), { forceCenter: true });
   });
 
   return {
