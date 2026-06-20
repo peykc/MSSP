@@ -225,10 +225,9 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     if (nextEntryIndex !== activeEntryIndex) {
       if (modeActive && playbackActive && !following) resumeFollowing();
       setActiveEntry(nextEntryIndex);
-      if (modeActive && following) scrollEntryIntoView(nextEntryIndex);
-      else if (modeActive && forceCenter) scrollEntryIntoView(nextEntryIndex, { align: "start" });
+      if (modeActive && (following || forceCenter)) centerEntry(nextEntryIndex);
     } else if (forceCenter && modeActive) {
-      scrollEntryIntoView(nextEntryIndex, { align: "start" });
+      centerEntry(nextEntryIndex);
     }
 
     const entry = timeline[nextEntryIndex];
@@ -290,33 +289,16 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
       + viewport.scrollTop;
   }
 
-  function scrollEntryIntoView(index, { align = "nearest" } = {}) {
+  function centerEntry(index) {
     const element = entryNodes[index]?.element;
     if (!element) return;
     const viewport = dom.fullPlayerTranscriptViewport;
     const entryTop = getEntryScrollTop(element, viewport);
-    const entryBottom = entryTop + element.offsetHeight;
-    const viewTop = viewport.scrollTop;
-    const viewBottom = viewTop + viewport.clientHeight;
-    const inset = 8;
-    let nextTop = null;
-
-    if (align === "start") {
-      nextTop = entryTop - inset;
-    } else if (align === "center") {
-      nextTop = entryTop - ((viewport.clientHeight - element.offsetHeight) / 2);
-    } else if (entryTop < viewTop + inset) {
-      nextTop = entryTop - inset;
-    } else if (entryBottom > viewBottom - inset) {
-      nextTop = entryBottom - viewport.clientHeight + inset;
-    }
-
-    if (nextTop === null) return;
-
+    const top = entryTop - ((viewport.clientHeight - element.offsetHeight) / 2);
     window.clearTimeout(programmaticScrollTimer);
     viewport.classList.add("is-auto-scrolling");
     viewport.scrollTo({
-      top: Math.max(0, nextTop),
+      top: Math.max(0, top),
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
     programmaticScrollTimer = window.setTimeout(() => {
