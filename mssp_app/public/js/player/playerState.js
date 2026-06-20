@@ -22,6 +22,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     collectionId: null,
     queue: [],
     isExpanded: false,
+    fullPlayerMode: "player",
     playbackStatus: PLAYBACK_STATUSES.IDLE,
     playbackRequested: false,
     sourceStatus: null,
@@ -57,18 +58,20 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
         selectedEpisodeKey: state.selectedEpisode.episodeKey,
         collectionId: state.collectionId,
         isExpanded: state.isExpanded,
+        fullPlayerMode: state.fullPlayerMode,
       }));
     } catch (error) {
       console.warn("[MSSP] Could not persist player state.", error);
     }
   }
 
-  function loadEpisode({ episode, collectionId, queue, isExpanded = state.isExpanded }) {
+  function loadEpisode({ episode, collectionId, queue, isExpanded = state.isExpanded, fullPlayerMode = state.fullPlayerMode }) {
     const source = getPublicSourceForEpisode(episode);
     state.selectedEpisode = episode;
     state.collectionId = collectionId;
     state.queue = sortQueue(queue);
     state.isExpanded = Boolean(isExpanded);
+    state.fullPlayerMode = normalizeFullPlayerMode(fullPlayerMode);
     state.source = source;
     state.sourceStatus = getSourceStatus(episode, source);
     state.playbackStatus = source ? PLAYBACK_STATUSES.READY : PLAYBACK_STATUSES.UNAVAILABLE;
@@ -114,6 +117,15 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
   function setExpanded(isExpanded) {
     if (!state.selectedEpisode) return;
     state.isExpanded = Boolean(isExpanded);
+    persist();
+    notify();
+  }
+
+  function setFullPlayerMode(fullPlayerMode) {
+    if (!state.selectedEpisode) return;
+    const nextMode = normalizeFullPlayerMode(fullPlayerMode);
+    if (state.fullPlayerMode === nextMode) return;
+    state.fullPlayerMode = nextMode;
     persist();
     notify();
   }
@@ -204,6 +216,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
         collectionId: saved.collectionId,
         queue,
         isExpanded: saved.isExpanded,
+        fullPlayerMode: saved.fullPlayerMode,
       });
       return episode;
     } catch (error) {
@@ -220,6 +233,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     loadEpisode,
     restore,
     setExpanded,
+    setFullPlayerMode,
     setPlaybackError,
     setPlaybackRequested,
     setPlaybackStatus,
@@ -232,6 +246,10 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
 
 function sortQueue(queue) {
   return [...queue].sort((a, b) => Number(a.globalIndex || 0) - Number(b.globalIndex || 0));
+}
+
+function normalizeFullPlayerMode(mode) {
+  return mode === "queue" || mode === "transcript" ? mode : "player";
 }
 
 function readPersistedState() {

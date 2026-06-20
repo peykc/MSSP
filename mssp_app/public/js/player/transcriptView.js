@@ -7,7 +7,13 @@ const AVAILABILITY = Object.freeze({
   UNAVAILABLE: "unavailable",
 });
 
-export function createTranscriptView({ dom, audioController, onAvailabilityChange = () => {} }) {
+export function createTranscriptView({
+  dom,
+  audioController,
+  getPlaybackTime = () => audioController.getCurrentTime(),
+  onAvailabilityChange = () => {},
+  onCenterRestoreComplete = () => {},
+}) {
   const cache = new Map();
   let selectedEpisodeKey = "";
   let loadToken = 0;
@@ -19,6 +25,8 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
   let modeActive = false;
   let playbackActive = false;
   let following = true;
+  let pendingCenterRestore = false;
+  let restoreAttemptId = 0;
   let frameId = null;
   let programmaticScrollTimer = null;
 
@@ -82,8 +90,69 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     following = true;
     renderTimeline();
     setAvailability(AVAILABILITY.AVAILABLE);
-    update(audioController.getCurrentTime(), { forceCenter: true });
+    if (modeActive) {
+      scheduleCenterRestore();
+    } else {
+      syncToPlaybackPosition({ forceCenter: false });
+    }
     syncAnimationLoop();
+  }
+
+  function canScrollViewport() {
+    return dom.fullPlayerTranscriptViewport.clientHeight > 0;
+  }
+
+  function syncToPlaybackPosition({ forceCenter = false, instant = false } = {}) {
+    const time = getPlaybackTime();
+    if (!timeline.length || !Number.isFinite(time)) return false;
+    const shouldCenter = forceCenter || (pendingCenterRestore && modeActive);
+    if (shouldCenter && !canScrollViewport()) {
+      if (time > 0) pendingCenterRestore = true;
+      return false;
+    }
+    const scrolled = update(time, {
+      forceCenter: shouldCenter,
+      instant: shouldCenter ? instant || forceCenter : false,
+    });
+    if (shouldCenter && modeActive && scrolled) {
+      pendingCenterRestore = false;
+      return true;
+    }
+    if (time > 0 && !modeActive) {
+      pendingCenterRestore = true;
+    }
+    return !shouldCenter;
+  }
+
+  function scheduleCenterRestore() {
+    if (!modeActive || !timeline.length) return;
+    const attemptId = ++restoreAttemptId;
+    let frames = 0;
+    const maxFrames = 60;
+    let transitionDone = false;
+
+    const finishTransitionWait = () => {
+      transitionDone = true;
+    };
+
+    dom.fullPlayer.addEventListener("transitionend", finishTransitionWait, { once: true });
+    dom.fullPlayerTranscriptViewport.addEventListener("transitionend", finishTransitionWait, { once: true });
+    window.setTimeout(finishTransitionWait, 480);
+
+    function attempt() {
+      if (attemptId !== restoreAttemptId || !modeActive) return;
+      frames += 1;
+      const restored = syncToPlaybackPosition({ forceCenter: true, instant: true });
+      if (restored) {
+        onCenterRestoreComplete();
+        return;
+      }
+      if (frames < maxFrames || !transitionDone) {
+        requestAnimationFrame(attempt);
+      }
+    }
+
+    requestAnimationFrame(attempt);
   }
 
   function setUnavailable(message) {
@@ -100,6 +169,7 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     activeEntryIndex = -1;
     activeWordIndex = -1;
     following = true;
+    pendingCenterRestore = false;
   }
 
   function renderMessage(message) {
@@ -185,9 +255,11 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     const nextActive = Boolean(active);
     if (modeActive === nextActive) return;
     modeActive = nextActive;
-    if (modeActive) {
+    if (!modeActive) {
+      restoreAttemptId += 1;
+    } else {
       resumeFollowing();
-      update(audioController.getCurrentTime(), { forceCenter: true });
+      scheduleCenterRestore();
     }
     syncAnimationLoop();
   }
@@ -217,26 +289,41 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     frameId = null;
   }
 
-  function update(currentTime, { forceCenter = false } = {}) {
-    if (!timeline.length || !Number.isFinite(currentTime)) return;
+  function update(currentTime, { forceCenter = false, scrubbing = false, instant = false } = {}) {
+    if (!timeline.length || !Number.isFinite(currentTime)) return false;
     const nextEntryIndex = findEntryIndex(timeline, currentTime);
-    if (nextEntryIndex < 0) return;
+    if (nextEntryIndex < 0) return false;
 
-    if (nextEntryIndex !== activeEntryIndex) {
-      if (modeActive && playbackActive && !following) resumeFollowing();
+    const entryChanged = nextEntryIndex !== activeEntryIndex;
+    if (entryChanged) {
+      if (modeActive && playbackActive && !following && !scrubbing) resumeFollowing();
       setActiveEntry(nextEntryIndex);
-      if (modeActive && (following || forceCenter)) centerEntry(nextEntryIndex);
-    } else if (forceCenter && modeActive) {
-      centerEntry(nextEntryIndex);
     }
 
     const entry = timeline[nextEntryIndex];
+    const node = entryNodes[nextEntryIndex];
     if (entry.type === "silence") {
-      updateSilenceProgress(entry, entryNodes[nextEntryIndex], currentTime);
-      return;
+      updateSilenceProgress(entry, node, currentTime);
+      if (!modeActive) return false;
+      if (scrubbing) return scrollToElement(node.element, { instant: true });
+      if (forceCenter) return scrollToElement(node.element, { instant: true });
+      if (entryChanged && following) return scrollToElement(node.element, { instant: false });
+      return false;
     }
 
-    updateActiveWords(entry, entryNodes[nextEntryIndex], currentTime);
+    updateActiveWords(entry, node, currentTime, { scrubbing });
+    if (!modeActive) return false;
+    if (scrubbing) {
+      const wordIndex = findWordIndex(entry.words, currentTime);
+      const target = wordIndex >= 0 ? node.wordNodes[wordIndex] : node.element;
+      return scrollToElement(target, { instant: true });
+    }
+    if (forceCenter) {
+      const target = getScrollTarget(entry, node, currentTime);
+      return scrollToElement(target, { instant: instant || true });
+    }
+    if (entryChanged && following) return scrollToElement(node.element, { instant: false });
+    return false;
   }
 
   function setActiveEntry(nextIndex) {
@@ -255,8 +342,21 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     current?.element.setAttribute("aria-current", "true");
   }
 
-  function updateActiveWords(entry, node, currentTime) {
+  function updateActiveWords(entry, node, currentTime, { scrubbing = false } = {}) {
     const nextWordIndex = findWordIndex(entry.words, currentTime);
+
+    if (scrubbing) {
+      node.wordNodes.forEach((word, index) => {
+        word.classList.toggle("is-spoken", nextWordIndex >= 0 && index < nextWordIndex);
+        word.classList.remove("is-current-word");
+      });
+      if (nextWordIndex >= 0) {
+        node.wordNodes[nextWordIndex]?.classList.add("is-current-word");
+      }
+      activeWordIndex = nextWordIndex;
+      return;
+    }
+
     if (nextWordIndex === activeWordIndex) return;
 
     if (nextWordIndex > activeWordIndex) {
@@ -271,7 +371,9 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
 
     node.wordNodes[activeWordIndex]?.classList.remove("is-current-word");
     activeWordIndex = nextWordIndex;
-    node.wordNodes[activeWordIndex]?.classList.add("is-current-word");
+    if (activeWordIndex >= 0) {
+      node.wordNodes[activeWordIndex]?.classList.add("is-current-word");
+    }
   }
 
   function updateSilenceProgress(entry, node, currentTime) {
@@ -283,27 +385,68 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     });
   }
 
-  function getEntryScrollTop(element, viewport) {
-    return element.getBoundingClientRect().top
-      - viewport.getBoundingClientRect().top
-      + viewport.scrollTop;
+  function getOffsetTopWithin(element, scrollContainer) {
+    let top = 0;
+    let node = element;
+    while (node && node !== scrollContainer) {
+      top += node.offsetTop;
+      node = node.offsetParent;
+    }
+    if (node !== scrollContainer) {
+      const scaleY = scrollContainer.clientHeight > 0
+        ? scrollContainer.getBoundingClientRect().height / scrollContainer.clientHeight
+        : 1;
+      return scrollContainer.scrollTop
+        + ((element.getBoundingClientRect().top - scrollContainer.getBoundingClientRect().top) / scaleY);
+    }
+    return top;
   }
 
-  function centerEntry(index) {
-    const element = entryNodes[index]?.element;
-    if (!element) return;
+  function getScrollTarget(entry, node, currentTime) {
+    if (entry.type === "silence") return node.element;
+    const wordIndex = findWordIndex(entry.words, currentTime);
+    return wordIndex >= 0 ? node.wordNodes[wordIndex] : node.element;
+  }
+
+  function getCenteredScrollTop(element, viewport) {
+    const style = getComputedStyle(viewport);
+    const padTop = Number.parseFloat(style.scrollPaddingTop) || 0;
+    const padBottom = Number.parseFloat(style.scrollPaddingBottom) || 0;
+    const elementTop = getOffsetTopWithin(element, viewport);
+    const readingHeight = Math.max(0, viewport.clientHeight - padTop - padBottom);
+    return Math.max(0, elementTop - padTop - ((readingHeight - element.offsetHeight) / 2));
+  }
+
+  function isElementCentered(element, viewport) {
+    if (!element || viewport.clientHeight <= 0) return false;
+    return Math.abs(viewport.scrollTop - getCenteredScrollTop(element, viewport)) <= 2;
+  }
+
+  function scrollToElement(element, { instant = false } = {}) {
+    if (!element) return false;
     const viewport = dom.fullPlayerTranscriptViewport;
-    const entryTop = getEntryScrollTop(element, viewport);
-    const top = entryTop - ((viewport.clientHeight - element.offsetHeight) / 2);
+    if (viewport.clientHeight <= 0) return false;
+    const top = getCenteredScrollTop(element, viewport);
     window.clearTimeout(programmaticScrollTimer);
+    viewport.classList.remove("is-auto-scrolling");
+    if (instant) {
+      viewport.scrollTop = top;
+      return isElementCentered(element, viewport);
+    }
     viewport.classList.add("is-auto-scrolling");
     viewport.scrollTo({
-      top: Math.max(0, top),
+      top,
       behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
     });
     programmaticScrollTimer = window.setTimeout(() => {
       viewport.classList.remove("is-auto-scrolling");
     }, 360);
+    return true;
+  }
+
+  function setScrubbing(active) {
+    if (active) suspendFollowing();
+    else if (modeActive && playbackActive) resumeFollowing();
   }
 
   function suspendFollowing() {
@@ -326,7 +469,10 @@ export function createTranscriptView({ dom, audioController, onAvailabilityChang
     getAvailability,
     setModeActive,
     setPlaybackActive,
+    setScrubbing,
     syncEpisode,
+    syncToPlaybackPosition,
+    scheduleCenterRestore,
     update,
   };
 }

@@ -45,6 +45,14 @@ export function createPlaybackProgressStore({ onChange } = {}) {
     return saved.currentTime;
   }
 
+  function getSavedCurrentTime(episodeKey) {
+    if (!episodeKey) return null;
+    const saved = positions[episodeKey];
+    if (!saved || saved.completed || !Number.isFinite(saved.currentTime)) return null;
+    if (saved.currentTime < MIN_SAVE_SECONDS) return null;
+    return saved.currentTime;
+  }
+
   function getEpisodeProgress(episodeKey) {
     if (!episodeKey) return { status: "none" };
     const saved = positions[episodeKey];
@@ -109,6 +117,7 @@ export function createPlaybackProgressStore({ onChange } = {}) {
   return {
     getEpisodeProgress,
     getRestorablePosition,
+    getSavedCurrentTime,
     markCompleted,
     removePosition,
     savePosition,
