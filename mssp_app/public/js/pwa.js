@@ -1,3 +1,8 @@
+export function isStandalonePwa() {
+  return window.matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches
+    || window.navigator.standalone === true;
+}
+
 export async function registerServiceWorker() {
   if (!("serviceWorker" in navigator)) return null;
 

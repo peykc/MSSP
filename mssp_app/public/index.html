@@ -3,6 +3,17 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+      (function () {
+        var standalone = window.matchMedia("(display-mode: standalone), (display-mode: fullscreen)").matches
+          || window.navigator.standalone === true;
+        if (!standalone) return;
+        var meta = document.querySelector('meta[name="viewport"]');
+        if (meta) {
+          meta.setAttribute("content", "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no");
+        }
+      })();
+    </script>
     <meta name="theme-color" content="#171514">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="MSSP Archive">
@@ -25,7 +36,7 @@
     <link rel="stylesheet" href="./css/responsive.css">
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
-    <link rel="stylesheet" href="./css/transcript.css?v=live-transcript">
+    <link rel="stylesheet" href="./css/transcript.css?v=scroll-hydrate-d">
   </head>
   <body>
     <main class="app" id="app">
@@ -157,8 +168,42 @@
       </div>
       <div class="full-player__transcript-panel" id="fullPlayerTranscriptPanel" aria-labelledby="fullPlayerTranscriptTitle" aria-hidden="true" inert>
         <h3 class="full-player__transcript-title" id="fullPlayerTranscriptTitle">Transcript</h3>
-        <div class="full-player__transcript-viewport" id="fullPlayerTranscriptViewport">
-          <div class="full-player__transcript-list" id="fullPlayerTranscriptList" aria-label="Episode transcript"></div>
+        <div class="full-player__transcript-viewport-wrap">
+          <div class="transcript-search" id="fullPlayerTranscriptSearch">
+            <button class="transcript-search__trigger" id="fullPlayerTranscriptSearchTrigger" type="button">
+              <span class="transcript-search__icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+              </span>
+              Search
+            </button>
+            <div class="transcript-search__bar" id="fullPlayerTranscriptSearchBar" hidden>
+              <button class="transcript-search__done" id="fullPlayerTranscriptSearchDone" type="button">Done</button>
+              <label class="transcript-search__field">
+                <span class="transcript-search__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
+                </span>
+                <input class="transcript-search__input" id="fullPlayerTranscriptSearchInput" type="search" enterkeyhint="search" autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Find in transcript" placeholder="">
+                <span class="transcript-search__count" id="fullPlayerTranscriptSearchCount" hidden></span>
+                <button class="transcript-search__clear" id="fullPlayerTranscriptSearchClear" type="button" aria-label="Clear search" hidden>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+                </button>
+              </label>
+              <div class="transcript-search__nav">
+                <button class="transcript-search__nav-btn" id="fullPlayerTranscriptSearchPrev" type="button" aria-label="Previous match" disabled>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m18 15-6-6-6 6"></path></svg>
+                </button>
+                <button class="transcript-search__nav-btn" id="fullPlayerTranscriptSearchNext" type="button" aria-label="Next match" disabled>
+                  <svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="full-player__transcript-viewport" id="fullPlayerTranscriptViewport">
+            <div class="full-player__transcript-list" id="fullPlayerTranscriptList" aria-label="Episode transcript">
+              <div class="full-player__transcript-spacer" id="fullPlayerTranscriptSpacer"></div>
+              <div class="full-player__transcript-items" id="fullPlayerTranscriptItems"></div>
+            </div>
+          </div>
         </div>
       </div>
       <div class="full-player__aside">

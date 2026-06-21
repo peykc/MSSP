@@ -25,6 +25,7 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
+  touch-action: manipulation;
   background: var(--bg);
   color: var(--text);
 }

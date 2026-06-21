@@ -1,7 +1,17 @@
 const SILENCE_THRESHOLD_SECONDS = 3;
 const SPOKEN_HOLD_SECONDS = 0.5;
+const OVERSCAN = 15;
+const OVERSCAN_DETACHED_DOWN = 48;
+const OVERSCAN_DETACHED_UP = 18;
+const HYDRATE_BATCH_SIZE = 20;
+const ESTIMATE_HEIGHT_MARGIN = 1.14;
+const WIDTH_EPSILON = 2;
+const PASSAGE_MARGIN = 28;
+const SPEAKER_CHANGE_EXTRA = 0;
+
 const AVAILABILITY = Object.freeze({
   IDLE: "idle",
+  PENDING: "pending",
   LOADING: "loading",
   AVAILABLE: "available",
   UNAVAILABLE: "unavailable",
@@ -13,13 +23,20 @@ export function createTranscriptView({
   getPlaybackTime = () => audioController.getCurrentTime(),
   onAvailabilityChange = () => {},
   onCenterRestoreComplete = () => {},
+  onBeforeApplyTranscript: initialBeforeApplyTranscript = () => {},
 }) {
+  let onBeforeApplyTranscript = initialBeforeApplyTranscript;
   const cache = new Map();
   let selectedEpisodeKey = "";
   let loadToken = 0;
   let availability = AVAILABILITY.IDLE;
   let timeline = [];
-  let entryNodes = [];
+  let entryOffsets = [];
+  let entryHeights = [];
+  let entryMeasured = [];
+  let totalContentHeight = 0;
+  let mountedByIndex = new Map();
+  let entryResizeObservers = new Map();
   let activeEntryIndex = -1;
   let activeWordIndex = -1;
   let modeActive = false;
@@ -28,7 +45,52 @@ export function createTranscriptView({
   let pendingCenterRestore = false;
   let restoreAttemptId = 0;
   let frameId = null;
+  let renderFrameId = null;
   let programmaticScrollTimer = null;
+  let lastLayoutWidth = 0;
+  let forcedVisibleStart = -1;
+  let forcedVisibleEnd = -1;
+  let layoutGaps = { passage: PASSAGE_MARGIN, speaker: SPEAKER_CHANGE_EXTRA, silence: 0 };
+  let followScrollFrameId = null;
+  let followingListeners = new Set();
+  let searchMatches = [];
+  let searchActiveMatchIndex = -1;
+  let lastScrollTop = 0;
+  let scrollDirection = 0;
+  let estimateMetrics = null;
+  let measureContainer = null;
+  let hydrateToken = 0;
+  let hydrateFrameActive = false;
+  let hydrateForward = 0;
+  let hydrateBackward = -1;
+  let hydratePhase = "forward";
+
+  function refreshLayoutGaps() {
+    const probePassage = document.createElement("button");
+    probePassage.className = "transcript-passage";
+    probePassage.type = "button";
+    probePassage.textContent = ".";
+    probePassage.setAttribute("aria-hidden", "true");
+    probePassage.style.visibility = "hidden";
+    probePassage.style.pointerEvents = "none";
+    dom.fullPlayerTranscriptItems.append(probePassage);
+    layoutGaps.passage = Number.parseFloat(getComputedStyle(probePassage).paddingBottom) || PASSAGE_MARGIN;
+
+    const probeSilence = document.createElement("div");
+    probeSilence.className = "transcript-silence";
+    probeSilence.setAttribute("aria-hidden", "true");
+    probeSilence.style.visibility = "hidden";
+    probeSilence.style.pointerEvents = "none";
+    const silenceScale = document.createElement("span");
+    silenceScale.className = "transcript-silence__scale";
+    silenceScale.append(document.createElement("span"));
+    probeSilence.append(silenceScale);
+    dom.fullPlayerTranscriptItems.append(probeSilence);
+    layoutGaps.silence = probeSilence.offsetHeight;
+
+    probePassage.remove();
+    probeSilence.remove();
+  }
 
   function getAvailability() {
     return availability;
@@ -40,12 +102,16 @@ export function createTranscriptView({
     onAvailabilityChange(nextAvailability, selectedEpisodeKey);
   }
 
-  async function syncEpisode(episode) {
+  function isStale(requestId, episodeKey) {
+    return requestId !== loadToken || episodeKey !== selectedEpisodeKey;
+  }
+
+  function setSelectedEpisode(episode) {
     const episodeKey = episode?.episodeKey || "";
     if (episodeKey === selectedEpisodeKey) return;
 
     selectedEpisodeKey = episodeKey;
-    const token = ++loadToken;
+    loadToken += 1;
     resetTranscript();
 
     if (!episodeKey) {
@@ -54,18 +120,33 @@ export function createTranscriptView({
       return;
     }
 
+    setAvailability(AVAILABILITY.PENDING);
+    clearVirtualDom();
+    if (modeActive) {
+      void loadTranscript();
+    }
+  }
+
+  async function loadTranscript() {
+    const episodeKey = selectedEpisodeKey;
+    if (!episodeKey) return;
+    if (availability === AVAILABILITY.AVAILABLE && timeline.length) return;
+    if (availability === AVAILABILITY.LOADING) return;
+
+    const requestId = ++loadToken;
     setAvailability(AVAILABILITY.LOADING);
     renderMessage("Loading transcript…");
 
     const cached = cache.get(episodeKey);
     if (cached) {
+      if (isStale(requestId, episodeKey)) return;
       applyTranscript(cached);
       return;
     }
 
     try {
       const response = await fetch(`./data/transcripts/${encodeURIComponent(episodeKey)}.json`);
-      if (token !== loadToken || episodeKey !== selectedEpisodeKey) return;
+      if (isStale(requestId, episodeKey)) return;
       if (!response.ok) {
         setUnavailable(response.status === 404 ? "Transcript unavailable." : "Could not load transcript.");
         return;
@@ -74,21 +155,42 @@ export function createTranscriptView({
       const payload = await response.json();
       const model = buildTranscriptTimeline(payload);
       if (!model.length) throw new Error("Transcript contains no timed words.");
-      if (token !== loadToken || episodeKey !== selectedEpisodeKey) return;
+      if (isStale(requestId, episodeKey)) return;
 
       cache.set(episodeKey, model);
       applyTranscript(model);
     } catch (error) {
-      if (token !== loadToken || episodeKey !== selectedEpisodeKey) return;
+      if (isStale(requestId, episodeKey)) return;
       console.warn("[MSSP] Transcript unavailable.", error);
       setUnavailable("Transcript unavailable.");
     }
   }
 
   function applyTranscript(model) {
+    onBeforeApplyTranscript();
     timeline = model;
     following = true;
-    renderTimeline();
+    notifyFollowingChange();
+    refreshLayoutGaps();
+    refreshEstimateMetrics();
+    entryHeights = timeline.map((entry, index) => estimateEntryHeight(entry, index));
+    entryMeasured = timeline.map(() => false);
+    entryOffsets = new Array(timeline.length + 1);
+    mountedByIndex.clear();
+    disconnectEntryObservers();
+    rebuildEntryOffsets(0);
+    lastLayoutWidth = dom.fullPlayerTranscriptViewport.clientWidth;
+    updateSpacerHeight();
+    clearStatusMessage();
+
+    const activeIndex = Math.max(0, findEntryIndex(timeline, getPlaybackTime()));
+    activeEntryIndex = activeIndex;
+    activeWordIndex = -1;
+    renderVisibleEntriesNow(activeIndex);
+    maintainFollowScroll({ instant: true });
+    resetHeightHydration(activeIndex);
+    scheduleHeightHydration(activeIndex);
+
     setAvailability(AVAILABILITY.AVAILABLE);
     if (modeActive) {
       scheduleCenterRestore();
@@ -96,6 +198,476 @@ export function createTranscriptView({
       syncToPlaybackPosition({ forceCenter: false });
     }
     syncAnimationLoop();
+  }
+
+  function getListWidth() {
+    const viewportWidth = dom.fullPlayerTranscriptViewport.clientWidth || 360;
+    return Math.min(Math.max(viewportWidth - 4, 280), 760);
+  }
+
+  function ensureMeasureContainer() {
+    if (measureContainer?.isConnected) {
+      measureContainer.style.width = `${getListWidth()}px`;
+      return measureContainer;
+    }
+    measureContainer = document.createElement("div");
+    measureContainer.className = "full-player__transcript-list";
+    measureContainer.setAttribute("aria-hidden", "true");
+    Object.assign(measureContainer.style, {
+      position: "fixed",
+      left: "-10000px",
+      top: "0",
+      visibility: "hidden",
+      pointerEvents: "none",
+      width: `${getListWidth()}px`,
+    });
+    document.body.append(measureContainer);
+    return measureContainer;
+  }
+
+  function refreshEstimateMetrics() {
+    const container = ensureMeasureContainer();
+    container.replaceChildren();
+
+    const probe = document.createElement("button");
+    probe.className = "transcript-passage";
+    probe.type = "button";
+    const scale = document.createElement("span");
+    scale.className = "transcript-passage__scale";
+    const sample = "abcdefghijklmnopqrstuvwxyz0123456789";
+    for (const ch of sample) {
+      const word = document.createElement("span");
+      word.className = "transcript-word";
+      word.textContent = ch;
+      scale.append(word, document.createTextNode(" "));
+    }
+    probe.append(scale);
+    container.append(probe);
+
+    const charWidth = Math.max(probe.offsetWidth / sample.length, 6);
+    const lineHeight = Math.max(probe.offsetHeight, 24);
+    probe.remove();
+
+    estimateMetrics = {
+      charWidth,
+      lineHeight,
+      width: getListWidth(),
+      gap: layoutGaps.passage,
+    };
+  }
+
+  function estimateEntryHeight(entry, index = -1) {
+    if (entry.type === "silence") return estimateSilenceHeight();
+    if (!estimateMetrics) refreshEstimateMetrics();
+
+    const { charWidth, lineHeight, width, gap } = estimateMetrics;
+    const charsPerLine = Math.max(1, Math.floor(width / charWidth));
+    const lines = Math.max(1, Math.ceil((entry.body?.length || 0) / charsPerLine));
+    return Math.ceil((lines * lineHeight + gap) * ESTIMATE_HEIGHT_MARGIN);
+  }
+
+  function measureEntryHeightDom(entry, index) {
+    const previous = index > 0 ? timeline[index - 1] : null;
+    const node = entry.type === "silence"
+      ? createSilenceNode(entry, index)
+      : createSegmentNode(entry, index, previous);
+    const container = ensureMeasureContainer();
+    node.element.style.position = "relative";
+    node.element.style.transform = "none";
+    node.element.style.left = "0";
+    node.element.style.right = "auto";
+    container.append(node.element);
+    const height = node.element.offsetHeight;
+    node.element.remove();
+    return height;
+  }
+
+  function resetHeightHydration(startIndex = 0) {
+    hydrateToken += 1;
+    hydrateFrameActive = false;
+    hydrateForward = Math.max(0, startIndex);
+    hydrateBackward = Math.max(0, startIndex) - 1;
+    hydratePhase = "forward";
+  }
+
+  function nextUnmeasuredHydrateIndex() {
+    if (hydratePhase === "forward") {
+      while (hydrateForward < timeline.length) {
+        const index = hydrateForward;
+        hydrateForward += 1;
+        if (!entryMeasured[index]) return index;
+      }
+      hydratePhase = "backward";
+    }
+
+    while (hydrateBackward >= 0) {
+      const index = hydrateBackward;
+      hydrateBackward -= 1;
+      if (!entryMeasured[index]) return index;
+    }
+    return -1;
+  }
+
+  function runHeightHydrationBatch() {
+    const token = hydrateToken;
+    if (!timeline.length) {
+      hydrateFrameActive = false;
+      return;
+    }
+
+    let changed = false;
+    let finished = false;
+    for (let count = 0; count < HYDRATE_BATCH_SIZE; count += 1) {
+      const index = nextUnmeasuredHydrateIndex();
+      if (index < 0) {
+        finished = true;
+        break;
+      }
+      entryHeights[index] = measureEntryHeightDom(timeline[index], index);
+      entryMeasured[index] = true;
+      changed = true;
+    }
+
+    if (changed) {
+      const anchor = captureScrollAnchor();
+      rebuildEntryOffsets(0);
+      updateSpacerHeight();
+      reconcileScrollAfterLayoutChange(anchor);
+      repositionMountedEntries();
+      scheduleRenderVisibleEntries();
+    }
+
+    if (finished || token !== hydrateToken) {
+      hydrateFrameActive = false;
+      return;
+    }
+
+    const scheduleNext = window.requestIdleCallback
+      ? (callback) => window.requestIdleCallback(callback, { timeout: 120 })
+      : (callback) => window.requestAnimationFrame(callback);
+
+    scheduleNext(() => {
+      if (token !== hydrateToken) {
+        hydrateFrameActive = false;
+        return;
+      }
+      runHeightHydrationBatch();
+    });
+  }
+
+  function scheduleHeightHydration(priorityIndex = 0) {
+    if (!timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
+
+    const priority = Math.max(0, priorityIndex);
+    if (hydratePhase === "forward" && priority < hydrateForward) {
+      hydrateForward = priority;
+    }
+
+    if (hydrateFrameActive) return;
+    hydrateFrameActive = true;
+    runHeightHydrationBatch();
+  }
+
+  function onViewportScroll() {
+    const viewport = dom.fullPlayerTranscriptViewport;
+    const scrollTop = viewport.scrollTop;
+    scrollDirection = scrollTop > lastScrollTop + 0.5
+      ? 1
+      : scrollTop < lastScrollTop - 0.5
+        ? -1
+        : scrollDirection;
+    lastScrollTop = scrollTop;
+    scheduleRenderVisibleEntries();
+
+    if (following) return;
+
+    const visibleIndex = findFirstVisibleIndex(scrollTop);
+    if (visibleIndex >= 0) {
+      scheduleHeightHydration(visibleIndex);
+    }
+
+    const nearScrollEnd = scrollTop + viewport.clientHeight > viewport.scrollHeight - (viewport.clientHeight * 1.5);
+    if (nearScrollEnd && scrollDirection >= 0) {
+      scheduleHeightHydration(Math.min(timeline.length - 1, visibleIndex + OVERSCAN_DETACHED_DOWN));
+    }
+  }
+
+  function shouldMaintainFollowScroll() {
+    return following && modeActive && activeEntryIndex >= 0;
+  }
+
+  function maintainFollowScroll({ instant = true } = {}) {
+    if (!shouldMaintainFollowScroll()) return false;
+    const node = getMountedNode(activeEntryIndex);
+    if (node) return scrollToElement(node.element, { instant });
+    return scrollToEntryIndex(activeEntryIndex, { instant, skipFineTune: instant });
+  }
+
+  function scheduleFollowScroll({ instant = true } = {}) {
+    if (!shouldMaintainFollowScroll()) return;
+    if (followScrollFrameId !== null) return;
+    followScrollFrameId = requestAnimationFrame(() => {
+      followScrollFrameId = null;
+      maintainFollowScroll({ instant });
+    });
+  }
+
+  function reconcileScrollAfterLayoutChange(anchor = null) {
+    if (shouldMaintainFollowScroll()) {
+      scheduleFollowScroll({ instant: true });
+      return;
+    }
+    restoreScrollAnchor(anchor ?? captureScrollAnchor());
+  }
+
+  function applyMeasuredEntryHeight(index, measured) {
+    if (measured <= 0) return false;
+    if (entryMeasured[index] && Math.abs(entryHeights[index] - measured) < 1) return false;
+    const anchor = captureScrollAnchor();
+    entryHeights[index] = measured;
+    entryMeasured[index] = true;
+    rebuildEntryOffsets(index);
+    updateSpacerHeight();
+    reconcileScrollAfterLayoutChange(anchor);
+    repositionMountedEntries();
+    scheduleRenderVisibleEntries();
+    return true;
+  }
+
+  function estimateSilenceHeight() {
+    return layoutGaps.silence || (PASSAGE_MARGIN + 28);
+  }
+
+  function getVignetteInset() {
+    const raw = getComputedStyle(dom.fullPlayerTranscriptPanel).getPropertyValue("--transcript-vignette-size").trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : 54;
+  }
+
+  function getVignetteBottomInset() {
+    const raw = getComputedStyle(dom.fullPlayerTranscriptPanel).getPropertyValue("--transcript-vignette-bottom-size").trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) ? parsed : getVignetteInset();
+  }
+
+  function rebuildEntryOffsets(fromIndex = 0) {
+    if (!timeline.length) {
+      totalContentHeight = 0;
+      entryOffsets = [];
+      return;
+    }
+    if (!entryOffsets.length) entryOffsets = new Array(timeline.length + 1);
+    const start = Math.max(0, fromIndex);
+    if (start === 0) entryOffsets[0] = getVignetteInset();
+    for (let index = start; index < timeline.length; index += 1) {
+      entryOffsets[index + 1] = entryOffsets[index] + entryHeights[index];
+    }
+    totalContentHeight = entryOffsets[timeline.length];
+  }
+
+  function updateSpacerHeight() {
+    const bottomInset = getVignetteBottomInset();
+    dom.fullPlayerTranscriptSpacer.style.height = `${Math.max(0, totalContentHeight + bottomInset)}px`;
+  }
+
+  function markAllHeightsDirty() {
+    for (let index = 0; index < timeline.length; index += 1) {
+      entryMeasured[index] = false;
+      entryHeights[index] = estimateEntryHeight(timeline[index], index);
+    }
+  }
+
+  function captureScrollAnchor() {
+    const viewport = dom.fullPlayerTranscriptViewport;
+    const scrollTop = viewport.scrollTop;
+    const index = findFirstVisibleIndex(scrollTop);
+    if (index < 0) return { index: 0, offsetPx: 0 };
+    return {
+      index,
+      offsetPx: scrollTop - entryOffsets[index],
+    };
+  }
+
+  function restoreScrollAnchor(anchor) {
+    if (!anchor || anchor.index < 0) return;
+    const viewport = dom.fullPlayerTranscriptViewport;
+    viewport.scrollTop = Math.max(0, entryOffsets[anchor.index] + anchor.offsetPx);
+  }
+
+  function findFirstVisibleIndex(scrollTop) {
+    if (!timeline.length) return -1;
+    let low = 0;
+    let high = timeline.length - 1;
+    let result = 0;
+    while (low <= high) {
+      const middle = (low + high) >> 1;
+      if (entryOffsets[middle] <= scrollTop) {
+        result = middle;
+        low = middle + 1;
+      } else {
+        high = middle - 1;
+      }
+    }
+    return result;
+  }
+
+  function findVisibleRange(scrollTop, viewportHeight) {
+    if (!timeline.length) return { start: 0, end: 0 };
+
+    let overscanUp = OVERSCAN;
+    let overscanDown = OVERSCAN;
+    if (!following) {
+      overscanUp = scrollDirection < 0 ? OVERSCAN_DETACHED_DOWN : OVERSCAN_DETACHED_UP;
+      overscanDown = scrollDirection > 0 ? OVERSCAN_DETACHED_DOWN : OVERSCAN_DETACHED_UP;
+    }
+
+    const start = Math.max(0, findFirstVisibleIndex(scrollTop) - overscanUp);
+    const endTop = scrollTop + viewportHeight;
+    let end = start;
+    while (end < timeline.length && entryOffsets[end] < endTop) {
+      end += 1;
+    }
+    end = Math.min(timeline.length, end + overscanDown);
+    if (forcedVisibleStart >= 0) {
+      return {
+        start: Math.min(start, forcedVisibleStart),
+        end: Math.max(end, forcedVisibleEnd + 1),
+      };
+    }
+    return { start, end };
+  }
+
+  function scheduleRenderVisibleEntries() {
+    if (renderFrameId !== null) return;
+    renderFrameId = requestAnimationFrame(() => {
+      renderFrameId = null;
+      renderVisibleEntriesNow();
+    });
+  }
+
+  function renderVisibleEntriesNow(centerIndex = -1) {
+    if (!timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
+
+    const viewport = dom.fullPlayerTranscriptViewport;
+    let { start, end } = findVisibleRange(viewport.scrollTop, viewport.clientHeight);
+    if (centerIndex >= 0) {
+      start = Math.min(start, Math.max(0, centerIndex - OVERSCAN));
+      end = Math.max(end, Math.min(timeline.length, centerIndex + OVERSCAN + 1));
+    }
+
+    const nextVisible = new Set();
+    for (let index = start; index < end; index += 1) {
+      nextVisible.add(index);
+      if (!mountedByIndex.has(index)) {
+        mountEntry(index);
+      } else {
+        positionMountedEntry(index);
+      }
+    }
+
+    for (const [index, node] of mountedByIndex.entries()) {
+      if (nextVisible.has(index)) continue;
+      unmountEntry(index, node);
+    }
+    applySearchHighlightsToMounted();
+  }
+
+  function mountEntry(index) {
+    const entry = timeline[index];
+    const previous = index > 0 ? timeline[index - 1] : null;
+    const node = entry.type === "silence"
+      ? createSilenceNode(entry, index)
+      : createSegmentNode(entry, index, previous);
+    node.element.style.transform = `translateY(${entryOffsets[index]}px)`;
+    dom.fullPlayerTranscriptItems.append(node.element);
+    mountedByIndex.set(index, node);
+
+    const observer = new ResizeObserver(() => {
+      const measured = node.element.offsetHeight;
+      applyMeasuredEntryHeight(index, measured);
+    });
+    observer.observe(node.element);
+    entryResizeObservers.set(index, observer);
+
+    if (index === activeEntryIndex) {
+      applyActiveClasses(node);
+    }
+    applySearchHighlightsToNode(node, index);
+  }
+
+  function unmountEntry(index, node = mountedByIndex.get(index)) {
+    if (!node) return;
+    const observer = entryResizeObservers.get(index);
+    observer?.disconnect();
+    entryResizeObservers.delete(index);
+    node.element.remove();
+    mountedByIndex.delete(index);
+  }
+
+  function positionMountedEntry(index) {
+    const node = mountedByIndex.get(index);
+    if (!node) return;
+    node.element.style.transform = `translateY(${entryOffsets[index]}px)`;
+  }
+
+  function repositionMountedEntries() {
+    for (const index of mountedByIndex.keys()) {
+      positionMountedEntry(index);
+    }
+  }
+
+  function disconnectEntryObservers() {
+    for (const observer of entryResizeObservers.values()) {
+      observer.disconnect();
+    }
+    entryResizeObservers.clear();
+  }
+
+  function ensureEntryMounted(index) {
+    if (index < 0 || index >= timeline.length) return null;
+    forcedVisibleStart = Math.max(0, index - OVERSCAN);
+    forcedVisibleEnd = Math.min(timeline.length - 1, index + OVERSCAN);
+    renderVisibleEntriesNow(index);
+    forcedVisibleStart = -1;
+    forcedVisibleEnd = -1;
+    return mountedByIndex.get(index) || null;
+  }
+
+  function getMountedNode(index) {
+    return mountedByIndex.get(index) || null;
+  }
+
+  function onViewportResize() {
+    if (!timeline.length || availability !== AVAILABILITY.AVAILABLE) {
+      scheduleRenderVisibleEntries();
+      return;
+    }
+
+    const viewport = dom.fullPlayerTranscriptViewport;
+    const nextWidth = viewport.clientWidth;
+    if (Math.abs(nextWidth - lastLayoutWidth) < WIDTH_EPSILON) {
+      scheduleRenderVisibleEntries();
+      return;
+    }
+    lastLayoutWidth = nextWidth;
+    refreshLayoutGaps();
+    refreshEstimateMetrics();
+
+    const anchor = captureScrollAnchor();
+    const hadMeasured = entryMeasured.some(Boolean);
+    if (hadMeasured) markAllHeightsDirty();
+    else {
+      for (let index = 0; index < timeline.length; index += 1) {
+        entryHeights[index] = estimateEntryHeight(timeline[index], index);
+      }
+    }
+    rebuildEntryOffsets(0);
+    updateSpacerHeight();
+    reconcileScrollAfterLayoutChange(anchor);
+    repositionMountedEntries();
+    scheduleRenderVisibleEntries();
+    resetHeightHydration(Math.max(0, findFirstVisibleIndex(viewport.scrollTop)));
+    scheduleHeightHydration(Math.max(0, findFirstVisibleIndex(viewport.scrollTop)));
   }
 
   function canScrollViewport() {
@@ -112,7 +684,7 @@ export function createTranscriptView({
     }
     const scrolled = update(time, {
       forceCenter: shouldCenter,
-      instant: shouldCenter ? instant || forceCenter : false,
+      instant: shouldCenter ? instant : false,
     });
     if (shouldCenter && modeActive && scrolled) {
       pendingCenterRestore = false;
@@ -157,6 +729,12 @@ export function createTranscriptView({
 
   function setUnavailable(message) {
     timeline = [];
+    entryOffsets = [];
+    entryHeights = [];
+    entryMeasured = [];
+    totalContentHeight = 0;
+    mountedByIndex.clear();
+    disconnectEntryObservers();
     renderMessage(message);
     setAvailability(AVAILABILITY.UNAVAILABLE);
     syncAnimationLoop();
@@ -164,38 +742,57 @@ export function createTranscriptView({
 
   function resetTranscript() {
     stopAnimationLoop();
+    if (followScrollFrameId !== null) {
+      cancelAnimationFrame(followScrollFrameId);
+      followScrollFrameId = null;
+    }
     timeline = [];
-    entryNodes = [];
+    entryOffsets = [];
+    entryHeights = [];
+    entryMeasured = [];
+    totalContentHeight = 0;
+    mountedByIndex.clear();
+    disconnectEntryObservers();
     activeEntryIndex = -1;
     activeWordIndex = -1;
     following = true;
     pendingCenterRestore = false;
+    forcedVisibleStart = -1;
+    forcedVisibleEnd = -1;
+    resetHeightHydration(0);
+    estimateMetrics = null;
+    if (measureContainer) {
+      measureContainer.remove();
+      measureContainer = null;
+    }
+  }
+
+  function clearVirtualDom() {
+    mountedByIndex.clear();
+    disconnectEntryObservers();
+    dom.fullPlayerTranscriptItems.replaceChildren();
+    dom.fullPlayerTranscriptSpacer.style.height = "0px";
   }
 
   function renderMessage(message) {
+    clearVirtualDom();
     const status = document.createElement("p");
     status.className = "full-player__transcript-status";
     status.textContent = message;
-    dom.fullPlayerTranscriptList.replaceChildren(status);
-    entryNodes = [];
+    dom.fullPlayerTranscriptItems.append(status);
   }
 
-  function renderTimeline() {
-    let previousSegment = null;
-    entryNodes = timeline.map((entry, index) => {
-      if (entry.type === "silence") return createSilenceNode(entry, index);
-      const node = createSegmentNode(entry, index, previousSegment);
-      previousSegment = entry;
-      return node;
-    });
-    dom.fullPlayerTranscriptList.replaceChildren(...entryNodes.map((item) => item.element));
+  function clearStatusMessage() {
+    const status = dom.fullPlayerTranscriptItems.querySelector(".full-player__transcript-status");
+    status?.remove();
   }
 
   function createSegmentNode(entry, index, previousSegment) {
     const button = document.createElement("button");
     button.className = "transcript-passage";
     if (
-      previousSegment?.speaker
+      previousSegment?.type === "segment"
+      && previousSegment?.speaker
       && entry.speaker
       && previousSegment.speaker !== entry.speaker
     ) {
@@ -205,13 +802,19 @@ export function createTranscriptView({
     button.dataset.timelineIndex = String(index);
     button.setAttribute("aria-label", `Seek to ${formatTime(entry.startTime)}. ${entry.body}`);
 
-    const wordNodes = entry.words.map((word) => {
+    const scale = document.createElement("span");
+    scale.className = "transcript-passage__scale";
+
+    const wordNodes = entry.words.map((word, wordIndex) => {
       const span = document.createElement("span");
       span.className = "transcript-word";
       span.textContent = word.body;
-      button.append(span, document.createTextNode(" "));
+      span.dataset.entryIndex = String(index);
+      span.dataset.wordIndex = String(wordIndex);
+      scale.append(span, document.createTextNode(" "));
       return span;
     });
+    button.append(scale);
 
     if (isTranscriptDebugEnabled()) {
       const debug = document.createElement("span");
@@ -228,7 +831,7 @@ export function createTranscriptView({
     button.addEventListener("click", () => {
       resumeFollowing();
       const seekTime = audioController.seek(entry.startTime);
-      if (seekTime !== null) update(seekTime, { forceCenter: true });
+      if (seekTime !== null) update(seekTime, { forceCenter: true, instant: false });
     });
 
     return { element: button, wordNodes, dots: [] };
@@ -240,13 +843,17 @@ export function createTranscriptView({
     row.dataset.timelineIndex = String(index);
     row.setAttribute("aria-label", `Silence until ${formatTime(entry.endTime)}`);
 
+    const scale = document.createElement("span");
+    scale.className = "transcript-silence__scale";
+
     const dots = Array.from({ length: 3 }, () => {
       const dot = document.createElement("span");
       dot.className = "transcript-silence__dot";
       dot.setAttribute("aria-hidden", "true");
-      row.append(dot);
+      scale.append(dot);
       return dot;
     });
+    row.append(scale);
 
     return { element: row, wordNodes: [], dots };
   }
@@ -259,6 +866,7 @@ export function createTranscriptView({
       restoreAttemptId += 1;
     } else {
       resumeFollowing();
+      void loadTranscript();
       scheduleCenterRestore();
     }
     syncAnimationLoop();
@@ -295,24 +903,36 @@ export function createTranscriptView({
     if (nextEntryIndex < 0) return false;
 
     const entryChanged = nextEntryIndex !== activeEntryIndex;
+    const intentionalJump = scrubbing || forceCenter;
+    const shouldFollow = following && !scrubbing;
+
     if (entryChanged) {
-      if (modeActive && playbackActive && !following && !scrubbing) resumeFollowing();
-      setActiveEntry(nextEntryIndex);
+      setActiveEntry(nextEntryIndex, { mountForDom: intentionalJump || shouldFollow });
     }
 
     const entry = timeline[nextEntryIndex];
-    const node = entryNodes[nextEntryIndex];
+    let node = getMountedNode(nextEntryIndex);
+
+    if (intentionalJump) {
+      node = ensureEntryMounted(nextEntryIndex);
+    } else if (shouldFollow && entryChanged) {
+      node = ensureEntryMounted(nextEntryIndex);
+    }
+
     if (entry.type === "silence") {
-      updateSilenceProgress(entry, node, currentTime);
-      if (!modeActive) return false;
+      if (node) updateSilenceProgress(entry, node, currentTime);
+      if (!modeActive || !node) return false;
       if (scrubbing) return scrollToElement(node.element, { instant: true });
-      if (forceCenter) return scrollToElement(node.element, { instant: true });
-      if (entryChanged && following) return scrollToElement(node.element, { instant: false });
+      if (forceCenter) return scrollToEntryIndex(nextEntryIndex, { instant });
+      if (entryChanged && shouldFollow) return scrollToEntryIndex(nextEntryIndex, { instant: false });
       return false;
     }
 
-    updateActiveWords(entry, node, currentTime, { scrubbing });
-    if (!modeActive) return false;
+    if (node) {
+      updateActiveWords(entry, node, currentTime, { scrubbing });
+    }
+
+    if (!modeActive || !node) return false;
     if (scrubbing) {
       const wordIndex = findWordIndex(entry.words, currentTime);
       const target = wordIndex >= 0 ? node.wordNodes[wordIndex] : node.element;
@@ -320,26 +940,37 @@ export function createTranscriptView({
     }
     if (forceCenter) {
       const target = getScrollTarget(entry, node, currentTime);
-      return scrollToElement(target, { instant: instant || true });
+      return scrollToElement(target, { instant });
     }
-    if (entryChanged && following) return scrollToElement(node.element, { instant: false });
+    if (entryChanged && shouldFollow) return scrollToEntryIndex(nextEntryIndex, { instant: false });
     return false;
   }
 
-  function setActiveEntry(nextIndex) {
-    if (activeEntryIndex >= 0) {
-      const previous = entryNodes[activeEntryIndex];
-      previous?.element.classList.remove("is-active");
-      previous?.element.removeAttribute("aria-current");
-      previous?.wordNodes.forEach((word) => word.classList.remove("is-spoken", "is-current-word"));
-      previous?.dots.forEach((dot) => { dot.style.removeProperty("--dot-fill"); });
+  function applyActiveClasses(node) {
+    node.element.classList.add("is-active");
+    node.element.setAttribute("aria-current", "true");
+  }
+
+  function clearActiveClasses(node) {
+    node.element.classList.remove("is-active");
+    node.element.removeAttribute("aria-current");
+    node.wordNodes.forEach((word) => word.classList.remove("is-spoken", "is-current-word"));
+    node.dots.forEach((dot) => { dot.style.removeProperty("--dot-fill"); });
+  }
+
+  function setActiveEntry(nextIndex, { mountForDom = true } = {}) {
+    const previousIndex = activeEntryIndex;
+    if (previousIndex >= 0) {
+      const previous = getMountedNode(previousIndex);
+      if (previous) clearActiveClasses(previous);
     }
 
     activeEntryIndex = nextIndex;
     activeWordIndex = -1;
-    const current = entryNodes[nextIndex];
-    current?.element.classList.add("is-active");
-    current?.element.setAttribute("aria-current", "true");
+    if (!mountForDom) return;
+
+    const current = getMountedNode(nextIndex) || ensureEntryMounted(nextIndex);
+    if (current) applyActiveClasses(current);
   }
 
   function updateActiveWords(entry, node, currentTime, { scrubbing = false } = {}) {
@@ -385,6 +1016,47 @@ export function createTranscriptView({
     });
   }
 
+  function scrollToEntryIndex(index, { instant = false, skipFineTune = false } = {}) {
+    if (index < 0 || index >= timeline.length) return false;
+    const viewport = dom.fullPlayerTranscriptViewport;
+    if (viewport.clientHeight <= 0) return false;
+
+    ensureEntryMounted(index);
+    const node = getMountedNode(index);
+    if (!node) return false;
+
+    if (skipFineTune) {
+      const estimatedHeight = entryHeights[index] || estimateEntryHeight(timeline[index], index);
+      const centerTop = entryOffsets[index]
+        + (estimatedHeight / 2)
+        - (viewport.clientHeight / 2);
+      viewport.scrollTop = Math.max(
+        0,
+        Math.min(centerTop, Math.max(0, viewport.scrollHeight - viewport.clientHeight))
+      );
+      scheduleRenderVisibleEntries();
+      return true;
+    }
+
+    return scrollToElement(node.element, { instant });
+  }
+
+  function getElementScrollTop(element) {
+    const viewport = dom.fullPlayerTranscriptViewport;
+    const indexValue = element.dataset.timelineIndex
+      ?? element.closest("[data-timeline-index]")?.dataset.timelineIndex;
+    const index = Number(indexValue);
+    if (Number.isFinite(index) && index >= 0 && index < timeline.length) {
+      let top = entryOffsets[index];
+      if (!element.classList.contains("transcript-passage") && !element.classList.contains("transcript-silence")) {
+        const passage = element.closest(".transcript-passage");
+        if (passage) top += element.offsetTop;
+      }
+      return top;
+    }
+    return getOffsetTopWithin(element, viewport);
+  }
+
   function getOffsetTopWithin(element, scrollContainer) {
     let top = 0;
     let node = element;
@@ -410,9 +1082,9 @@ export function createTranscriptView({
 
   function getCenteredScrollTop(element, viewport) {
     const style = getComputedStyle(viewport);
-    const padTop = Number.parseFloat(style.scrollPaddingTop) || 0;
-    const padBottom = Number.parseFloat(style.scrollPaddingBottom) || 0;
-    const elementTop = getOffsetTopWithin(element, viewport);
+    const padTop = Number.parseFloat(style.scrollPaddingTop) || getVignetteInset();
+    const padBottom = Number.parseFloat(style.scrollPaddingBottom) || getVignetteBottomInset();
+    const elementTop = getElementScrollTop(element);
     const readingHeight = Math.max(0, viewport.clientHeight - padTop - padBottom);
     return Math.max(0, elementTop - padTop - ((readingHeight - element.offsetHeight) / 2));
   }
@@ -429,8 +1101,10 @@ export function createTranscriptView({
     const top = getCenteredScrollTop(element, viewport);
     window.clearTimeout(programmaticScrollTimer);
     viewport.classList.remove("is-auto-scrolling");
+    scheduleRenderVisibleEntries();
     if (instant) {
       viewport.scrollTop = top;
+      scheduleRenderVisibleEntries();
       return isElementCentered(element, viewport);
     }
     viewport.classList.add("is-auto-scrolling");
@@ -440,7 +1114,8 @@ export function createTranscriptView({
     });
     programmaticScrollTimer = window.setTimeout(() => {
       viewport.classList.remove("is-auto-scrolling");
-    }, 360);
+      scheduleRenderVisibleEntries();
+    }, 520);
     return true;
   }
 
@@ -449,31 +1124,202 @@ export function createTranscriptView({
     else if (modeActive && playbackActive) resumeFollowing();
   }
 
+  function notifyFollowingChange() {
+    for (const listener of followingListeners) {
+      listener(following);
+    }
+  }
+
+  function isFollowing() {
+    return following;
+  }
+
+  function onFollowingChange(listener) {
+    followingListeners.add(listener);
+    return () => followingListeners.delete(listener);
+  }
+
   function suspendFollowing() {
     if (!modeActive || !following) return;
     following = false;
+    notifyFollowingChange();
   }
 
   function resumeFollowing() {
     if (following) return;
     following = true;
+    notifyFollowingChange();
+    if (modeActive && playbackActive && activeEntryIndex >= 0) {
+      scheduleFollowScroll({ instant: false });
+    }
   }
 
+  function clearSearchHighlightsOnNode(node, entryIndex) {
+    const entry = timeline[entryIndex];
+    node.wordNodes.forEach((word, wordIndex) => {
+      word.classList.remove("is-search-match", "is-search-active");
+      word.textContent = entry?.words?.[wordIndex]?.body ?? word.textContent;
+    });
+  }
+
+  function renderWordSearchHighlight(wordSpan, bodyText, highlights) {
+    wordSpan.classList.remove("is-search-match", "is-search-active");
+
+    if (!highlights.length) {
+      wordSpan.textContent = bodyText;
+      return;
+    }
+
+    const wholeWordHighlights = highlights.filter((highlight) => highlight.wholeWord);
+    if (wholeWordHighlights.length) {
+      wordSpan.textContent = bodyText;
+      wordSpan.classList.add("is-search-match");
+      if (wholeWordHighlights.some((highlight) => highlight.isActive)) {
+        wordSpan.classList.add("is-search-active");
+      }
+      return;
+    }
+
+    const ranges = highlights
+      .map((highlight) => ({
+        start: highlight.charStart,
+        end: highlight.charStart + highlight.charLength,
+        isActive: highlight.isActive,
+      }))
+      .sort((left, right) => left.start - right.start);
+
+    wordSpan.replaceChildren();
+    let cursor = 0;
+    for (const range of ranges) {
+      if (cursor < range.start) {
+        wordSpan.append(document.createTextNode(bodyText.slice(cursor, range.start)));
+      }
+      const mark = document.createElement("span");
+      mark.className = "transcript-word__search is-search-match";
+      if (range.isActive) mark.classList.add("is-search-active");
+      mark.textContent = bodyText.slice(range.start, range.end);
+      wordSpan.append(mark);
+      cursor = range.end;
+    }
+    if (cursor < bodyText.length) {
+      wordSpan.append(document.createTextNode(bodyText.slice(cursor)));
+    }
+  }
+
+  function applySearchHighlightsToNode(node, entryIndex) {
+    const entry = timeline[entryIndex];
+    if (!entry || entry.type !== "segment") return;
+
+    node.wordNodes.forEach((wordSpan, wordIndex) => {
+      const bodyText = entry.words[wordIndex]?.body ?? "";
+
+      if (!searchMatches.length) {
+        renderWordSearchHighlight(wordSpan, bodyText, []);
+        return;
+      }
+
+      const highlights = [];
+      searchMatches.forEach((match, matchIndex) => {
+        if (match.entryIndex !== entryIndex) return;
+        if (wordIndex < match.wordIndex || wordIndex >= match.wordIndex + match.wordCount) return;
+
+        const isActive = matchIndex === searchActiveMatchIndex;
+        if (match.wordCount === 1 && match.charStart != null) {
+          highlights.push({
+            wholeWord: false,
+            charStart: match.charStart,
+            charLength: match.charLength,
+            isActive,
+          });
+        } else {
+          highlights.push({ wholeWord: true, isActive });
+        }
+      });
+
+      renderWordSearchHighlight(wordSpan, bodyText, highlights);
+    });
+  }
+
+  function applySearchHighlightsToMounted() {
+    if (!searchMatches.length) return;
+    for (const [index, node] of mountedByIndex.entries()) {
+      applySearchHighlightsToNode(node, index);
+    }
+  }
+
+  function applySearchHighlights(matches, activeMatchIndex) {
+    searchMatches = matches;
+    searchActiveMatchIndex = activeMatchIndex;
+    if (!searchMatches.length) {
+      for (const [index, node] of mountedByIndex.entries()) {
+        clearSearchHighlightsOnNode(node, index);
+      }
+      return;
+    }
+    applySearchHighlightsToMounted();
+  }
+
+  function clearSearchHighlights() {
+    searchMatches = [];
+    searchActiveMatchIndex = -1;
+    for (const [index, node] of mountedByIndex.entries()) {
+      clearSearchHighlightsOnNode(node, index);
+    }
+  }
+
+  async function scrollToSearchMatch(match, { instant = false } = {}) {
+    if (!match || match.entryIndex < 0 || match.entryIndex >= timeline.length) return false;
+    ensureEntryMounted(match.entryIndex);
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    const node = getMountedNode(match.entryIndex);
+    if (!node) return false;
+    const target = node.wordNodes[match.wordIndex] || node.element;
+    const scrolled = scrollToElement(target, { instant });
+    applySearchHighlightsToMounted();
+    return scrolled;
+  }
+
+  function isModeActive() {
+    return modeActive;
+  }
+
+  function getTimeline() {
+    return timeline;
+  }
+
+  function setBeforeApplyTranscript(callback) {
+    onBeforeApplyTranscript = typeof callback === "function" ? callback : () => {};
+  }
+
+  dom.fullPlayerTranscriptViewport.addEventListener("scroll", onViewportScroll, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("wheel", suspendFollowing, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("touchstart", suspendFollowing, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("pointerdown", (event) => {
     if (!event.target.closest(".transcript-passage")) suspendFollowing();
   });
 
+  new ResizeObserver(() => {
+    onViewportResize();
+  }).observe(dom.fullPlayerTranscriptViewport);
+
   return {
     getAvailability,
     setModeActive,
     setPlaybackActive,
     setScrubbing,
-    syncEpisode,
+    setSelectedEpisode,
+    loadTranscript,
     syncToPlaybackPosition,
     scheduleCenterRestore,
     update,
+    isFollowing,
+    onFollowingChange,
+    isModeActive,
+    applySearchHighlights,
+    clearSearchHighlights,
+    scrollToSearchMatch,
+    setBeforeApplyTranscript,
+    getTimeline,
   };
 }
 
@@ -484,20 +1330,50 @@ export function buildTranscriptTimeline(payload) {
   if (normalizedSegments.some((segment) => !segment)) return [];
   const segments = normalizedSegments.sort((a, b) => a.startTime - b.startTime);
   const timeline = [];
+  const durationSeconds = getEpisodeDurationSeconds(payload);
+
+  const first = segments[0];
+  if (first) {
+    pushSilenceEntry(timeline, 0, first.startTime, { leading: true });
+  }
+
   segments.forEach((segment, index) => {
     timeline.push(segment);
     const next = segments[index + 1];
     if (!next) return;
-    const gap = next.startTime - segment.endTime;
-    if (gap >= SILENCE_THRESHOLD_SECONDS) {
-      timeline.push({
-        type: "silence",
-        startTime: Math.min(segment.endTime + SPOKEN_HOLD_SECONDS, next.startTime),
-        endTime: next.startTime,
-      });
-    }
+    pushSilenceEntry(timeline, segment.endTime, next.startTime);
   });
+
+  const last = segments[segments.length - 1];
+  if (last && durationSeconds !== null) {
+    pushSilenceEntry(timeline, last.endTime, durationSeconds);
+  }
+
   return timeline;
+}
+
+function pushSilenceEntry(timeline, gapStart, gapEnd, { leading = false } = {}) {
+  const gap = gapEnd - gapStart;
+  if (gap < SILENCE_THRESHOLD_SECONDS) return;
+  timeline.push({
+    type: "silence",
+    startTime: leading
+      ? gapStart
+      : Math.min(gapStart + SPOKEN_HOLD_SECONDS, gapEnd),
+    endTime: gapEnd,
+  });
+}
+
+function getEpisodeDurationSeconds(payload) {
+  const candidates = [
+    payload?.diagnostics?.durationSeconds,
+    payload?.metadata?.durationSeconds,
+  ];
+  for (const candidate of candidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed) && parsed > 0) return parsed;
+  }
+  return null;
 }
 
 function normalizeSegment(segment) {

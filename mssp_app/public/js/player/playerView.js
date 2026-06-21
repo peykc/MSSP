@@ -1,6 +1,7 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createTranscriptView } from "./transcriptView.js?v=restore-scroll-v4";
+import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-a";
+import { createTranscriptSearch } from "./transcriptSearch.js?v=find-search-c";
 import { formatPlayerDate } from "../utils.js";
 import {
   createEpisodeRow,
@@ -99,6 +100,14 @@ export function createPlayerView({
     onCenterRestoreComplete: () => {
       transcriptRestoreSynced = true;
     },
+  });
+  const transcriptSearch = createTranscriptSearch({
+    dom,
+    transcriptView,
+    getIsPlayerOpen: () => playerState.getState().isExpanded,
+  });
+  transcriptView.setBeforeApplyTranscript(() => {
+    transcriptSearch.resetForEpisode();
   });
   let transcriptRestoreSynced = false;
   let transcriptRestoreEpisodeKey = "";
@@ -260,13 +269,13 @@ export function createPlayerView({
     document.body.classList.toggle("has-player", hasEpisode);
 
     if (!hasEpisode) {
-      void transcriptView.syncEpisode(null);
+      void transcriptView.setSelectedEpisode(null);
       maybeResetBurstOnContextChange(state, null);
       setExpandedUi(false);
       return;
     }
 
-    void transcriptView.syncEpisode(episode);
+    transcriptView.setSelectedEpisode(episode);
 
     maybeResetBurstOnContextChange(state, episode);
 
@@ -449,6 +458,10 @@ export function createPlayerView({
     if (availability === "unavailable" && fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT) {
       setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
     }
+    if (availability === "available") {
+      transcriptSearch.setTimeline(transcriptView.getTimeline());
+    }
+    transcriptSearch.syncRootVisibility();
     if (
       availability === "available"
       && playerState.getState().isExpanded
@@ -499,13 +512,14 @@ export function createPlayerView({
   function renderTranscriptControl() {
     const availability = transcriptView.getAvailability();
     const isTranscriptMode = fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT;
-    dom.playerTranscriptsToggle.disabled = availability !== "available";
+    const hasEpisode = Boolean(playerState.getState().selectedEpisode);
+    dom.playerTranscriptsToggle.disabled = !hasEpisode || availability === "unavailable";
     dom.playerTranscriptsToggle.setAttribute("aria-pressed", String(isTranscriptMode));
     dom.playerTranscriptsToggle.setAttribute(
       "aria-label",
       availability === "loading"
         ? "Loading transcript"
-        : availability !== "available"
+        : availability === "unavailable"
           ? "Transcript unavailable"
           : isTranscriptMode
             ? "Show Now Playing"
@@ -733,6 +747,11 @@ export function createPlayerView({
     transcriptView.setModeActive(
       isTranscriptMode && playerState.getState().isExpanded
     );
+    if (!isTranscriptMode) {
+      transcriptSearch.handleModeInactive();
+    } else {
+      transcriptSearch.syncRootVisibility();
+    }
     renderTranscriptControl();
     if (persist) playerState.setFullPlayerMode(fullPlayerMode);
   }
@@ -752,7 +771,7 @@ export function createPlayerView({
   }
 
   function toggleTranscriptMode() {
-    if (transcriptView.getAvailability() !== "available") return;
+    if (transcriptView.getAvailability() === "unavailable") return;
     setFullPlayerMode(
       fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT
         ? FULL_PLAYER_MODES.PLAYER
@@ -783,6 +802,11 @@ export function createPlayerView({
     transcriptView.setModeActive(
       isExpanded && fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT
     );
+    if (!isExpanded) {
+      transcriptSearch.handleModeInactive();
+    } else if (fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT) {
+      transcriptSearch.syncRootVisibility();
+    }
     if (!isExpanded) wasExpanded = false;
   }
 

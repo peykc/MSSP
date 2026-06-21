@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v101";
+const CACHE_VERSION = "mssp-v125";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -21,7 +21,7 @@ const SHELL_PATHS = [
   "./css/responsive.css",
   "./css/utilities.css",
   "./css/player.css",
-  "./css/transcript.css?v=live-transcript",
+  "./css/transcript.css?v=scroll-hydrate-d",
   "./js/apiClient.js?v=static-first-data",
   "./js/main.js?v=frontend-module-split",
   "./js/archiveStats.js",
@@ -39,7 +39,8 @@ const SHELL_PATHS = [
   "./js/player/playerState.js",
   "./js/player/playerView.js",
   "./js/player/sourceStatus.js",
-  "./js/player/transcriptView.js?v=gap-wait-v2",
+  "./js/player/transcriptView.js?v=scroll-hydrate-a",
+  "./js/player/transcriptSearch.js?v=find-search-c",
   "./js/pwa.js",
   "./js/search.js",
   "./js/sources/publicSources.js",
