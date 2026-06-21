@@ -4,7 +4,7 @@ import { addPatreonR2Sources } from "./patreonR2Sources.js";
 const STORAGE_KEY = "mssp:patreonRss";
 const STORAGE_SCHEMA_VERSION = 1;
 const OVERRIDES_URL = "./data/patreon-rss-overrides.json";
-const RSS_WORKER_URL = "https://mssp-rss-proxy.peytonkossex.workers.dev/feed";
+const RSS_WORKER_URL = "https://paytch.pkcollection.net/feed";
 
 export function createPatreonRssSources() {
   let sources = {};
@@ -27,23 +27,13 @@ export function createPatreonRssSources() {
     }
   }
 
-  async function connect(feedUrl, episodes, { persist = true } = {}) {
+  async function connect(feedUrl, episodes, { persist = true, preserveStored = false } = {}) {
     const url = validateFeedUrl(feedUrl);
     const abortController = new AbortController();
     const timeout = window.setTimeout(() => abortController.abort(), 15000);
     let response;
     try {
-      response = await fetch(RSS_WORKER_URL, {
-        method: "POST",
-        cache: "no-store",
-        credentials: "omit",
-        referrerPolicy: "no-referrer",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: url.href }),
-        signal: abortController.signal,
-      });
+      response = await fetchPatreonFeed(url.href, abortController.signal);
     } catch {
       throw privateConnectionError("The MSSP RSS Worker could not retrieve the Patreon feed.");
     } finally {
@@ -84,6 +74,7 @@ export function createPatreonRssSources() {
     const privateR2Matched = addPatreonR2Sources(episodes, nextSources);
 
     if (persist) persistUrl(url.href);
+    else if (!preserveStored) clearStoredUrl();
     sources = nextSources;
     summary = {
       ...result.summary,
@@ -98,15 +89,11 @@ export function createPatreonRssSources() {
   async function reconnect(episodes) {
     const storedUrl = getStoredUrl();
     if (!storedUrl) return null;
-    return connect(storedUrl, episodes, { persist: false });
+    return connect(storedUrl, episodes, { persist: false, preserveStored: true });
   }
 
   function disconnect() {
-    try {
-      localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      throw privateConnectionError("The private RSS connection could not be removed from browser storage.");
-    }
+    clearStoredUrl();
     sources = {};
     summary = null;
     notify();
@@ -126,6 +113,7 @@ export function createPatreonRssSources() {
     disconnect,
     getSourceForEpisode,
     getStoredUrl,
+    isConnected: () => Boolean(Object.keys(sources).length),
     reconnect,
     subscribe,
   };
@@ -244,6 +232,28 @@ function persistUrl(feedUrl) {
   } catch {
     throw privateConnectionError("This browser could not save the private RSS link locally.");
   }
+}
+
+function clearStoredUrl() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    throw privateConnectionError("The private RSS connection could not be removed from browser storage.");
+  }
+}
+
+async function fetchPatreonFeed(feedUrl, signal) {
+  return fetch(RSS_WORKER_URL, {
+    method: "POST",
+    cache: "no-store",
+    credentials: "omit",
+    referrerPolicy: "no-referrer",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ url: feedUrl }),
+    signal,
+  });
 }
 
 function privateConnectionError(message) {

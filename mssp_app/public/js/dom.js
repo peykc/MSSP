@@ -14,6 +14,7 @@ export const dom = {
   patreonRssClose: getRequiredElement("patreonRssClose"),
   patreonRssForm: getRequiredElement("patreonRssForm"),
   patreonRssInput: getRequiredElement("patreonRssInput"),
+  patreonRssRemember: getRequiredElement("patreonRssRemember"),
   patreonRssReveal: getRequiredElement("patreonRssReveal"),
   patreonRssStatus: getRequiredElement("patreonRssStatus"),
   patreonRssRemove: getRequiredElement("patreonRssRemove"),

@@ -200,7 +200,7 @@
             <span aria-hidden="true"></span>
           </button>
         </header>
-        <p class="patreon-rss-dialog__intro">Paste your private Patreon audio RSS link. It passes through the MSSP RSS Worker only to retrieve your feed from Patreon.</p>
+        <p class="patreon-rss-dialog__intro">Paste your private Patreon audio RSS link.</p>
         <form id="patreonRssForm" novalidate>
           <div class="patreon-rss-field">
             <label for="patreonRssInput">Private RSS link</label>
@@ -209,7 +209,11 @@
               <button id="patreonRssReveal" type="button" aria-label="Show private RSS link" aria-pressed="false">Show</button>
             </span>
           </div>
-          <p class="patreon-rss-dialog__privacy">Stored as plaintext only in this browser. The RSS Worker is configured not to store, cache, or log the link, and audio is never proxied through it.</p>
+          <label class="patreon-rss-remember" for="patreonRssRemember">
+            <input id="patreonRssRemember" type="checkbox" checked>
+            <span>Remember this feed on this device. This stores your private RSS URL in this browser profile until you remove it.</span>
+          </label>
+          <p class="patreon-rss-dialog__privacy">Your private Patreon RSS URL is sent only to the MSSP RSS Worker so the browser can read the feed. The Worker does not store, cache, log, or proxy audio. Matching and playback happen locally in your browser.</p>
           <p class="patreon-rss-dialog__status" id="patreonRssStatus" role="status" aria-live="polite"></p>
           <div class="patreon-rss-dialog__actions">
             <button class="patreon-rss-action patreon-rss-action--danger" id="patreonRssRemove" type="button" hidden>Remove</button>

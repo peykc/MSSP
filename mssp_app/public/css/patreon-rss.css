@@ -135,6 +135,25 @@
   line-height: 1.5;
 }
 
+.patreon-rss-remember {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: 9px;
+  margin-top: 14px;
+  color: var(--text);
+  font-size: 0.78rem;
+  line-height: 1.45;
+  cursor: pointer;
+}
+
+.patreon-rss-remember input {
+  width: 17px;
+  height: 17px;
+  margin: 1px 0 0;
+  accent-color: var(--accent);
+}
+
 .patreon-rss-dialog__status {
   min-height: 1.5em;
   margin: 16px 0 0;
@@ -175,6 +194,7 @@
 .patreon-rss-action--danger { color: #ffaaa1; }
 
 .patreon-rss-action:disabled,
+.patreon-rss-remember input:disabled,
 .patreon-rss-field__control button:disabled {
   cursor: wait;
   opacity: 0.58;
