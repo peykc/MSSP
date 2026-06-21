@@ -64,6 +64,8 @@ export function createTranscriptView({
   let hydrateForward = 0;
   let hydrateBackward = -1;
   let hydratePhase = "forward";
+  let passageTouchStartY = null;
+  const PASSAGE_TOUCH_SCROLL_THRESHOLD = 8;
 
   function refreshLayoutGaps() {
     const probePassage = document.createElement("button");
@@ -1291,9 +1293,35 @@ export function createTranscriptView({
     onBeforeApplyTranscript = typeof callback === "function" ? callback : () => {};
   }
 
+  function onViewportTouchStart(event) {
+    if (event.target.closest(".transcript-passage")) {
+      passageTouchStartY = event.touches[0]?.clientY ?? null;
+      return;
+    }
+    passageTouchStartY = null;
+    suspendFollowing();
+  }
+
+  function onViewportTouchMove(event) {
+    if (passageTouchStartY === null || !following) return;
+    const y = event.touches[0]?.clientY;
+    if (y == null) return;
+    if (Math.abs(y - passageTouchStartY) >= PASSAGE_TOUCH_SCROLL_THRESHOLD) {
+      passageTouchStartY = null;
+      suspendFollowing();
+    }
+  }
+
+  function onViewportTouchEnd() {
+    passageTouchStartY = null;
+  }
+
   dom.fullPlayerTranscriptViewport.addEventListener("scroll", onViewportScroll, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("wheel", suspendFollowing, { passive: true });
-  dom.fullPlayerTranscriptViewport.addEventListener("touchstart", suspendFollowing, { passive: true });
+  dom.fullPlayerTranscriptViewport.addEventListener("touchstart", onViewportTouchStart, { passive: true });
+  dom.fullPlayerTranscriptViewport.addEventListener("touchmove", onViewportTouchMove, { passive: true });
+  dom.fullPlayerTranscriptViewport.addEventListener("touchend", onViewportTouchEnd, { passive: true });
+  dom.fullPlayerTranscriptViewport.addEventListener("touchcancel", onViewportTouchEnd, { passive: true });
   dom.fullPlayerTranscriptViewport.addEventListener("pointerdown", (event) => {
     if (!event.target.closest(".transcript-passage")) suspendFollowing();
   });
