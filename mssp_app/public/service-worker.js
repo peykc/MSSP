@@ -41,7 +41,7 @@ const SHELL_PATHS = [
   "./js/player/playerState.js",
   "./js/player/playerView.js",
   "./js/player/sourceStatus.js",
-  "./js/player/transcriptView.js?v=scroll-hydrate-h",
+  "./js/player/transcriptView.js?v=scroll-hydrate-i",
   "./js/player/transcriptSearch.js?v=scroll-hydrate-g",
   "./js/pwa.js?v=pwa-update-bar",
   "./js/search.js",

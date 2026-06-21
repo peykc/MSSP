@@ -6,8 +6,9 @@ const OVERSCAN_DETACHED_UP = 18;
 const FOLLOW_PIN_UP = 3;
 const FOLLOW_PIN_DOWN = 12;
 const FOLLOW_PREFETCH_AHEAD = 5;
-const HYDRATE_BATCH_SIZE = 32;
-const ESTIMATE_HEIGHT_MARGIN = 1.14;
+const HYDRATE_BATCH_SIZE = 48;
+const SCROLL_AHEAD_HYDRATE = 24;
+const ESTIMATE_HEIGHT_MARGIN = 1.2;
 const WIDTH_EPSILON = 2;
 const PASSAGE_MARGIN = 28;
 const SPEAKER_CHANGE_EXTRA = 0;
@@ -71,6 +72,8 @@ export function createTranscriptView({
   let passageTouchStartY = null;
   let playbackPinStart = -1;
   let playbackPinEnd = -1;
+  let deferredHeightUpdates = new Map();
+  let scrollHydrateFrameId = null;
   const PASSAGE_TOUCH_SCROLL_THRESHOLD = 8;
 
   function refreshLayoutGaps() {
@@ -402,10 +405,15 @@ export function createTranscriptView({
 
   function prepareFollowEntryTransition(nextIndex) {
     refreshPlaybackPinRange(nextIndex);
+    const anchor = captureScrollAnchor();
     let remeasured = false;
+    let minIndex = timeline.length;
     const mountEnd = Math.min(timeline.length - 1, nextIndex + FOLLOW_PREFETCH_AHEAD);
     for (let index = Math.max(0, nextIndex - 1); index <= mountEnd; index += 1) {
-      if (measureEntryHeightIfNeeded(index)) remeasured = true;
+      if (measureEntryHeightIfNeeded(index)) {
+        remeasured = true;
+        minIndex = Math.min(minIndex, index);
+      }
       if (!mountedByIndex.has(index)) {
         mountEntry(index);
       } else {
@@ -413,9 +421,115 @@ export function createTranscriptView({
       }
     }
     if (remeasured) {
+      rebuildEntryOffsets(minIndex);
       updateSpacerHeight();
+      restoreScrollAnchor(anchor);
       repositionMountedEntries();
     }
+  }
+
+  function commitMeasuredEntryHeight(index, measured) {
+    const anchor = captureScrollAnchor();
+    entryHeights[index] = measured;
+    entryMeasured[index] = true;
+    rebuildEntryOffsets(index);
+    updateSpacerHeight();
+    reconcileScrollAfterLayoutChange(anchor);
+    repositionMountedEntries();
+    scheduleRenderVisibleEntries();
+    return true;
+  }
+
+  function flushDeferredHeightUpdates() {
+    if (!deferredHeightUpdates.size) return;
+    const anchor = captureScrollAnchor();
+    let minIndex = timeline.length;
+    for (const [index, measured] of deferredHeightUpdates) {
+      entryHeights[index] = measured;
+      entryMeasured[index] = true;
+      minIndex = Math.min(minIndex, index);
+    }
+    deferredHeightUpdates.clear();
+    rebuildEntryOffsets(minIndex);
+    updateSpacerHeight();
+    reconcileScrollAfterLayoutChange(anchor);
+    repositionMountedEntries();
+    scheduleRenderVisibleEntries();
+  }
+
+  function hydrateScrollAhead() {
+    if (following || !timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
+
+    const viewport = dom.fullPlayerTranscriptViewport;
+    const visibleIndex = findFirstVisibleIndex(viewport.scrollTop);
+    if (visibleIndex < 0) return;
+
+    const anchor = captureScrollAnchor();
+    let remeasured = false;
+    let minIndex = timeline.length;
+
+    const measureIndex = (index) => {
+      if (entryMeasured[index]) return;
+      let measured = 0;
+      const mounted = mountedByIndex.get(index);
+      if (mounted) measured = mounted.element.offsetHeight;
+      if (measured <= 0) measured = measureEntryHeightDom(timeline[index], index);
+      if (measured <= 0) return;
+      entryHeights[index] = measured;
+      entryMeasured[index] = true;
+      minIndex = Math.min(minIndex, index);
+      remeasured = true;
+    };
+
+    if (scrollDirection >= 0) {
+      const end = Math.min(timeline.length - 1, visibleIndex + SCROLL_AHEAD_HYDRATE);
+      for (let index = visibleIndex; index <= end; index += 1) measureIndex(index);
+    } else {
+      const start = Math.max(0, visibleIndex - SCROLL_AHEAD_HYDRATE);
+      for (let index = visibleIndex; index >= start; index -= 1) measureIndex(index);
+    }
+
+    if (!remeasured) return;
+    rebuildEntryOffsets(minIndex);
+    updateSpacerHeight();
+    restoreScrollAnchor(anchor);
+    repositionMountedEntries();
+    scheduleRenderVisibleEntries();
+  }
+
+  function scheduleScrollAheadHydration() {
+    if (following || scrollHydrateFrameId !== null) return;
+    scrollHydrateFrameId = requestAnimationFrame(() => {
+      scrollHydrateFrameId = null;
+      hydrateScrollAhead();
+      const visibleIndex = findFirstVisibleIndex(dom.fullPlayerTranscriptViewport.scrollTop);
+      if (visibleIndex >= 0) scheduleHeightHydration(visibleIndex);
+    });
+  }
+
+  function ensureFollowRangeMeasured(fromIndex) {
+    if (fromIndex < 0 || fromIndex >= timeline.length) return;
+    const viewport = dom.fullPlayerTranscriptViewport;
+    if (viewport.classList.contains("is-auto-scrolling")) return;
+
+    const end = Math.min(timeline.length - 1, fromIndex + FOLLOW_PIN_DOWN);
+    const anchor = captureScrollAnchor();
+    let remeasured = false;
+    let minIndex = timeline.length;
+    for (let index = fromIndex; index <= end; index += 1) {
+      if (entryMeasured[index]) continue;
+      const measured = measureEntryHeightDom(timeline[index], index);
+      if (measured <= 0) continue;
+      entryHeights[index] = measured;
+      entryMeasured[index] = true;
+      minIndex = Math.min(minIndex, index);
+      remeasured = true;
+    }
+    if (!remeasured) return;
+    rebuildEntryOffsets(minIndex);
+    updateSpacerHeight();
+    restoreScrollAnchor(anchor);
+    repositionMountedEntries();
   }
 
   function syncActiveEntryPlaybackDom(currentTime, { forceWords = false } = {}) {
@@ -446,12 +560,16 @@ export function createTranscriptView({
     lastScrollTop = scrollTop;
     scheduleRenderVisibleEntries();
 
-    if (following) return;
+    if (following) {
+      const visibleIndex = findFirstVisibleIndex(scrollTop);
+      if (visibleIndex >= 0) scheduleHeightHydration(visibleIndex);
+      return;
+    }
+
+    scheduleScrollAheadHydration();
 
     const visibleIndex = findFirstVisibleIndex(scrollTop);
-    if (visibleIndex >= 0) {
-      scheduleHeightHydration(visibleIndex);
-    }
+    if (visibleIndex < 0) return;
 
     const nearScrollEnd = scrollTop + viewport.clientHeight > viewport.scrollHeight - (viewport.clientHeight * 1.5);
     if (nearScrollEnd && scrollDirection >= 0) {
@@ -480,25 +598,28 @@ export function createTranscriptView({
   }
 
   function reconcileScrollAfterLayoutChange(anchor = null) {
+    const viewport = dom.fullPlayerTranscriptViewport;
+    const resolvedAnchor = anchor ?? captureScrollAnchor();
+    if (shouldMaintainFollowScroll() && viewport.classList.contains("is-auto-scrolling")) {
+      restoreScrollAnchor(resolvedAnchor);
+      return;
+    }
     if (shouldMaintainFollowScroll()) {
       scheduleFollowScroll({ instant: true });
       return;
     }
-    restoreScrollAnchor(anchor ?? captureScrollAnchor());
+    restoreScrollAnchor(resolvedAnchor);
   }
 
   function applyMeasuredEntryHeight(index, measured) {
     if (measured <= 0) return false;
     if (entryMeasured[index] && Math.abs(entryHeights[index] - measured) < 1) return false;
-    const anchor = captureScrollAnchor();
-    entryHeights[index] = measured;
-    entryMeasured[index] = true;
-    rebuildEntryOffsets(index);
-    updateSpacerHeight();
-    reconcileScrollAfterLayoutChange(anchor);
-    repositionMountedEntries();
-    scheduleRenderVisibleEntries();
-    return true;
+    const viewport = dom.fullPlayerTranscriptViewport;
+    if (viewport.classList.contains("is-auto-scrolling")) {
+      deferredHeightUpdates.set(index, measured);
+      return false;
+    }
+    return commitMeasuredEntryHeight(index, measured);
   }
 
   function estimateSilenceHeight() {
@@ -852,6 +973,11 @@ export function createTranscriptView({
     forcedVisibleEnd = -1;
     playbackPinStart = -1;
     playbackPinEnd = -1;
+    deferredHeightUpdates.clear();
+    if (scrollHydrateFrameId !== null) {
+      cancelAnimationFrame(scrollHydrateFrameId);
+      scrollHydrateFrameId = null;
+    }
     releaseSearchScrollLock();
     resetHeightHydration(0);
     estimateMetrics = null;
@@ -967,8 +1093,12 @@ export function createTranscriptView({
   }
 
   function setPlaybackActive(active) {
+    const wasActive = playbackActive;
     playbackActive = Boolean(active);
     syncAnimationLoop();
+    if (wasActive && !playbackActive && modeActive && following && activeEntryIndex >= 0) {
+      update(getPlaybackTime(), { forceCenter: true, instant: false });
+    }
   }
 
   function syncAnimationLoop() {
@@ -1002,6 +1132,7 @@ export function createTranscriptView({
 
     if (shouldFollow) {
       refreshPlaybackPinRange(nextEntryIndex);
+      ensureFollowRangeMeasured(nextEntryIndex);
     }
 
     if (entryChanged) {
@@ -1012,11 +1143,8 @@ export function createTranscriptView({
       prepareFollowEntryTransition(nextEntryIndex);
     } else if (shouldFollow && activeEntryIndex >= 0) {
       const activeEntry = timeline[activeEntryIndex];
-      if (activeEntry && currentTime >= activeEntry.endTime - 2) {
-        const nextIndex = activeEntryIndex + 1;
-        if (nextIndex < timeline.length && !mountedByIndex.has(nextIndex)) {
-          prepareFollowEntryTransition(activeEntryIndex);
-        }
+      if (activeEntry && currentTime >= activeEntry.endTime - 5) {
+        prepareFollowEntryTransition(activeEntryIndex + 1);
       }
     }
 
@@ -1229,6 +1357,7 @@ export function createTranscriptView({
     });
     programmaticScrollTimer = window.setTimeout(() => {
       viewport.classList.remove("is-auto-scrolling");
+      flushDeferredHeightUpdates();
       scheduleRenderVisibleEntries();
     }, 520);
     return true;
