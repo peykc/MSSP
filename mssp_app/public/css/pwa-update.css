@@ -1,0 +1,60 @@
+:root {
+  --pwa-update-bar-height: 44px;
+}
+
+.pwa-update-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: var(--pwa-update-bar-height);
+  padding: 8px 16px;
+  background: var(--panel-strong);
+  border-bottom: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.pwa-update-bar[hidden] {
+  display: none;
+}
+
+.pwa-update-bar__text {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text);
+}
+
+.pwa-update-bar__refresh {
+  flex-shrink: 0;
+  padding: 6px 14px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--soft);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.pwa-update-bar__refresh:hover:not(:disabled) {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.pwa-update-bar__refresh:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+body.pwa-update-visible .app {
+  height: calc((100dvh - var(--pwa-update-bar-height)) / var(--page-scale));
+  margin-top: var(--pwa-update-bar-height);
+}
+
+body.pwa-update-visible .library {
+  top: var(--pwa-update-bar-height);
+  height: calc(100dvh - var(--pwa-update-bar-height));
+}

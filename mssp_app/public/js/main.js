@@ -14,7 +14,7 @@ import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
 import { getSourceStatus } from "./player/sourceStatus.js";
-import { registerServiceWorker } from "./pwa.js";
+import { registerServiceWorker, initPwaUpdates } from "./pwa.js";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createAppState } from "./state.js";
@@ -29,7 +29,9 @@ function getApiClient() {
 }
 
 async function init() {
-  registerServiceWorker();
+  void registerServiceWorker().then((registration) => {
+    if (registration) initPwaUpdates(registration);
+  });
   const apiClient = getApiClient();
   const state = createAppState();
   const favoritesStore = createFavoritesStore();

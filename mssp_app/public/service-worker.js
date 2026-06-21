@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v134";
+const CACHE_VERSION = "mssp-v135";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -21,6 +21,7 @@ const SHELL_PATHS = [
   "./css/responsive.css",
   "./css/utilities.css",
   "./css/player.css",
+  "./css/pwa-update.css",
   "./css/transcript.css?v=scroll-hydrate-d",
   "./js/apiClient.js?v=static-first-data",
   "./js/main.js?v=frontend-module-split",
@@ -42,7 +43,7 @@ const SHELL_PATHS = [
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-g",
   "./js/player/transcriptSearch.js?v=scroll-hydrate-g",
-  "./js/pwa.js",
+  "./js/pwa.js?v=pwa-update-bar",
   "./js/search.js",
   "./js/sources/publicSources.js",
   "./js/state.js",
@@ -86,8 +87,12 @@ self.addEventListener("install", (event) => {
     Promise.all([
       caches.open(SHELL_CACHE).then((cache) => cache.addAll(SHELL_PATHS.map(resolveUrl))),
       caches.open(DATA_CACHE).then((cache) => cache.addAll(DATA_PATHS.map(resolveUrl))),
-    ]).then(() => self.skipWaiting())
+    ])
   );
+});
+
+self.addEventListener("message", (event) => {
+  if (event.data?.type === "SKIP_WAITING") self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {

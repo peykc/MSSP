@@ -37,6 +37,7 @@
     <link rel="stylesheet" href="./css/responsive.css">
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
+    <link rel="stylesheet" href="./css/pwa-update.css">
     <link rel="stylesheet" href="./css/transcript.css?v=scroll-hydrate-d">
     <style>
       body.launch-loading .launch {
@@ -73,6 +74,10 @@
     </style>
   </head>
   <body class="launch-loading">
+    <div id="pwaUpdateBar" class="pwa-update-bar" hidden>
+      <p class="pwa-update-bar__text">Update available</p>
+      <button type="button" class="pwa-update-bar__refresh" id="pwaUpdateRefresh">Refresh</button>
+    </div>
     <div class="launch-splash" id="launchSplash" aria-hidden="false">
       <img class="launch-splash__mark" src="./assets/brand/mssp-mark.png" alt="">
     </div>
