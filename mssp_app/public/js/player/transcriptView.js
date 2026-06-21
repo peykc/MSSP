@@ -3,7 +3,10 @@ const SPOKEN_HOLD_SECONDS = 0.5;
 const OVERSCAN = 15;
 const OVERSCAN_DETACHED_DOWN = 48;
 const OVERSCAN_DETACHED_UP = 18;
-const HYDRATE_BATCH_SIZE = 20;
+const FOLLOW_PIN_UP = 3;
+const FOLLOW_PIN_DOWN = 12;
+const FOLLOW_PREFETCH_AHEAD = 5;
+const HYDRATE_BATCH_SIZE = 32;
 const ESTIMATE_HEIGHT_MARGIN = 1.14;
 const WIDTH_EPSILON = 2;
 const PASSAGE_MARGIN = 28;
@@ -66,6 +69,8 @@ export function createTranscriptView({
   let hydrateBackward = -1;
   let hydratePhase = "forward";
   let passageTouchStartY = null;
+  let playbackPinStart = -1;
+  let playbackPinEnd = -1;
   const PASSAGE_TOUCH_SCROLL_THRESHOLD = 8;
 
   function refreshLayoutGaps() {
@@ -190,6 +195,7 @@ export function createTranscriptView({
     activeEntryIndex = activeIndex;
     activeWordIndex = -1;
     renderVisibleEntriesNow(activeIndex);
+    refreshPlaybackPinRange(activeIndex);
     maintainFollowScroll({ instant: true });
     resetHeightHydration(activeIndex);
     scheduleHeightHydration(activeIndex);
@@ -371,6 +377,64 @@ export function createTranscriptView({
     runHeightHydrationBatch();
   }
 
+  function refreshPlaybackPinRange(nextIndex = activeEntryIndex) {
+    if (!following || !modeActive || nextIndex < 0) {
+      playbackPinStart = -1;
+      playbackPinEnd = -1;
+      return;
+    }
+    playbackPinStart = Math.max(0, nextIndex - FOLLOW_PIN_UP);
+    playbackPinEnd = Math.min(timeline.length - 1, nextIndex + FOLLOW_PIN_DOWN);
+  }
+
+  function measureEntryHeightIfNeeded(index) {
+    if (index < 0 || index >= timeline.length || entryMeasured[index]) return false;
+    let measured = 0;
+    const mounted = mountedByIndex.get(index);
+    if (mounted) measured = mounted.element.offsetHeight;
+    if (measured <= 0) measured = measureEntryHeightDom(timeline[index], index);
+    if (measured <= 0) return false;
+    entryHeights[index] = measured;
+    entryMeasured[index] = true;
+    rebuildEntryOffsets(index);
+    return true;
+  }
+
+  function prepareFollowEntryTransition(nextIndex) {
+    refreshPlaybackPinRange(nextIndex);
+    let remeasured = false;
+    const mountEnd = Math.min(timeline.length - 1, nextIndex + FOLLOW_PREFETCH_AHEAD);
+    for (let index = Math.max(0, nextIndex - 1); index <= mountEnd; index += 1) {
+      if (measureEntryHeightIfNeeded(index)) remeasured = true;
+      if (!mountedByIndex.has(index)) {
+        mountEntry(index);
+      } else {
+        positionMountedEntry(index);
+      }
+    }
+    if (remeasured) {
+      updateSpacerHeight();
+      repositionMountedEntries();
+    }
+  }
+
+  function syncActiveEntryPlaybackDom(currentTime, { forceWords = false } = {}) {
+    if (activeEntryIndex < 0 || !timeline[activeEntryIndex]) return;
+    refreshPlaybackPinRange(activeEntryIndex);
+    if (!getMountedNode(activeEntryIndex)) mountEntry(activeEntryIndex);
+    const node = getMountedNode(activeEntryIndex);
+    if (!node) return;
+
+    applyActiveClasses(node);
+    const entry = timeline[activeEntryIndex];
+    if (entry.type === "silence") {
+      updateSilenceProgress(entry, node, currentTime);
+      return;
+    }
+    if (forceWords) activeWordIndex = -1;
+    updateActiveWords(entry, node, currentTime);
+  }
+
   function onViewportScroll() {
     const viewport = dom.fullPlayerTranscriptViewport;
     const scrollTop = viewport.scrollTop;
@@ -517,20 +581,27 @@ export function createTranscriptView({
   function findVisibleRange(scrollTop, viewportHeight) {
     if (!timeline.length) return { start: 0, end: 0 };
 
-    let overscanUp = OVERSCAN;
-    let overscanDown = OVERSCAN;
-    if (!following) {
+    let overscanUp;
+    let overscanDown;
+    if (following) {
+      overscanUp = FOLLOW_PIN_UP;
+      overscanDown = FOLLOW_PIN_DOWN;
+    } else {
       overscanUp = scrollDirection < 0 ? OVERSCAN_DETACHED_DOWN : OVERSCAN_DETACHED_UP;
       overscanDown = scrollDirection > 0 ? OVERSCAN_DETACHED_DOWN : OVERSCAN_DETACHED_UP;
     }
 
-    const start = Math.max(0, findFirstVisibleIndex(scrollTop) - overscanUp);
+    let start = Math.max(0, findFirstVisibleIndex(scrollTop) - overscanUp);
     const endTop = scrollTop + viewportHeight;
     let end = start;
     while (end < timeline.length && entryOffsets[end] < endTop) {
       end += 1;
     }
     end = Math.min(timeline.length, end + overscanDown);
+    if (playbackPinStart >= 0) {
+      start = Math.min(start, playbackPinStart);
+      end = Math.max(end, playbackPinEnd + 1);
+    }
     if (forcedVisibleStart >= 0) {
       return {
         start: Math.min(start, forcedVisibleStart),
@@ -570,9 +641,17 @@ export function createTranscriptView({
 
     for (const [index, node] of mountedByIndex.entries()) {
       if (nextVisible.has(index)) continue;
+      if (following && index === activeEntryIndex) continue;
       unmountEntry(index, node);
     }
     applySearchHighlightsToMounted();
+    if (following && playbackActive && activeEntryIndex >= 0) {
+      const activeNode = getMountedNode(activeEntryIndex);
+      const activeWord = activeWordIndex >= 0 ? activeNode?.wordNodes[activeWordIndex] : null;
+      if (activeNode && activeWordIndex >= 0 && activeWord && !activeWord.classList.contains("is-current-word")) {
+        syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });
+      }
+    }
   }
 
   function mountEntry(index) {
@@ -594,6 +673,15 @@ export function createTranscriptView({
 
     if (index === activeEntryIndex) {
       applyActiveClasses(node);
+      if (modeActive && playbackActive) {
+        const activeEntry = timeline[index];
+        if (activeEntry?.type === "segment") {
+          activeWordIndex = -1;
+          updateActiveWords(activeEntry, node, getPlaybackTime());
+        } else if (activeEntry?.type === "silence") {
+          updateSilenceProgress(activeEntry, node, getPlaybackTime());
+        }
+      }
     }
     applySearchHighlightsToNode(node, index);
   }
@@ -762,6 +850,8 @@ export function createTranscriptView({
     pendingCenterRestore = false;
     forcedVisibleStart = -1;
     forcedVisibleEnd = -1;
+    playbackPinStart = -1;
+    playbackPinEnd = -1;
     releaseSearchScrollLock();
     resetHeightHydration(0);
     estimateMetrics = null;
@@ -910,8 +1000,24 @@ export function createTranscriptView({
     const intentionalJump = scrubbing || forceCenter;
     const shouldFollow = following && !scrubbing;
 
+    if (shouldFollow) {
+      refreshPlaybackPinRange(nextEntryIndex);
+    }
+
     if (entryChanged) {
       setActiveEntry(nextEntryIndex, { mountForDom: intentionalJump || shouldFollow });
+    }
+
+    if (entryChanged && shouldFollow) {
+      prepareFollowEntryTransition(nextEntryIndex);
+    } else if (shouldFollow && activeEntryIndex >= 0) {
+      const activeEntry = timeline[activeEntryIndex];
+      if (activeEntry && currentTime >= activeEntry.endTime - 2) {
+        const nextIndex = activeEntryIndex + 1;
+        if (nextIndex < timeline.length && !mountedByIndex.has(nextIndex)) {
+          prepareFollowEntryTransition(activeEntryIndex);
+        }
+      }
     }
 
     const entry = timeline[nextEntryIndex];
@@ -920,7 +1026,10 @@ export function createTranscriptView({
     if (intentionalJump) {
       node = ensureEntryMounted(nextEntryIndex);
     } else if (shouldFollow && entryChanged) {
-      node = ensureEntryMounted(nextEntryIndex);
+      node = getMountedNode(nextEntryIndex);
+    } else if (shouldFollow && !node && nextEntryIndex === activeEntryIndex) {
+      syncActiveEntryPlaybackDom(currentTime, { forceWords: true });
+      node = getMountedNode(nextEntryIndex);
     }
 
     if (entry.type === "silence") {
@@ -971,6 +1080,7 @@ export function createTranscriptView({
 
     activeEntryIndex = nextIndex;
     activeWordIndex = -1;
+    refreshPlaybackPinRange(nextIndex);
     if (!mountForDom) return;
 
     const current = getMountedNode(nextIndex) || ensureEntryMounted(nextIndex);
@@ -1147,6 +1257,7 @@ export function createTranscriptView({
   function suspendFollowing() {
     if (!modeActive || !following) return;
     following = false;
+    refreshPlaybackPinRange();
     notifyFollowingChange();
   }
 
@@ -1154,7 +1265,10 @@ export function createTranscriptView({
     if (following) return;
     following = true;
     notifyFollowingChange();
+    refreshPlaybackPinRange(activeEntryIndex);
+    scheduleRenderVisibleEntries();
     if (modeActive && playbackActive && activeEntryIndex >= 0) {
+      syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });
       scheduleFollowScroll({ instant: false });
     }
   }
