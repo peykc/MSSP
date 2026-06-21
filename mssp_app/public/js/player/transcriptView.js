@@ -766,11 +766,25 @@ export function createTranscriptView({
       unmountEntry(index, node);
     }
     applySearchHighlightsToMounted();
-    if (following && playbackActive && activeEntryIndex >= 0) {
+    if (modeActive && activeEntryIndex >= 0) {
       const activeNode = getMountedNode(activeEntryIndex);
-      const activeWord = activeWordIndex >= 0 ? activeNode?.wordNodes[activeWordIndex] : null;
-      if (activeNode && activeWordIndex >= 0 && activeWord && !activeWord.classList.contains("is-current-word")) {
-        syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });
+      const entry = timeline[activeEntryIndex];
+      if (activeNode && entry?.type === "segment") {
+        const time = getPlaybackTime();
+        const wordIndex = findWordIndex(entry.words, time);
+        const needsSpoken = wordIndex > 0
+          && !activeNode.wordNodes[wordIndex - 1]?.classList.contains("is-spoken");
+        const needsCurrent = wordIndex >= 0
+          && !activeNode.wordNodes[wordIndex]?.classList.contains("is-current-word")
+          && !activeNode.wordNodes[wordIndex]?.classList.contains("is-spoken");
+        if (needsSpoken || needsCurrent) {
+          syncActiveEntryPlaybackDom(time, { forceWords: true });
+        }
+      } else if (activeNode && entry?.type === "silence") {
+        const dot = activeNode.dots[0];
+        if (dot && !dot.style.getPropertyValue("--dot-fill")) {
+          syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });
+        }
       }
     }
   }
@@ -792,17 +806,8 @@ export function createTranscriptView({
     observer.observe(node.element);
     entryResizeObservers.set(index, observer);
 
-    if (index === activeEntryIndex) {
-      applyActiveClasses(node);
-      if (modeActive && playbackActive) {
-        const activeEntry = timeline[index];
-        if (activeEntry?.type === "segment") {
-          activeWordIndex = -1;
-          updateActiveWords(activeEntry, node, getPlaybackTime());
-        } else if (activeEntry?.type === "silence") {
-          updateSilenceProgress(activeEntry, node, getPlaybackTime());
-        }
-      }
+    if (index === activeEntryIndex && modeActive) {
+      syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });
     }
     applySearchHighlightsToNode(node, index);
   }
@@ -1096,7 +1101,7 @@ export function createTranscriptView({
     const wasActive = playbackActive;
     playbackActive = Boolean(active);
     syncAnimationLoop();
-    if (wasActive && !playbackActive && modeActive && following && activeEntryIndex >= 0) {
+    if (wasActive && !playbackActive && modeActive && activeEntryIndex >= 0) {
       update(getPlaybackTime(), { forceCenter: true, instant: false });
     }
   }
@@ -1127,12 +1132,24 @@ export function createTranscriptView({
     if (nextEntryIndex < 0) return false;
 
     const entryChanged = nextEntryIndex !== activeEntryIndex;
+
+    if (!scrubbing && modeActive && !following) {
+      const realignDetached = forceCenter || (playbackActive && entryChanged);
+      if (realignDetached) {
+        resumeFollowing({ scheduleScroll: false });
+      }
+    }
+
     const intentionalJump = scrubbing || forceCenter;
     const shouldFollow = following && !scrubbing;
 
     if (shouldFollow) {
       refreshPlaybackPinRange(nextEntryIndex);
       ensureFollowRangeMeasured(nextEntryIndex);
+    }
+
+    if (entryChanged && shouldFollow) {
+      armSmoothScrollProtection();
     }
 
     if (entryChanged) {
@@ -1337,15 +1354,21 @@ export function createTranscriptView({
     return Math.abs(viewport.scrollTop - getCenteredScrollTop(element, viewport)) <= 2;
   }
 
+  function armSmoothScrollProtection() {
+    const viewport = dom.fullPlayerTranscriptViewport;
+    window.clearTimeout(programmaticScrollTimer);
+    viewport.classList.add("is-auto-scrolling");
+  }
+
   function scrollToElement(element, { instant = false } = {}) {
     if (!element) return false;
     const viewport = dom.fullPlayerTranscriptViewport;
     if (viewport.clientHeight <= 0) return false;
     const top = getCenteredScrollTop(element, viewport);
     window.clearTimeout(programmaticScrollTimer);
-    viewport.classList.remove("is-auto-scrolling");
     scheduleRenderVisibleEntries();
     if (instant) {
+      viewport.classList.remove("is-auto-scrolling");
       viewport.scrollTop = top;
       scheduleRenderVisibleEntries();
       return isElementCentered(element, viewport);
@@ -1390,13 +1413,13 @@ export function createTranscriptView({
     notifyFollowingChange();
   }
 
-  function resumeFollowing() {
+  function resumeFollowing({ scheduleScroll = true } = {}) {
     if (following) return;
     following = true;
     notifyFollowingChange();
     refreshPlaybackPinRange(activeEntryIndex);
     scheduleRenderVisibleEntries();
-    if (modeActive && playbackActive && activeEntryIndex >= 0) {
+    if (scheduleScroll && modeActive && playbackActive && activeEntryIndex >= 0) {
       syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });
       scheduleFollowScroll({ instant: false });
     }
