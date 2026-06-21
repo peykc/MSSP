@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v142";
+const CACHE_VERSION = "mssp-v146";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -22,9 +22,11 @@ const SHELL_PATHS = [
   "./css/utilities.css",
   "./css/player.css",
   "./css/pwa-update.css",
+  "./css/patreon-rss.css",
   "./css/transcript.css?v=scroll-hydrate-d",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=frontend-module-split",
+  "./js/main.js?v=private-patreon-rss",
+  "./js/patreonRssModal.js",
   "./js/archiveStats.js",
   "./js/calendarModal.js",
   "./js/collectionsView.js",
@@ -46,6 +48,8 @@ const SHELL_PATHS = [
   "./js/pwa.js?v=pwa-update-bar",
   "./js/search.js",
   "./js/sources/publicSources.js",
+  "./js/sources/patreonRssMatcher.js",
+  "./js/sources/patreonRssSources.js",
   "./js/state.js",
   "./js/tooltip.js",
   "./js/utils.js",
@@ -71,6 +75,7 @@ const DATA_PATHS = [
   "./data/episodes.json",
   "./data/health.json",
   "./data/sources.public.json",
+  "./data/patreon-rss-overrides.json",
 ];
 
 const resolveUrl = (path) => new URL(path, BASE).href;

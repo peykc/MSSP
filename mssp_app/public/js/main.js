@@ -10,13 +10,15 @@ import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
+import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
-import { getSourceStatus } from "./player/sourceStatus.js";
+import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { registerServiceWorker, initPwaUpdates } from "./pwa.js";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
+import { createPatreonRssSources } from "./sources/patreonRssSources.js";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js";
 import { dismissLaunchSplash } from "./launchSplash.js";
@@ -40,9 +42,13 @@ async function init() {
   const archiveStatsView = createArchiveStatsView({ dom, state, fullCalendarModal });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
-  const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getPublicSourceForEpisode(episode));
-  const playerState = createPlayerState({ getPublicSourceForEpisode });
+  const patreonSources = createPatreonRssSources();
+  const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
+  const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
+  const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
   let episodeList;
+  let patreonRssModal;
+  let archiveEpisodes = [];
   let refreshQueueProgress = null;
   const playbackProgressStore = createPlaybackProgressStore({
     onChange: () => {
@@ -62,9 +68,13 @@ async function init() {
   }
 
   async function requestPlay(episode, options) {
+    if (getSourceStatusForEpisode(episode).id === SOURCE_STATUSES.RSS_REQUIRED) {
+      patreonRssModal?.open(options?.nodeType ? options : document.activeElement);
+      return;
+    }
     await loadEpisodeForPlayer(episode, {
       ...normalizePlayerRequestOptions(options),
-      playbackIntent: Boolean(getPublicSourceForEpisode(episode)),
+      playbackIntent: Boolean(getSourceForEpisode(episode)),
     });
   }
 
@@ -158,6 +168,7 @@ async function init() {
     getSourceStatusForEpisode,
     onSelectRequest: requestSelect,
     onPlayRequest: requestPlay,
+    onLockedRequest: (_episode, trigger) => patreonRssModal?.open(trigger),
     onRegisterQueueRefresh: (fn) => {
       refreshQueueProgress = fn;
     },
@@ -215,6 +226,20 @@ async function init() {
     onOpenFavorites: libraryView.openFavorites,
   });
 
+  async function refreshPrivateSources() {
+    playerState.refreshSource();
+    await audioController.loadSelected({ playbackIntent: false });
+    episodeList?.renderVisibleRows();
+    refreshQueueProgress?.();
+  }
+
+  patreonRssModal = createPatreonRssModal({
+    dom,
+    patreonSources,
+    getEpisodes: () => archiveEpisodes,
+    onSourcesChanged: refreshPrivateSources,
+  });
+
   dom.episodeList.addEventListener("scroll", episodeList.renderVisibleRows, { passive: true });
   window.addEventListener("resize", () => {
     episodeList.renderVisibleRows();
@@ -234,7 +259,7 @@ async function init() {
     console.info("[MSSP] Data mode:", apiClient.getMode());
     state.collections = data.collections;
     if (archiveResult.value) {
-      const archiveEpisodes = archiveResult.value.episodes || [];
+      archiveEpisodes = archiveResult.value.episodes || [];
       favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
       archiveStatsView.setEpisodes(archiveEpisodes);
     } else {
@@ -254,6 +279,12 @@ async function init() {
       episodeList.renderVisibleRows();
     });
     await playerState.restore(apiClient);
+
+    if (patreonSources.getStoredUrl()) {
+      void patreonSources.reconnect(archiveEpisodes)
+        .then(() => refreshPrivateSources())
+        .catch(() => {});
+    }
 
     await new Promise((resolve) => {
       requestAnimationFrame(() => requestAnimationFrame(resolve));

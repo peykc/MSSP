@@ -7,6 +7,18 @@ function getRequiredElement(id) {
 }
 
 export const dom = {
+  patreonRssLogoButton: getRequiredElement("patreonRssLogoButton"),
+  patreonRssModal: getRequiredElement("patreonRssModal"),
+  patreonRssDialog: getRequiredElement("patreonRssDialog"),
+  patreonRssTitle: getRequiredElement("patreonRssTitle"),
+  patreonRssClose: getRequiredElement("patreonRssClose"),
+  patreonRssForm: getRequiredElement("patreonRssForm"),
+  patreonRssInput: getRequiredElement("patreonRssInput"),
+  patreonRssReveal: getRequiredElement("patreonRssReveal"),
+  patreonRssStatus: getRequiredElement("patreonRssStatus"),
+  patreonRssRemove: getRequiredElement("patreonRssRemove"),
+  patreonRssCancel: getRequiredElement("patreonRssCancel"),
+  patreonRssSubmit: getRequiredElement("patreonRssSubmit"),
   collectionGrid: getRequiredElement("collectionGrid"),
   launchHero: getRequiredElement("launchHero"),
   launchView: getRequiredElement("launchView"),

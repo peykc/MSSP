@@ -38,6 +38,7 @@
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/pwa-update.css">
+    <link rel="stylesheet" href="./css/patreon-rss.css">
     <link rel="stylesheet" href="./css/transcript.css?v=scroll-hydrate-d">
     <style>
       body.launch-loading .launch {
@@ -84,7 +85,9 @@
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
         <header class="launch__header">
-          <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="MSSP">
+          <button class="launch__brand-button" id="patreonRssLogoButton" type="button" aria-label="Connect private Patreon RSS">
+            <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="">
+          </button>
           <div class="launch__heading">
             <p class="eyebrow">Matt and Shane's Secret Podcast</p>
             <h1>The Complete Collection</h1>
@@ -184,6 +187,37 @@
           <div class="full-calendar__weekdays" id="fullCalendarWeekdays" aria-hidden="true"></div>
           <div class="full-calendar__months" id="fullCalendarMonths"></div>
         </div>
+      </section>
+    </div>
+    <div class="patreon-rss-modal" id="patreonRssModal" aria-hidden="true" hidden>
+      <section class="patreon-rss-dialog" id="patreonRssDialog" role="dialog" aria-modal="true" aria-labelledby="patreonRssTitle" tabindex="-1">
+        <header class="patreon-rss-dialog__header">
+          <div>
+            <p class="eyebrow">The key to the treasure chest</p>
+            <h2 id="patreonRssTitle">Connect Patreon RSS</h2>
+          </div>
+          <button class="patreon-rss-dialog__close" id="patreonRssClose" type="button" aria-label="Close Patreon RSS connection">
+            <span aria-hidden="true"></span>
+          </button>
+        </header>
+        <p class="patreon-rss-dialog__intro">Paste your private Patreon audio RSS link. It passes through the MSSP RSS Worker only to retrieve your feed from Patreon.</p>
+        <form id="patreonRssForm" novalidate>
+          <div class="patreon-rss-field">
+            <label for="patreonRssInput">Private RSS link</label>
+            <span class="patreon-rss-field__control">
+              <input id="patreonRssInput" type="password" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+              <button id="patreonRssReveal" type="button" aria-label="Show private RSS link" aria-pressed="false">Show</button>
+            </span>
+          </div>
+          <p class="patreon-rss-dialog__privacy">Stored as plaintext only in this browser. The RSS Worker is configured not to store, cache, or log the link, and audio is never proxied through it.</p>
+          <p class="patreon-rss-dialog__status" id="patreonRssStatus" role="status" aria-live="polite"></p>
+          <div class="patreon-rss-dialog__actions">
+            <button class="patreon-rss-action patreon-rss-action--danger" id="patreonRssRemove" type="button" hidden>Remove</button>
+            <span class="patreon-rss-dialog__action-spacer"></span>
+            <button class="patreon-rss-action" id="patreonRssCancel" type="button">Cancel</button>
+            <button class="patreon-rss-action patreon-rss-action--primary" id="patreonRssSubmit" type="submit">Connect</button>
+          </div>
+        </form>
       </section>
     </div>
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
@@ -344,6 +378,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=frontend-module-split"></script>
+    <script type="module" src="./js/main.js?v=private-patreon-rss"></script>
   </body>
 </html>

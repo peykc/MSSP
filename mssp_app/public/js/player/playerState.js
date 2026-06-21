@@ -83,6 +83,19 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     notify();
   }
 
+  function refreshSource() {
+    if (!state.selectedEpisode) return;
+    const source = getPublicSourceForEpisode(state.selectedEpisode);
+    state.source = source;
+    state.sourceStatus = getSourceStatus(state.selectedEpisode, source);
+    state.playbackStatus = source ? PLAYBACK_STATUSES.READY : PLAYBACK_STATUSES.UNAVAILABLE;
+    state.playbackRequested = false;
+    state.currentTime = 0;
+    state.duration = 0;
+    state.playbackError = "";
+    notify();
+  }
+
   function setQueue(queue) {
     state.queue = sortQueue(queue);
     notify();
@@ -231,6 +244,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     getUpNextWindow,
     getState,
     loadEpisode,
+    refreshSource,
     restore,
     setExpanded,
     setFullPlayerMode,

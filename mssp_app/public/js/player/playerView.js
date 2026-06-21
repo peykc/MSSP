@@ -61,6 +61,7 @@ export function createPlayerView({
   getSourceStatusForEpisode = () => ({ id: SOURCE_STATUSES.MISSING, label: "Source unavailable" }),
   onSelectRequest = () => {},
   onPlayRequest = () => {},
+  onLockedRequest = () => {},
   onRegisterQueueRefresh = () => {},
 }) {
   let restoreFocusTo = null;
@@ -311,8 +312,9 @@ export function createPlayerView({
     dom.fullPlayerStatus.textContent = state.playbackError ? "Unable to play audio." : source.label;
     dom.fullPlayerStatusDetail.textContent = state.playbackError ? "Tap Play to retry." : source.detail;
 
-    dom.miniPlayerPlay.disabled = !playable;
-    dom.playerPlay.disabled = !playable;
+    const isLocked = source.id === SOURCE_STATUSES.RSS_REQUIRED;
+    dom.miniPlayerPlay.disabled = !playable && !isLocked;
+    dom.playerPlay.disabled = !playable && !isLocked;
     renderTimeline(state);
 
     renderPlaybackControl(dom.miniPlayerPlay, source, state.playbackRequested);
@@ -1145,8 +1147,17 @@ export function createPlayerView({
   dom.playerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "full"));
   dom.miniPlayerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "mini"));
   dom.miniPlayerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "mini"));
-  dom.playerPlay.addEventListener("click", () => audioController.toggle());
-  dom.miniPlayerPlay.addEventListener("click", () => audioController.toggle());
+  function handlePlaybackControl(event) {
+    const state = playerState.getState();
+    if (state.sourceStatus?.id === SOURCE_STATUSES.RSS_REQUIRED) {
+      onLockedRequest(state.selectedEpisode, event.currentTarget);
+      return;
+    }
+    void audioController.toggle();
+  }
+
+  dom.playerPlay.addEventListener("click", handlePlaybackControl);
+  dom.miniPlayerPlay.addEventListener("click", handlePlaybackControl);
   dom.playerQueueToggle.addEventListener("click", toggleQueueMode);
   dom.playerTranscriptsToggle.addEventListener("click", toggleTranscriptMode);
   (timelineScrubber || dom.playerTimeline).addEventListener("pointerdown", beginScrub);

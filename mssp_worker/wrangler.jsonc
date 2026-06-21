@@ -1,0 +1,10 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mssp-rss-proxy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-06-21",
+  "workers_dev": true,
+  "observability": {
+    "enabled": false
+  }
+}
