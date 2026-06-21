@@ -40,7 +40,7 @@ body.player-expanded .pwa-update-bar {
   flex-shrink: 0;
   padding: 8px 16px;
   border: 1.5px solid #171514;
-  border-radius: 999px;
+  border-radius: 16px;
   background: #fff;
   color: #171514;
   font-size: 0.84rem;

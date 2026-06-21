@@ -599,11 +599,8 @@ export function createTranscriptView({
 
   function reconcileScrollAfterLayoutChange(anchor = null) {
     const viewport = dom.fullPlayerTranscriptViewport;
+    if (viewport.classList.contains("is-auto-scrolling")) return;
     const resolvedAnchor = anchor ?? captureScrollAnchor();
-    if (shouldMaintainFollowScroll() && viewport.classList.contains("is-auto-scrolling")) {
-      restoreScrollAnchor(resolvedAnchor);
-      return;
-    }
     if (shouldMaintainFollowScroll()) {
       scheduleFollowScroll({ instant: true });
       return;
@@ -1092,12 +1089,35 @@ export function createTranscriptView({
     syncAnimationLoop();
   }
 
+  function centerOnPlaybackPosition({ instant = false, resumeFollow = false } = {}) {
+    if (!modeActive || !timeline.length) return false;
+    const currentTime = getPlaybackTime();
+    if (!Number.isFinite(currentTime)) return false;
+
+    if (resumeFollow && !following) {
+      following = true;
+      notifyFollowingChange();
+    }
+
+    const entryIndex = findEntryIndex(timeline, currentTime);
+    if (entryIndex < 0) return false;
+
+    if (entryIndex !== activeEntryIndex) {
+      setActiveEntry(entryIndex, { mountForDom: true });
+    }
+
+    refreshPlaybackPinRange(entryIndex);
+    prepareFollowEntryTransition(entryIndex);
+    syncActiveEntryPlaybackDom(currentTime, { forceWords: true });
+    return update(currentTime, { forceCenter: true, instant });
+  }
+
   function setPlaybackActive(active) {
     const wasActive = playbackActive;
     playbackActive = Boolean(active);
     syncAnimationLoop();
-    if (wasActive && !playbackActive && modeActive && following && activeEntryIndex >= 0) {
-      update(getPlaybackTime(), { forceCenter: true, instant: false });
+    if (wasActive && !playbackActive && modeActive) {
+      centerOnPlaybackPosition({ instant: false, resumeFollow: true });
     }
   }
 
@@ -1154,7 +1174,7 @@ export function createTranscriptView({
     if (intentionalJump) {
       node = ensureEntryMounted(nextEntryIndex);
     } else if (shouldFollow && entryChanged) {
-      node = getMountedNode(nextEntryIndex);
+      node = ensureEntryMounted(nextEntryIndex);
     } else if (shouldFollow && !node && nextEntryIndex === activeEntryIndex) {
       syncActiveEntryPlaybackDom(currentTime, { forceWords: true });
       node = getMountedNode(nextEntryIndex);
@@ -1164,8 +1184,9 @@ export function createTranscriptView({
       if (node) updateSilenceProgress(entry, node, currentTime);
       if (!modeActive || !node) return false;
       if (scrubbing) return scrollToElement(node.element, { instant: true });
-      if (forceCenter) return scrollToEntryIndex(nextEntryIndex, { instant });
-      if (entryChanged && shouldFollow) return scrollToEntryIndex(nextEntryIndex, { instant: false });
+      if (forceCenter || (entryChanged && shouldFollow)) {
+        return scrollToElement(node.element, { instant: forceCenter ? instant : false });
+      }
       return false;
     }
 
@@ -1179,11 +1200,10 @@ export function createTranscriptView({
       const target = wordIndex >= 0 ? node.wordNodes[wordIndex] : node.element;
       return scrollToElement(target, { instant: true });
     }
-    if (forceCenter) {
+    if (forceCenter || (entryChanged && shouldFollow)) {
       const target = getScrollTarget(entry, node, currentTime);
-      return scrollToElement(target, { instant });
+      return scrollToElement(target, { instant: forceCenter ? instant : false });
     }
-    if (entryChanged && shouldFollow) return scrollToEntryIndex(nextEntryIndex, { instant: false });
     return false;
   }
 
@@ -1350,11 +1370,22 @@ export function createTranscriptView({
       scheduleRenderVisibleEntries();
       return isElementCentered(element, viewport);
     }
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const startTop = viewport.scrollTop;
     viewport.classList.add("is-auto-scrolling");
-    viewport.scrollTo({
-      top,
-      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth",
-    });
+    if (reducedMotion) {
+      viewport.scrollTop = top;
+    } else {
+      viewport.scrollTo({ top, behavior: "smooth" });
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          if (!viewport.classList.contains("is-auto-scrolling")) return;
+          if (Math.abs(viewport.scrollTop - startTop) < 2 && Math.abs(top - startTop) > 8) {
+            viewport.scrollTop = top;
+          }
+        });
+      });
+    }
     programmaticScrollTimer = window.setTimeout(() => {
       viewport.classList.remove("is-auto-scrolling");
       flushDeferredHeightUpdates();
@@ -1625,6 +1656,7 @@ export function createTranscriptView({
     getAvailability,
     setModeActive,
     setPlaybackActive,
+    centerOnPlaybackPosition,
     setScrubbing,
     setSelectedEpisode,
     loadTranscript,
