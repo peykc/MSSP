@@ -32,7 +32,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     event.preventDefault();
     if (busy) return;
     setBusy(true);
-    setStatus("Connecting directly to Patreon…");
+    setStatus("Connecting through the MSSP RSS Worker…");
     try {
       const result = await patreonSources.connect(dom.patreonRssInput.value, getEpisodes());
       await onSourcesChanged();

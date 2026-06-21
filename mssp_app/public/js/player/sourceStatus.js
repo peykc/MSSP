@@ -4,6 +4,7 @@ export const SOURCE_TYPES = Object.freeze({
   PUBLIC_RSS_AUDIO: "public_rss_audio",
   YOUTUBE_EMBED: "youtube_embed",
   PATREON_RSS: "patreon_rss",
+  PATREON_R2_AUDIO: "patreon_r2_audio",
   LOCAL_FILE: "local_file",
 });
 
@@ -16,12 +17,18 @@ export const SOURCE_STATUSES = Object.freeze({
 
 export function getSourceStatus(episode, publicSource = null) {
   if (episode?.paytch === "PAYTCH") {
-    if (publicSource?.sourceType === SOURCE_TYPES.PATREON_RSS && publicSource.url) {
+    if (
+      (publicSource?.sourceType === SOURCE_TYPES.PATREON_RSS
+        || publicSource?.sourceType === SOURCE_TYPES.PATREON_R2_AUDIO)
+      && publicSource.url
+    ) {
       return {
         id: SOURCE_STATUSES.READY,
         label: "Ready to play",
-        detail: "This PAYTCH episode is connected through your private Patreon RSS feed.",
-        sourceType: SOURCE_TYPES.PATREON_RSS,
+        detail: publicSource.sourceType === SOURCE_TYPES.PATREON_R2_AUDIO
+          ? "This PAYTCH episode is unlocked by your private Patreon RSS connection."
+          : "This PAYTCH episode is connected through your private Patreon RSS feed.",
+        sourceType: publicSource.sourceType,
       };
     }
 

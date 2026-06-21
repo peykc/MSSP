@@ -419,7 +419,7 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
   }
 
   function configureCrossOrigin(source) {
-    if (source?.sourceType === "r2_audio") {
+    if (source?.sourceType === "r2_audio" || source?.sourceType === "patreon_r2_audio") {
       audio.crossOrigin = "anonymous";
       return;
     }

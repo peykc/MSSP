@@ -1,4 +1,5 @@
 import { matchPatreonSources, normalizePatreonTitle } from "./patreonRssMatcher.js";
+import { addPatreonR2Sources } from "./patreonR2Sources.js";
 
 const STORAGE_KEY = "mssp:patreonRss";
 const STORAGE_SCHEMA_VERSION = 1;
@@ -78,9 +79,18 @@ export function createPatreonRssSources() {
       };
     }
 
+    // These R2 objects are intentionally exposed only after a valid Patreon feed
+    // has been retrieved and parsed. They never pass through the RSS Worker.
+    const privateR2Matched = addPatreonR2Sources(episodes, nextSources);
+
     if (persist) persistUrl(url.href);
     sources = nextSources;
-    summary = result.summary;
+    summary = {
+      ...result.summary,
+      matched: result.summary.matched + privateR2Matched,
+      unmatchedEpisodes: Math.max(0, result.summary.unmatchedEpisodes - privateR2Matched),
+      privateR2Matched,
+    };
     notify();
     return summary;
   }
