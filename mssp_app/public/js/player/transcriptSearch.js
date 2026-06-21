@@ -186,7 +186,7 @@ export function createTranscriptSearch({
     const nextActiveIndex = nextMatches.length ? 0 : -1;
     applyMatches(nextMatches, nextActiveIndex);
     if (nextActiveIndex >= 0) {
-      void transcriptView.scrollToSearchMatch(nextMatches[nextActiveIndex], { instant: false });
+      void transcriptView.scrollToSearchMatch(nextMatches[nextActiveIndex], { instant: true });
     }
   }
 

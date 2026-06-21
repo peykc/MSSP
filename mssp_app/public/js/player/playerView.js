@@ -1,7 +1,7 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-e";
-import { createTranscriptSearch } from "./transcriptSearch.js?v=find-search-c";
+import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-g";
+import { createTranscriptSearch } from "./transcriptSearch.js?v=scroll-hydrate-g";
 import { formatPlayerDate } from "../utils.js";
 import {
   createEpisodeRow,

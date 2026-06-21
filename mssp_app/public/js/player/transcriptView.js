@@ -47,6 +47,7 @@ export function createTranscriptView({
   let frameId = null;
   let renderFrameId = null;
   let programmaticScrollTimer = null;
+  let searchScrollTimer = null;
   let lastLayoutWidth = 0;
   let forcedVisibleStart = -1;
   let forcedVisibleEnd = -1;
@@ -761,6 +762,7 @@ export function createTranscriptView({
     pendingCenterRestore = false;
     forcedVisibleStart = -1;
     forcedVisibleEnd = -1;
+    releaseSearchScrollLock();
     resetHeightHydration(0);
     estimateMetrics = null;
     if (measureContainer) {
@@ -1043,20 +1045,21 @@ export function createTranscriptView({
     return scrollToElement(node.element, { instant });
   }
 
+  function releaseSearchScrollLock() {
+    window.clearTimeout(searchScrollTimer);
+    searchScrollTimer = null;
+    forcedVisibleStart = -1;
+    forcedVisibleEnd = -1;
+  }
+
   function getElementScrollTop(element) {
     const viewport = dom.fullPlayerTranscriptViewport;
-    const indexValue = element.dataset.timelineIndex
-      ?? element.closest("[data-timeline-index]")?.dataset.timelineIndex;
-    const index = Number(indexValue);
-    if (Number.isFinite(index) && index >= 0 && index < timeline.length) {
-      let top = entryOffsets[index];
-      if (!element.classList.contains("transcript-passage") && !element.classList.contains("transcript-silence")) {
-        const passage = element.closest(".transcript-passage");
-        if (passage) top += element.offsetTop;
-      }
-      return top;
-    }
-    return getOffsetTopWithin(element, viewport);
+    if (!element || viewport.clientHeight <= 0) return 0;
+    const scaleY = viewport.clientHeight > 0
+      ? viewport.getBoundingClientRect().height / viewport.clientHeight
+      : 1;
+    return viewport.scrollTop
+      + ((element.getBoundingClientRect().top - viewport.getBoundingClientRect().top) / scaleY);
   }
 
   function getOffsetTopWithin(element, scrollContainer) {
@@ -1264,20 +1267,65 @@ export function createTranscriptView({
   function clearSearchHighlights() {
     searchMatches = [];
     searchActiveMatchIndex = -1;
+    releaseSearchScrollLock();
     for (const [index, node] of mountedByIndex.entries()) {
       clearSearchHighlightsOnNode(node, index);
     }
+    scheduleRenderVisibleEntries();
+  }
+
+  function getSearchMatchElement(node, match) {
+    const wordSpan = node.wordNodes[match.wordIndex];
+    if (!wordSpan) return node.element;
+    if (match.charStart != null) {
+      const activeMark = wordSpan.querySelector(".transcript-word__search.is-search-active");
+      if (activeMark) return activeMark;
+    }
+    return wordSpan;
   }
 
   async function scrollToSearchMatch(match, { instant = false } = {}) {
     if (!match || match.entryIndex < 0 || match.entryIndex >= timeline.length) return false;
-    ensureEntryMounted(match.entryIndex);
+
+    const entryIndex = match.entryIndex;
+    releaseSearchScrollLock();
+    forcedVisibleStart = Math.max(0, entryIndex - OVERSCAN);
+    forcedVisibleEnd = Math.min(timeline.length - 1, entryIndex + OVERSCAN);
+    renderVisibleEntriesNow(entryIndex);
+
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    const node = getMountedNode(match.entryIndex);
-    if (!node) return false;
-    const target = node.wordNodes[match.wordIndex] || node.element;
-    const scrolled = scrollToElement(target, { instant });
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+
+    let node = getMountedNode(entryIndex);
+    if (!node) {
+      releaseSearchScrollLock();
+      scheduleRenderVisibleEntries();
+      return false;
+    }
+
     applySearchHighlightsToMounted();
+    const target = getSearchMatchElement(node, match);
+    if (!target) {
+      releaseSearchScrollLock();
+      scheduleRenderVisibleEntries();
+      return false;
+    }
+
+    const useInstant = instant || window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const scrolled = scrollToElement(target, { instant: useInstant });
+
+    const finishSearchScroll = () => {
+      applySearchHighlightsToMounted();
+      releaseSearchScrollLock();
+      scheduleRenderVisibleEntries();
+    };
+
+    if (useInstant) {
+      finishSearchScroll();
+    } else {
+      searchScrollTimer = window.setTimeout(finishSearchScroll, 540);
+    }
+
     return scrolled;
   }
 
