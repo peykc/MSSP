@@ -18,6 +18,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="MSSP Archive">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="preload" href="./assets/brand/mssp-mark.png" as="image">
     <title>MSSP Archive</title>
     <link rel="manifest" href="./site.webmanifest">
     <link rel="icon" href="./favicon.ico" sizes="any">
@@ -37,8 +38,44 @@
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/transcript.css?v=scroll-hydrate-d">
+    <style>
+      body.launch-loading .launch {
+        visibility: hidden;
+      }
+
+      .launch-splash {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: grid;
+        place-items: center;
+        margin: 0;
+        background: #171514;
+        opacity: 1;
+        transition: opacity 420ms ease;
+      }
+
+      .launch-splash.is-hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .launch-splash.is-removed {
+        display: none;
+      }
+
+      .launch-splash__mark {
+        display: block;
+        width: clamp(72px, 18vw, 108px);
+        height: auto;
+        user-select: none;
+      }
+    </style>
   </head>
-  <body>
+  <body class="launch-loading">
+    <div class="launch-splash" id="launchSplash" aria-hidden="false">
+      <img class="launch-splash__mark" src="./assets/brand/mssp-mark.png" alt="">
+    </div>
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
         <header class="launch__header">

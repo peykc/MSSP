@@ -2,6 +2,8 @@ import { PLAYBACK_STATUSES } from "./playerState.js";
 
 const BUFFERING_GRACE_MS = 900;
 const SAVE_INTERVAL_MS = 5000;
+const HAVE_FUTURE_DATA = 3;
+const HAVE_ENOUGH_DATA = 4;
 const RECONCILABLE_STATUSES = new Set([
   PLAYBACK_STATUSES.LOADING_SOURCE,
   PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
@@ -56,10 +58,62 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     }
 
     const sourceChanged = loadedEpisodeKey !== episode.episodeKey || loadedSourceUrl !== source.url;
-    if (sourceChanged) loadSource(episode.episodeKey, source, shouldPlay);
+    if (sourceChanged) {
+      const token = loadSource(episode.episodeKey, source, shouldPlay);
+      setPlaybackIntent(shouldPlay);
+      return shouldPlay ? beginPlaybackWhenReady(token) : Promise.resolve(true);
+    }
 
     setPlaybackIntent(shouldPlay);
     return playbackIntent ? play() : Promise.resolve(true);
+  }
+
+  async function beginPlaybackWhenReady(token) {
+    const ready = await waitUntilCanPlay(token);
+    if (!ready || token !== loadToken || !playbackIntent || !isCurrentSource()) return false;
+    return play();
+  }
+
+  function waitUntilCanPlay(token) {
+    if (token !== loadToken || !isCurrentSource()) return Promise.resolve(false);
+    if (audio.error) return Promise.resolve(false);
+    if (audio.readyState >= HAVE_FUTURE_DATA) return Promise.resolve(true);
+
+    return new Promise((resolve) => {
+      const finish = (ready) => {
+        cleanup();
+        resolve(ready);
+      };
+
+      const onCanPlay = () => {
+        if (token !== loadToken || !isCurrentSource()) {
+          finish(false);
+          return;
+        }
+        finish(!audio.error);
+      };
+
+      const onError = () => finish(false);
+      const onAbort = () => finish(false);
+
+      const cleanup = () => {
+        audio.removeEventListener("canplay", onCanPlay);
+        audio.removeEventListener("error", onError);
+        loadEvents?.signal.removeEventListener("abort", onAbort);
+      };
+
+      audio.addEventListener("canplay", onCanPlay);
+      audio.addEventListener("error", onError);
+      loadEvents?.signal.addEventListener("abort", onAbort, { once: true });
+    });
+  }
+
+  function isStartingPlayback(status = playerState.getState().playbackStatus) {
+    return playbackIntent && (
+      pendingPlayToken !== null
+      || status === PLAYBACK_STATUSES.LOADING_SOURCE
+      || status === PLAYBACK_STATUSES.BUFFERING_PLAYBACK
+    );
   }
 
   async function play() {
@@ -79,6 +133,14 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
         ? PLAYBACK_STATUSES.BUFFERING_PLAYBACK
         : PLAYBACK_STATUSES.LOADING_SOURCE
     );
+
+    if (audio.readyState < HAVE_FUTURE_DATA && !audio.error) {
+      const ready = await waitUntilCanPlay(loadToken);
+      if (!ready || commandToken !== playbackCommandToken || !playbackIntent || !isCurrentSource()) {
+        if (pendingPlayToken === commandToken) pendingPlayToken = null;
+        return false;
+      }
+    }
 
     try {
       await audio.play();
@@ -101,6 +163,23 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
         return false;
       }
       if (pendingPlayToken === commandToken) pendingPlayToken = null;
+
+      if (
+        !audio.error
+        && playbackIntent
+        && isCurrentSource()
+        && commandToken === playbackCommandToken
+        && audio.readyState < HAVE_ENOUGH_DATA
+      ) {
+        playerState.setPlaybackStatus(PLAYBACK_STATUSES.BUFFERING_PLAYBACK);
+        void waitUntilCanPlay(loadToken).then((ready) => {
+          if (ready && playbackIntent && commandToken === playbackCommandToken) {
+            void play();
+          }
+        });
+        return false;
+      }
+
       setPlaybackIntent(false);
       clearBufferingTimer();
       if (playerState.getState().playbackStatus !== PLAYBACK_STATUSES.ERROR) {
@@ -184,6 +263,7 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     invalidateLoad();
     resetAudioElement();
     configureCrossOrigin(source);
+    audio.preload = shouldPlay ? "auto" : "metadata";
 
     loadedEpisodeKey = episodeKey;
     loadedSourceUrl = source.url;
@@ -196,6 +276,7 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     playerState.setPlaybackError("");
     playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING_SOURCE);
     audio.load();
+    return token;
   }
 
   function bindLoadEvents(token, expectedMediaUrl) {
@@ -243,18 +324,26 @@ export function createAudioController({ playerState, playbackProgressStore, onEn
     }), options);
     audio.addEventListener("pause", current(() => {
       clearBufferingTimer();
-      if (
-        audio.paused
-        && !audio.ended
-        && [
-          PLAYBACK_STATUSES.LOADING_SOURCE,
-          PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
-          PLAYBACK_STATUSES.PLAYING,
-        ].includes(playerState.getState().playbackStatus)
-      ) {
-        if (playbackIntent && pendingPlayToken === null) setPlaybackIntent(false);
-        playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
+      if (!audio.paused || audio.ended) return;
+
+      const status = playerState.getState().playbackStatus;
+      if (![
+        PLAYBACK_STATUSES.LOADING_SOURCE,
+        PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
+        PLAYBACK_STATUSES.PLAYING,
+      ].includes(status)) {
+        return;
       }
+
+      if (isStartingPlayback(status) && audio.readyState < HAVE_ENOUGH_DATA) {
+        if (status !== PLAYBACK_STATUSES.BUFFERING_PLAYBACK) {
+          playerState.setPlaybackStatus(PLAYBACK_STATUSES.BUFFERING_PLAYBACK);
+        }
+        return;
+      }
+
+      if (playbackIntent && pendingPlayToken === null) setPlaybackIntent(false);
+      playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
     }), options);
     audio.addEventListener("ended", current(() => {
       setPlaybackIntent(false);

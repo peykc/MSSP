@@ -5,6 +5,43 @@
   margin-inline: auto;
 }
 
+.launch-splash {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+  opacity: 1;
+  transition: opacity 420ms ease;
+}
+
+.launch-splash.is-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.launch-splash.is-removed {
+  display: none;
+}
+
+.launch-splash__mark {
+  display: block;
+  width: clamp(72px, 18vw, 108px);
+  height: auto;
+  user-select: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .launch-splash {
+    transition: none;
+  }
+}
+
+body.launch-loading .launch {
+  visibility: hidden;
+}
+
 .launch__header,
 .launch__content,
 .launch__browse,

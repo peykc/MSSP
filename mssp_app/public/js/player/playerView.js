@@ -382,7 +382,10 @@ export function createPlayerView({
 
   function renderTimeline(state) {
     const seekable = canSeek(state);
-    const metadataLoading = state.playbackStatus === PLAYBACK_STATUSES.LOADING_SOURCE;
+    const metadataLoading = (
+      state.playbackStatus === PLAYBACK_STATUSES.LOADING_SOURCE
+      || state.playbackStatus === PLAYBACK_STATUSES.BUFFERING_PLAYBACK
+    ) && !state.playbackError;
     const duration = Number.isFinite(state.duration) ? state.duration : 0;
     const shownTime = isScrubbing ? scrubPreviewTime : state.currentTime;
 

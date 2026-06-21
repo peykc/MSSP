@@ -19,6 +19,7 @@ import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js";
+import { dismissLaunchSplash } from "./launchSplash.js";
 
 function getApiClient() {
   if (!window.MsspApiClient) {
@@ -49,116 +50,7 @@ async function init() {
       refreshQueueProgress?.();
     },
   });
-  const audioController = createAudioController({
-    playerState,
-    playbackProgressStore,
-    onEnded: handleEnded,
-  });
-  createPlayerView({
-    dom,
-    playerState,
-    audioController,
-    favoritesStore,
-    playbackProgressStore,
-    getSourceStatusForEpisode,
-    onSelectRequest: requestSelect,
-    onPlayRequest: requestPlay,
-    onRegisterQueueRefresh: (fn) => {
-      refreshQueueProgress = fn;
-    },
-  });
-  createMediaSessionController({ playerState, audioController });
   const queueCache = new Map();
-
-  const episodeDetails = createEpisodeDetails({
-    dom,
-    state,
-  });
-
-  let coverFilters;
-  episodeList = createEpisodeList({
-    dom,
-    state,
-    getVisibleEpisodes: () => coverFilters.getVisibleEpisodes(),
-    renderDetails: episodeDetails.renderDetails,
-    dismissGlobalTooltip,
-    onPlayRequest: requestPlay,
-    getSourceStatusForEpisode,
-    playbackProgressStore,
-    favoritesStore,
-  });
-
-  coverFilters = createCoverFilters({
-    dom,
-    state,
-    favoritesStore,
-    onFiltersChanged: () => {
-      episodeList.applyEpisodeFilters({ preserveScroll: true });
-      episodeDetails.renderDetails();
-      episodeList.renderVisibleRows();
-    },
-  });
-
-  const libraryView = createLibraryView({
-    dom,
-    state,
-    apiClient,
-    renderCoverFilters: coverFilters.renderCoverFilters,
-    closeFilterMenu: coverFilters.closeFilterMenu,
-    applyEpisodeFilters: episodeList.applyEpisodeFilters,
-    clearRows: episodeList.clearRows,
-    renderDetails: episodeDetails.renderDetails,
-    renderVisibleRows: episodeList.renderVisibleRows,
-  });
-
-  const collectionsView = createCollectionsView({
-    dom,
-    state,
-    favoritesStore,
-    calendarModal,
-    fullCalendarModal,
-    onOpenCollection: libraryView.openCollection,
-    onOpenFavorites: libraryView.openFavorites,
-  });
-
-  dom.episodeList.addEventListener("scroll", episodeList.renderVisibleRows, { passive: true });
-  window.addEventListener("resize", () => {
-    episodeList.renderVisibleRows();
-    episodeDetails.updateHeroCoverSize();
-    episodeDetails.updateHeroTitleMarquee();
-  });
-  dom.backButton.addEventListener("click", libraryView.closeLibrary);
-  initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
-
-  const [data, archiveResult] = await Promise.all([
-    apiClient.getCollections(),
-    apiClient.getEpisodes({ collection: "anthology", query: "" })
-      .then((value) => ({ value }))
-      .catch((error) => ({ error })),
-  ]);
-  console.info("[MSSP] Data mode:", apiClient.getMode());
-  state.collections = data.collections;
-  if (archiveResult.value) {
-    const archiveEpisodes = archiveResult.value.episodes || [];
-    favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
-    archiveStatsView.setEpisodes(archiveEpisodes);
-  } else {
-    console.error("[MSSP] Could not load archive statistics.", archiveResult.error);
-    archiveStatsView.renderError();
-  }
-  collectionsView.renderCollections();
-  void logMetadataDiagnostics(apiClient);
-
-  favoritesStore.subscribe(() => {
-    collectionsView.renderHero();
-    if (dom.libraryView.classList.contains("is-hidden")) return;
-    if (state.favoritesOnly) {
-      episodeList.applyEpisodeFilters({ preserveScroll: true });
-    }
-    episodeDetails.renderDetails();
-    episodeList.renderVisibleRows();
-  });
-  await playerState.restore(apiClient);
 
   async function requestSelect(episode, options) {
     await loadEpisodeForPlayer(episode, {
@@ -227,8 +119,8 @@ async function init() {
       return;
     }
 
-    const state = playerState.getState();
-    const fromEpisode = state.selectedEpisode;
+    const playerSnapshot = playerState.getState();
+    const fromEpisode = playerSnapshot.selectedEpisode;
     if (!fromEpisode) return;
 
     const nextEpisode = playerState.getNextPlayableEpisode(
@@ -239,15 +131,135 @@ async function init() {
 
     playerState.loadEpisode({
       episode: nextEpisode,
-      collectionId: state.collectionId,
-      queue: state.queue,
-      isExpanded: state.isExpanded,
+      collectionId: playerSnapshot.collectionId,
+      queue: playerSnapshot.queue,
+      isExpanded: playerSnapshot.isExpanded,
     });
     void audioController.loadSelected({ playbackIntent });
   }
 
   function handleEnded() {
     stepPlayer(1, { playbackIntent: true });
+  }
+
+  const audioController = createAudioController({
+    playerState,
+    playbackProgressStore,
+    onEnded: handleEnded,
+  });
+  createPlayerView({
+    dom,
+    playerState,
+    audioController,
+    favoritesStore,
+    playbackProgressStore,
+    getSourceStatusForEpisode,
+    onSelectRequest: requestSelect,
+    onPlayRequest: requestPlay,
+    onRegisterQueueRefresh: (fn) => {
+      refreshQueueProgress = fn;
+    },
+  });
+  createMediaSessionController({ playerState, audioController });
+
+  const episodeDetails = createEpisodeDetails({
+    dom,
+    state,
+  });
+
+  let coverFilters;
+  episodeList = createEpisodeList({
+    dom,
+    state,
+    getVisibleEpisodes: () => coverFilters.getVisibleEpisodes(),
+    renderDetails: episodeDetails.renderDetails,
+    dismissGlobalTooltip,
+    onPlayRequest: requestPlay,
+    getSourceStatusForEpisode,
+    playbackProgressStore,
+    favoritesStore,
+  });
+
+  coverFilters = createCoverFilters({
+    dom,
+    state,
+    favoritesStore,
+    onFiltersChanged: () => {
+      episodeList.applyEpisodeFilters({ preserveScroll: true });
+      episodeDetails.renderDetails();
+      episodeList.renderVisibleRows();
+    },
+  });
+
+  const libraryView = createLibraryView({
+    dom,
+    state,
+    apiClient,
+    renderCoverFilters: coverFilters.renderCoverFilters,
+    closeFilterMenu: coverFilters.closeFilterMenu,
+    applyEpisodeFilters: episodeList.applyEpisodeFilters,
+    clearRows: episodeList.clearRows,
+    renderDetails: episodeDetails.renderDetails,
+    renderVisibleRows: episodeList.renderVisibleRows,
+  });
+
+  const collectionsView = createCollectionsView({
+    dom,
+    state,
+    favoritesStore,
+    calendarModal,
+    fullCalendarModal,
+    onOpenCollection: libraryView.openCollection,
+    onOpenFavorites: libraryView.openFavorites,
+  });
+
+  dom.episodeList.addEventListener("scroll", episodeList.renderVisibleRows, { passive: true });
+  window.addEventListener("resize", () => {
+    episodeList.renderVisibleRows();
+    episodeDetails.updateHeroCoverSize();
+    episodeDetails.updateHeroTitleMarquee();
+  });
+  dom.backButton.addEventListener("click", libraryView.closeLibrary);
+  initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
+
+  try {
+    const [data, archiveResult] = await Promise.all([
+      apiClient.getCollections(),
+      apiClient.getEpisodes({ collection: "anthology", query: "" })
+        .then((value) => ({ value }))
+        .catch((error) => ({ error })),
+    ]);
+    console.info("[MSSP] Data mode:", apiClient.getMode());
+    state.collections = data.collections;
+    if (archiveResult.value) {
+      const archiveEpisodes = archiveResult.value.episodes || [];
+      favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
+      archiveStatsView.setEpisodes(archiveEpisodes);
+    } else {
+      console.error("[MSSP] Could not load archive statistics.", archiveResult.error);
+      archiveStatsView.renderError();
+    }
+    collectionsView.renderCollections();
+    void logMetadataDiagnostics(apiClient);
+
+    favoritesStore.subscribe(() => {
+      collectionsView.renderHero();
+      if (dom.libraryView.classList.contains("is-hidden")) return;
+      if (state.favoritesOnly) {
+        episodeList.applyEpisodeFilters({ preserveScroll: true });
+      }
+      episodeDetails.renderDetails();
+      episodeList.renderVisibleRows();
+    });
+    await playerState.restore(apiClient);
+
+    await new Promise((resolve) => {
+      requestAnimationFrame(() => requestAnimationFrame(resolve));
+    });
+  } catch (error) {
+    console.error("[MSSP] Failed to start frontend.", error);
+  } finally {
+    dismissLaunchSplash();
   }
 }
 
@@ -267,6 +279,4 @@ async function logMetadataDiagnostics(apiClient) {
   }
 }
 
-init().catch((error) => {
-  console.error("[MSSP] Failed to start frontend.", error);
-});
+init();

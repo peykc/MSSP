@@ -475,7 +475,7 @@
   place-items: center;
   padding: clamp(12px, 3vw, 32px);
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.68);
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
   backdrop-filter: blur(10px);
   opacity: 1;
   transition: opacity 340ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -512,21 +512,34 @@ body.has-player.calendar-open .calendar-modal {
 }
 
 @media (min-width: 561px) {
-  body.calendar-open #calendarModal {
-    place-items: stretch;
+  body.calendar-open #calendarModal,
+  body.calendar-open #fullCalendarModal {
+    place-items: center;
   }
 
   body.calendar-open #calendarModal .calendar-dialog {
     width: min(100%, 720px);
-    max-height: 100%;
+    height: min(92dvh, 920px);
+    max-height: min(92dvh, 920px);
     min-height: 0;
     overflow: hidden;
     justify-self: center;
-    align-self: stretch;
+    align-self: center;
     align-content: stretch;
     gap: clamp(12px, 1.8vh, 22px);
     /* Week 1 row, month 2 rows, day 5 rows — equal cell height when space is tight */
     grid-template-rows: auto minmax(0, 1fr) minmax(0, 2fr) minmax(0, 5fr) auto;
+  }
+
+  body.calendar-open #fullCalendarModal .full-calendar-dialog {
+    height: min(92dvh, 920px);
+    max-height: min(92dvh, 920px);
+  }
+
+  body.has-player.calendar-open #calendarModal .calendar-dialog,
+  body.has-player.calendar-open #fullCalendarModal .full-calendar-dialog {
+    height: min(88dvh, 860px);
+    max-height: min(88dvh, 860px);
   }
 
   body.calendar-open #calendarModal .calendar-section {
@@ -569,10 +582,10 @@ body.calendar-open .full-player {
   gap: 22px;
   padding: clamp(18px, 3vw, 30px);
   overflow: auto;
-  background: rgba(31, 29, 28, 0.99);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--bg);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
 }
 
 .calendar-dialog:focus {
@@ -713,7 +726,7 @@ body.calendar-open .full-player {
   min-width: 0;
   gap: 1px;
   overflow: hidden;
-  background: rgba(255, 255, 255, 0.12);
+  background: var(--bg);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
 }
@@ -776,7 +789,8 @@ button.calendar-day:focus-visible {
 }
 
 .calendar-day--empty {
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .calendar-legend {
@@ -903,13 +917,9 @@ body.calendar-open {
   width: min(100%, 640px);
   max-height: min(92dvh, 920px);
   overflow: hidden;
-  grid-template-rows: auto 1fr;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   padding-inline: 0;
-}
-
-body.has-player.calendar-open .full-calendar-dialog {
-  max-height: min(88dvh, 860px);
 }
 
 .full-calendar-dialog .calendar-dialog__header {
@@ -937,7 +947,7 @@ body.has-player.calendar-open .full-calendar-dialog {
   min-width: 0;
   max-width: 100%;
   padding: 6px var(--cal-pad) 10px;
-  background: rgba(31, 29, 28, 0.99);
+  background: var(--bg);
 }
 
 .full-calendar__weekday {
@@ -1016,13 +1026,15 @@ body.has-player.calendar-open .full-calendar-dialog {
   color: var(--muted);
   font: inherit;
   text-align: center;
-  background: rgba(255, 255, 255, 0.02);
+  background: rgba(255, 255, 255, 0.045);
   border: 0;
   border-radius: 7px;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.1);
 }
 
 .cal-cell--blank {
   background: transparent;
+  box-shadow: none;
 }
 
 .cal-cell__num {
@@ -1041,23 +1053,23 @@ body.has-player.calendar-open .full-calendar-dialog {
 }
 
 .cal-cell--single {
-  background: color-mix(in srgb, var(--cell-accent, #888) 26%, rgba(255, 255, 255, 0.03));
+  background: color-mix(in srgb, var(--cell-accent, #888) 26%, var(--bg));
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cell-accent, #888) 55%, transparent);
 }
 
 .cal-cell--single:hover,
 .cal-cell--single:focus-visible {
   outline: none;
-  background: color-mix(in srgb, var(--cell-accent, #888) 42%, rgba(255, 255, 255, 0.04));
+  background: color-mix(in srgb, var(--cell-accent, #888) 42%, var(--bg));
   box-shadow: inset 0 0 0 2px color-mix(in srgb, var(--cell-accent, #888) 90%, #fff);
 }
 
 .cal-cell--split {
   background: linear-gradient(
     to bottom right,
-    color-mix(in srgb, var(--accent-a, #888) 30%, rgba(255, 255, 255, 0.03)) 0 calc(50% - 1px),
+    color-mix(in srgb, var(--accent-a, #888) 30%, var(--bg)) 0 calc(50% - 1px),
     rgba(0, 0, 0, 0.42) calc(50% - 1px) calc(50% + 1px),
-    color-mix(in srgb, var(--accent-b, #888) 30%, rgba(255, 255, 255, 0.03)) calc(50% + 1px) 100%
+    color-mix(in srgb, var(--accent-b, #888) 30%, var(--bg)) calc(50% + 1px) 100%
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
