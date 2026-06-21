@@ -153,10 +153,9 @@ export function createFullCalendarModal({ dom }) {
     requestAnimationFrame(() => {
       if (focusDate) {
         requestAnimationFrame(() => {
-          const cell = spotlightDate(focusDate);
-          cell?.focus();
+          scrollToDate(focusDate);
+          dom.fullCalendarClose.focus();
           requestAnimationFrame(() => {
-            if (pinnedCell) positionTooltip(pinnedCell);
             viewportAnchor = captureViewportAnchor();
           });
         });
