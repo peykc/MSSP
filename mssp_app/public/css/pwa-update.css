@@ -1,6 +1,7 @@
 :root {
   --pwa-update-bar-inset: clamp(18px, 3vw, 40px);
   --pwa-update-bar-height: 52px;
+  --pwa-update-bar-radius: 16px;
   --pwa-update-bar-stack: calc(var(--pwa-update-bar-inset) + var(--pwa-update-bar-height) + 10px);
 }
 
@@ -17,7 +18,7 @@
   min-height: var(--pwa-update-bar-height);
   padding: 10px 14px 10px 16px;
   border: 0;
-  border-radius: 16px;
+  border-radius: var(--pwa-update-bar-radius);
   background: #fff;
   box-shadow:
     0 10px 36px rgba(0, 0, 0, 0.28),
@@ -40,7 +41,7 @@ body.player-expanded .pwa-update-bar {
   flex-shrink: 0;
   padding: 8px 16px;
   border: 1.5px solid #171514;
-  border-radius: 16px;
+  border-radius: var(--pwa-update-bar-radius);
   background: #fff;
   color: #171514;
   font-size: 0.84rem;
