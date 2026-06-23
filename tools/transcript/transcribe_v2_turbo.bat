@@ -2,21 +2,26 @@
 setlocal
 call "%~dp0_transcribe_env.bat"
 
-echo MSSP Transcript Engine v2 - large-v3-turbo ^(isolated output^)
+echo MSSP Transcript Engine v2 - large-v3-turbo speed pass ^(fallback^)
 echo   Model:      large-v3-turbo
 echo   Output:     gen-turbo\
 echo   Speakers:   adaptive ^(min 2, max 8^)
-echo   Use this when you want turbo JSON separate from gen\ ^(default Pass 1^).
+echo   Typical use: faster fallback / preview pass with the same v2 runner behavior as large-v3.
 echo.
-echo Extra args are passed through, e.g. --only "episode.mp3" --force-asr
+echo Extra args are passed through, e.g. --limit 10 --force-asr --speaker-mode chaotic
 echo.
 
 "%PY%" "%~dp0transcribe.py" ^
   --model large-v3-turbo ^
+  --language en ^
+  --batch-size 1 ^
   --output "%~dp0gen-turbo" ^
   --diarize ^
   --speaker-mode adaptive ^
   --reuse-cache ^
+  --no-reuse-align-model ^
+  --no-reuse-diarize-model ^
+  --isolate-per-file ^
   %*
 
 set "EXITCODE=%ERRORLEVEL%"

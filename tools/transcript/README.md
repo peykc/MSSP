@@ -1,124 +1,141 @@
 # MSSP Transcribe v2 (portable)
 
-Copy this **entire folder** into any directory that contains episode audio. Paths are relative to this folder — no `-i` / `-o` needed.
+Copy this folder into your local audio/transcript workspace. Paths are relative to this folder — no `-i` / `-o` needed for the normal runners.
 
-## Layout after copy
+## Kept launchers
 
+This repo intentionally keeps only the two v2 runners you actually use:
+
+| Launcher | Model | Output folder | Use |
+|---|---|---|---|
+| `transcribe_v2_large_v3.bat` | `large-v3` | `gen-large-v3/` | Main quality run |
+| `transcribe_v2_turbo.bat` | `large-v3-turbo` | `gen-turbo/` | Faster fallback / preview run |
+
+Both launchers use the same v2 behavior:
+
+- `--language en`
+- `--batch-size 1`
+- `--diarize`
+- `--speaker-mode adaptive`
+- `--reuse-cache`
+- `--no-reuse-align-model`
+- `--no-reuse-diarize-model`
+- `--isolate-per-file`
+
+`--isolate-per-file` is important on 6GB GPUs because it gives each episode a fresh Python/CUDA process and avoids CUDA memory getting poisoned across episodes.
+
+## Typical commands
+
+```powershell
+# Main quality run
+.\transcribe_v2_large_v3.bat
+
+# Test 5-10 episodes
+.\transcribe_v2_large_v3.bat --limit 10
+
+# Faster fallback / preview
+.\transcribe_v2_turbo.bat --limit 10
+
+# Single episode
+.\transcribe_v2_large_v3.bat --only "2016-11-16 MSSPOT Ep. 1 - Inaugral Business.mp3"
+
+# Rebuild turns/rows from cache after cleanup-rule changes
+.\transcribe_v2_large_v3.bat --rebuild-turns-only --limit 10
 ```
-YourAudioFolder/
-  2016-11-16 MSSPOT Ep. 1 - ....mp3
-  ...
-  Transcription/
-    transcribe.py
-    cache_manager.py
-    speaker_assignment.py
-    speaker_analyzer.py
-    turn_builder.py
-    row_builder.py
-    diagnostics_v2.py
-    .cache/transcripts/     # stage cache (created on first run)
-    gen/                    # Pass 1 transcripts (large-v3-turbo default)
-    gen-turbo/              # optional isolated turbo output
-    gen-large-v3/           # Pass 2 large-v3 reruns
-      index.json
-      qa-report.json        # optional (--qa-report)
-      {episode-stem}.json
+
+Extra args are passed through to `transcribe.py`.
+
+## Required files
+
+```text
+tools/transcript/
+  README.md
+  requirements.txt
+  setup.bat
+  .gitignore
+
+  _transcribe_env.bat
+  transcribe_v2_large_v3.bat
+  transcribe_v2_turbo.bat
+
+  transcribe.py
+  cache_manager.py
+  diagnostics_v2.py
+  pipeline_monitor.py
+  presets.py
+  row_builder.py
+  speaker_analyzer.py
+  speaker_assignment.py
+  turn_builder.py
+  vad.py
 ```
 
-## Pipeline (v1.2)
+## Pipeline
 
-```
+```text
 Audio
-  → WhisperX ASR (float16 on CUDA, VAD via transcribe settings)
-  → forced alignment (word timings)
-  → pyannote diarization (full audio, not VAD chunks)
+  → WhisperX ASR
+  → forced word alignment
+  → advisory VAD export / mismatch flags
+  → full-audio pyannote diarization
   → word speaker assignment scores
   → adaptive speaker analysis + smoothing preset
   → canonical speechTurns[]
-  → display segments[] (player UI)
+  → display segments[] for the player
 ```
 
-The player still consumes `segments[]` only. New layers: `diarizationSegments[]`, `speechTurns[]`, enriched `wordSegments[]`.
+The player still consumes `segments[]`. The v2 transcript also writes `diarizationSegments[]`, `speechTurns[]`, and enriched `wordSegments[]` for QA/debugging.
 
 ## One-time setup
 
-Same as v1 — see `setup.bat`. Python 3.10–3.12, CUDA PyTorch, whisperx, `HF_TOKEN` in `.env` for `--diarize`.
+Run:
 
-## Run
-
-Double-click launchers (v2 pipeline, model-aware output folders):
-
-| Launcher | Model | Output folder | Use |
-|----------|-------|---------------|-----|
-| `transcribe.bat` | large-v3-turbo | `gen/` | Default Pass 1 batch (same as `transcribe_v2.bat`) |
-| `transcribe_v2.bat` | large-v3-turbo | `gen/` | Explicit v2 Pass 1 baseline |
-| `transcribe_v2_turbo.bat` | large-v3-turbo | `gen-turbo/` | Turbo runs isolated from `gen/` |
-| `transcribe_v2_large_v3.bat` | large-v3 | `gen-large-v3/` | Pass 2 quality reruns |
-
-```powershell
-.\transcribe.bat
-.\transcribe_v2.bat
-.\transcribe_v2_turbo.bat
-.\transcribe_v2_large_v3.bat --only "bad-episode.mp3" --force-asr
-.\transcribe.ps1
-python transcribe.py --diarize
+```bat
+setup.bat
 ```
 
-Defaults (v2):
-- ASR: `large-v3-turbo`, `float16` on CUDA
-- Speakers: exploratory `min=2`, `max=8`, `--speaker-mode adaptive`
-- Row strategy: `speaker-turn-v2`
-- Cache: `.cache/transcripts/` with schema `transcript-cache-v2.0`
-- Skip-by-default: existing `gen/*.json` are not regenerated unless forced
+Requirements:
 
-## Cache / rebuild commands
+- Python 3.10–3.12 recommended
+- CUDA-capable PyTorch for GPU runs
+- WhisperX dependencies
+- `HF_TOKEN` in `.env` for diarization
 
-```powershell
-# Rebuild turns + display rows from cached diarization (no ASR/GPU)
-python transcribe.py --only "episode.mp3" --rebuild-turns-only
+## Cache / rebuild behavior
 
-# Rebuild display rows only from cached speechTurns
-python transcribe.py --only "episode.mp3" --rebuild-rows-only
+Stage cache lives in:
 
-# Force single stages
-python transcribe.py --only "episode.mp3" --force-diarize --force-turns
+```text
+.cache/transcripts/
 ```
 
-## Key flags
+Existing JSON outputs are skipped by default unless you force a stage. Use rebuild flags for cheap post-processing changes:
 
-| Flag | Default | Notes |
-|------|---------|--------|
-| `--speaker-mode` | `adaptive` | `normal` / `group` / `chaotic` / `forced-two-host` |
-| `--min-speakers` / `--max-speakers` | 2 / 8 | Exploratory diarization bounds |
-| `--num-speakers` | off | **Only** with `forced-two-host` (explicit 2-host rerun) |
-| `--asr-compute-type` | `float16` (CUDA) | Fallback: `int8_float16`, `int8`, CPU |
-| `--reuse-cache` / `--no-cache` | on / off | Stage cache in `.cache/transcripts/` |
-| `--cache-version` | `transcript-cache-v2.0` | Reject stale cache envelopes |
-| `--rebuild-turns-only` | off | Rebuild turns/rows from cache |
-| `--qa-report` | off | Write `gen/qa-report.json` after batch |
-
-## Batch strategy (900 episodes)
-
-**Pass 1** — baseline batch:
 ```powershell
-python transcribe.py --diarize --speaker-mode adaptive --reuse-cache
+.\transcribe_v2_large_v3.bat --rebuild-turns-only --limit 10
+.\transcribe_v2_large_v3.bat --rebuild-rows-only --limit 10
 ```
 
-**Pass 2** — rerun flagged episodes from `gen/index.json` / `qa-report.json`:
+Use force flags only when needed:
+
 ```powershell
-python transcribe.py --only "bad-episode.mp3" --model large-v3 --force-asr --speaker-mode chaotic
+.\transcribe_v2_large_v3.bat --only "episode.mp3" --force-diarize
+.\transcribe_v2_large_v3.bat --only "episode.mp3" --force-asr
 ```
 
-**Pass 3** — manual QA on worst episodes via `test/review.html` + `test/score_speakers.py`.
+## Do not commit runtime output
 
-**Acceptance (25 episodes):** after Pass 1, rebuild with `--rebuild-turns-only`, then compare manifests:
-```powershell
-python test/compare_manifest.py gen/index-v1.1-backup.json gen/index.json --limit 25
+Keep these out of GitHub:
+
+```text
+.venv/
+.cache/
+gen/
+gen-turbo/
+gen-large-v3/
+__pycache__/
+*.pyc
+.env
+*.log
+console.txt
 ```
-
-## QA tools
-
-- `test/review.html` — toggle `segments` vs `speechTurns` review layer; shows assignment scores
-- `test/score_speakers.py` — score candidate JSON against exported corrections (overlap-weighted)
-
-6GB GPU: ASR CUDA (float16), align CPU, diarize CUDA (automatic).

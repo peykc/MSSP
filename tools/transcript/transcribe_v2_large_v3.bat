@@ -8,15 +8,20 @@ echo   Output:     gen-large-v3\
 echo   Speakers:   adaptive ^(min 2, max 8^)
 echo   Typical use: rerun flagged episodes after Pass 1 ^(add --force-asr^).
 echo.
-echo Extra args are passed through, e.g. --only "episode.mp3" --force-asr --speaker-mode chaotic
+echo Extra args are passed through, e.g. --limit 10 --force-asr --speaker-mode chaotic
 echo.
 
 "%PY%" "%~dp0transcribe.py" ^
   --model large-v3 ^
+  --language en ^
+  --batch-size 1 ^
   --output "%~dp0gen-large-v3" ^
   --diarize ^
   --speaker-mode adaptive ^
   --reuse-cache ^
+  --no-reuse-align-model ^
+  --no-reuse-diarize-model ^
+  --isolate-per-file ^
   %*
 
 set "EXITCODE=%ERRORLEVEL%"

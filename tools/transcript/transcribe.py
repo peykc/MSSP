@@ -26,6 +26,7 @@ import os
 import platform
 import re
 import sys
+import subprocess
 import traceback
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime, timezone
@@ -466,6 +467,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--no-write-diagnostics", dest="write_diagnostics", action="store_false")
     parser.add_argument("--fail-on-invalid", action="store_true", help="Fail save when validation fails")
     parser.add_argument("--qa-report", action="store_true", help="Write QA summary from manifest after run")
+    parser.add_argument(
+        "--isolate-per-file",
+        action="store_true",
+        help="Run each queued file in a fresh Python process; safer for large-v3 CUDA batches on 6GB GPUs",
+    )
     parser.set_defaults(reuse_cache=True, write_diagnostics=True)
     align_group = parser.add_mutually_exclusive_group()
     align_group.add_argument(
@@ -2161,10 +2167,103 @@ def print_summary(stats: RunStats, interrupted: bool = False) -> None:
         print(f"  Remaining: {stats.remaining}")
 
 
+
+def _remove_flag(argv: list[str], flag: str) -> list[str]:
+    """Remove a boolean flag from argv without touching similarly named values."""
+    return [arg for arg in argv if arg != flag]
+
+
+def run_isolated_per_file_parent(args: argparse.Namespace) -> int:
+    """
+    Parent launcher for --isolate-per-file.
+
+    CTranslate2/faster-whisper and pyannote can retain CUDA memory outside
+    PyTorch's allocator after a file finishes. torch.cuda.empty_cache() cannot
+    reclaim that memory. Running each episode in a fresh Python process gives
+    Windows/CUDA a hard reset between files while keeping the same public CLI.
+    """
+    input_dir = args.input.resolve()
+    output_dir = args.output.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+
+    extensions = parse_extensions(args.extensions)
+    all_files = discover_audio_files(input_dir, extensions, args.recursive)
+    files = apply_file_filters(
+        all_files, args.start_after, args.limit, args.test, args.only
+    )
+
+    print("Process isolation: ON (fresh Python/CUDA process per episode)")
+    print(f"Input:  {input_dir}")
+    print(f"Output: {output_dir}")
+    print(f"Found {len(all_files)} audio file(s); {len(files)} queued for this run")
+    if not files:
+        print("Nothing to process.")
+        return 0
+
+    # Child process should run normal single-file mode.
+    child_argv = _remove_flag(sys.argv[1:], "--isolate-per-file")
+    env = os.environ.copy()
+    env["MSSP_TRANSCRIPT_CHILD"] = "1"
+
+    failed = 0
+    skipped = 0
+    processed = 0
+
+    needs_work = (
+        args.force
+        or args.force_asr
+        or args.force_align
+        or args.force_diarize
+        or args.force_turns
+        or args.rebuild_turns_only
+        or args.rebuild_rows_only
+    )
+
+    for idx, source_path in enumerate(files, start=1):
+        output_path = transcript_output_path(
+            source_path, input_dir, output_dir, args.preserve_folders
+        )
+        if output_path.exists() and not needs_work:
+            print(f"SKIP [{idx}/{len(files)}]: {source_path.name} (transcript exists)")
+            skipped += 1
+            continue
+
+        print()
+        print("=" * 80)
+        print(f"Isolated episode [{idx}/{len(files)}]: {source_path.name}")
+        print("=" * 80)
+
+        cmd = [sys.executable, str(Path(__file__).resolve()), *child_argv, "--only", source_path.name]
+        try:
+            result = subprocess.run(cmd, env=env)
+        except KeyboardInterrupt:
+            print("\nInterrupted isolated batch.")
+            return 130
+
+        if result.returncode == 0:
+            processed += 1
+        else:
+            failed += 1
+            print(
+                f"ERROR: isolated episode failed with exit code {result.returncode}: {source_path.name}",
+                file=sys.stderr,
+            )
+
+    print()
+    print("Isolated batch summary:")
+    print(f"  processed: {processed}")
+    print(f"  skipped:   {skipped}")
+    print(f"  failed:    {failed}")
+    return 1 if failed else 0
+
+
 def main() -> int:
     configure_windows_hf_cache()
     load_dotenv_hf_token()
     args = parse_args()
+    if args.isolate_per_file and os.environ.get("MSSP_TRANSCRIPT_CHILD") != "1":
+        return run_isolated_per_file_parent(args)
+
     reuse_align_model = args.reuse_align_model
     device = resolve_device(args.device)
     compute_type = resolve_compute_type(args.compute_type, device)
