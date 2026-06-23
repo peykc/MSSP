@@ -1,4 +1,5 @@
-# Portable MSSP transcript batch — reads audio from parent folder, writes to ./gen/
+# Portable MSSP transcript v2 batch — reads audio from parent folder.
+# Default: large-v3-turbo Pass 1 → ./gen/
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 Set-Location $PSScriptRoot
@@ -14,5 +15,12 @@ $python = $pythonCandidates | Where-Object {
     Test-Path -LiteralPath $_
 } | Select-Object -First 1
 
-& $python (Join-Path $PSScriptRoot "transcribe.py") --diarize @args
+$genDir = Join-Path $PSScriptRoot "gen"
+& $python (Join-Path $PSScriptRoot "transcribe.py") `
+    --model large-v3-turbo `
+    --output $genDir `
+    --diarize `
+    --speaker-mode adaptive `
+    --reuse-cache `
+    @args
 exit $LASTEXITCODE

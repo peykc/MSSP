@@ -243,6 +243,7 @@
     <div class="stat">reviewed <b id="statReviewed">0</b></div>
     <div class="stat">flagged wrong <b id="statWrong">0</b></div>
     <div class="spacer"></div>
+    <button id="sourceToggle" type="button" title="Toggle review layer">segments</button>
     <input type="text" id="jumpBox" placeholder="jump mm:ss">
     <audio id="player" controls></audio>
     <button id="exportBtn">Export corrections</button>
@@ -266,6 +267,7 @@ let speakerList = [];    // distinct speaker ids seen
 let currentIdx = -1;
 let episodeStem = "";
 let audioObjectUrl = null;
+let reviewSource = "segments"; // segments | speechTurns
 
 const rowsEl = document.getElementById("rows");
 const player = document.getElementById("player");
@@ -366,6 +368,52 @@ function speakerColor(spk) {
   return { bg: `hsl(${h}, 38%, 18%)`, fg: `hsl(${h}, 60%, 72%)` };
 }
 
+function loadReviewSegments() {
+  const sourceList = reviewSource === "speechTurns" && Array.isArray(transcript.speechTurns) && transcript.speechTurns.length
+    ? transcript.speechTurns
+    : transcript.segments;
+
+  segments = sourceList.map((seg, i) => {
+    const words = seg.words || [];
+    const avgScore = words.length
+      ? words.reduce((sum, w) => sum + (w.speakerAssignmentScore ?? w.speakerConfidence ?? 0), 0) / words.length
+      : null;
+    return {
+      idx: i,
+      startTime: seg.startTime,
+      endTime: seg.endTime,
+      body: seg.body,
+      speaker: seg.speaker || "UNKNOWN",
+      origSpeaker: seg.speaker || "UNKNOWN",
+      assignmentScore: avgScore,
+      review: null,
+      correctedSpeaker: null,
+      note: ""
+    };
+  });
+
+  const seen = new Set();
+  segments.forEach(s => seen.add(s.speaker));
+  speakerList = Array.from(seen).sort();
+
+  const toggle = document.getElementById("sourceToggle");
+  if (toggle) {
+    const hasTurns = Array.isArray(transcript.speechTurns) && transcript.speechTurns.length;
+    toggle.textContent = reviewSource;
+    toggle.disabled = !hasTurns;
+    toggle.title = hasTurns ? "Toggle segments vs speechTurns review layer" : "speechTurns not available";
+  }
+}
+
+document.getElementById("sourceToggle")?.addEventListener("click", () => {
+  if (!transcript) return;
+  reviewSource = reviewSource === "segments" ? "speechTurns" : "segments";
+  loadReviewSegments();
+  currentIdx = -1;
+  renderRows();
+  updateStats();
+});
+
 function fmtTime(s) {
   if (s == null) return "--:--";
   s = Math.floor(s);
@@ -406,22 +454,7 @@ document.getElementById("loadBtn").addEventListener("click", async () => {
   }
 
   episodeStem = (transcript.metadata && transcript.metadata.filenameStem) || fileInput.files[0].name;
-
-  segments = transcript.segments.map((seg, i) => ({
-    idx: i,
-    startTime: seg.startTime,
-    endTime: seg.endTime,
-    body: seg.body,
-    speaker: seg.speaker || "UNKNOWN",
-    origSpeaker: seg.speaker || "UNKNOWN",
-    review: null,        // null | "correct" | "wrong" | "nonspeech"
-    correctedSpeaker: null,
-    note: ""
-  }));
-
-  const seen = new Set();
-  segments.forEach(s => seen.add(s.speaker));
-  speakerList = Array.from(seen).sort();
+  loadReviewSegments();
 
   if (hasAudioFile) {
     audioObjectUrl = URL.createObjectURL(audioFileInput.files[0]);
@@ -465,7 +498,8 @@ function renderRows() {
 
     const body = document.createElement("div");
     body.className = "body";
-    body.textContent = seg.body;
+    const score = seg.assignmentScore;
+    body.textContent = seg.body + (score != null ? `  [score=${score.toFixed(2)}]` : "");
 
     const actions = document.createElement("div");
     actions.className = "actions";

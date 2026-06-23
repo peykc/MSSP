@@ -20,19 +20,52 @@ from __future__ import annotations
 
 import argparse
 import gc
+import inspect
 import json
 import os
 import platform
 import re
 import sys
 import traceback
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+from cache_manager import (
+    CACHE_SCHEMA_VERSION,
+    CACHE_SUBDIR,
+    STAGE_ALIGNED,
+    STAGE_ASR,
+    STAGE_AUDIO,
+    STAGE_DIARIZATION,
+    STAGE_SPEECH_TURNS,
+    STAGE_VAD,
+    STAGE_WORD_SPEAKERS,
+    TranscriptCache,
+    hash_config,
+    hash_file,
+)
+from diagnostics_v2 import build_episode_diagnostics, manifest_fields_from_diagnostics, write_qa_report
 from pipeline_monitor import PipelineMonitor
-from row_builder import compute_display_diagnostics, normalize_speakers, rebuild_display_rows
+from presets import PRESET_FORCED_TWO_HOST, preset_to_dict
+from row_builder import ROW_STRATEGY_V1, ROW_STRATEGY_V2, rebuild_display_rows
+from speaker_analyzer import analyze_speakers, resolve_smoothing_preset
+from speaker_assignment import (
+    assign_words_from_diarization,
+    log_diarization_result,
+    log_serialized_diarization,
+    percent_unknown_words,
+    serialize_diarization_segments,
+)
+from turn_builder import build_speech_turns
+from vad import (
+    build_transcribe_vad_kwargs,
+    build_vad_cache_payload,
+    default_vad_settings,
+    derive_regions_from_segments,
+    flag_vad_mismatches,
+)
 
 MODEL_FALLBACK_CHAIN = ["large-v3-turbo", "large-v3", "distil-large-v3"]
 LOW_RAM_FALLBACK_CHAIN = ["medium.en", "small.en", "base.en"]
@@ -45,8 +78,10 @@ SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_INPUT_DIR = SCRIPT_DIR.parent
 DEFAULT_OUTPUT_DIR = SCRIPT_DIR / OUTPUT_SUBDIR
 TRANSCRIPT_FORMAT = "mssp-transcript"
-TRANSCRIPT_VERSION = "1.1.0"
-ROW_STRATEGY_DEFAULT = "speaker-turn-v1"
+TRANSCRIPT_VERSION = "1.2.0"
+ROW_STRATEGY_DEFAULT = ROW_STRATEGY_V2
+TURN_STRATEGY_DEFAULT = "adaptive-speaker-turn-v1"
+ASR_BACKEND = "whisperx-faster-whisper"
 SAMPLE_RATE = 16000
 HF_SETUP_MSG = (
     "HuggingFace token required for --diarize:\n"
@@ -60,9 +95,11 @@ HF_SETUP_MSG = (
 class RunConfig:
     input_dir: Path
     output_dir: Path
+    cache_dir: Path
     requested_model: str
     actual_model: str | None = None
-    compute_type: str = "int8"
+    compute_type: str = "float16"
+    requested_compute_type: str = "float16"
     batch_size: int = 4
     align_batch_size: int | None = None
     language: str | None = None
@@ -73,9 +110,13 @@ class RunConfig:
     preserve_folders: bool = False
     diarize: bool = False
     hf_token: str | None = None
-    min_speakers: int = 1
-    max_speakers: int = 6
+    min_speakers: int = 2
+    max_speakers: int = 8
+    num_speakers: int | None = None
+    speaker_mode: str = "adaptive"
+    speaker_smoothing: str | None = None
     row_strategy: str = ROW_STRATEGY_DEFAULT
+    turn_strategy: str = TURN_STRATEGY_DEFAULT
     row_min_words: int = 6
     row_max_words: int = 40
     row_hard_max_words: int = 56
@@ -83,6 +124,19 @@ class RunConfig:
     row_turn_pause_sec: float = 2.5
     show_progress: bool = True
     diarize_cpu_fallback: bool = False
+    reuse_cache: bool = True
+    cache_schema_version: str = CACHE_SCHEMA_VERSION
+    vad_settings: dict[str, Any] | None = None
+    rebuild_turns_only: bool = False
+    rebuild_rows_only: bool = False
+    force_asr: bool = False
+    force_align: bool = False
+    force_diarize: bool = False
+    force_turns: bool = False
+    write_diagnostics: bool = True
+    fail_on_invalid: bool = False
+    qa_report: bool = False
+    speaker_assignment_padding_sec: float = 0.10
 
     def row_settings_dict(self) -> dict[str, Any]:
         return {
@@ -91,6 +145,62 @@ class RunConfig:
             "row_hard_max_words": self.row_hard_max_words,
             "row_pause_sec": self.row_pause_sec,
             "row_turn_pause_sec": self.row_turn_pause_sec,
+        }
+
+    def asr_config_hash(self) -> str:
+        return hash_config(
+            {
+                "backend": ASR_BACKEND,
+                "model": self.requested_model,
+                "device": self.device,
+                "compute_type": self.requested_compute_type,
+                "batch_size": self.batch_size,
+                "language": self.language,
+                "vad": self.vad_settings or default_vad_settings(),
+            }
+        )
+
+    def align_config_hash(self, language: str) -> str:
+        return hash_config({"language": language, "device": self.align_device})
+
+    def effective_num_speakers(self) -> int | None:
+        if self.speaker_mode == "forced-two-host":
+            return 2
+        return self.num_speakers
+
+    def diarize_config_hash(self) -> str:
+        payload: dict[str, Any] = {
+            "min_speakers": self.min_speakers,
+            "max_speakers": self.max_speakers,
+            "device": self.diarize_device,
+            "speaker_mode": self.speaker_mode,
+        }
+        effective = self.effective_num_speakers()
+        if effective is not None:
+            payload["num_speakers"] = effective
+        return hash_config(payload)
+
+    def turns_config_hash(self, preset_name: str) -> str:
+        return hash_config(
+            {
+                "turn_strategy": self.turn_strategy,
+                "speaker_mode": self.speaker_mode,
+                "speaker_smoothing": self.speaker_smoothing,
+                "preset": preset_name,
+                "padding_sec": self.speaker_assignment_padding_sec,
+            }
+        )
+
+    def asr_metadata(self, actual_model: str, effective_batch: int) -> dict[str, Any]:
+        return {
+            "backend": ASR_BACKEND,
+            "model": actual_model,
+            "requested_model": self.requested_model,
+            "device": self.device,
+            "compute_type": self.compute_type,
+            "requested_compute_type": self.requested_compute_type,
+            "batch_size": effective_batch,
+            "vad": self.vad_settings or default_vad_settings(),
         }
 
 
@@ -135,6 +245,20 @@ class ManifestItem:
     single_word_segment_percent: float | None = None
     max_transcript_gap_seconds: float | None = None
     large_transcript_gap_count: int | None = None
+    speech_turn_count: int | None = None
+    detected_speaker_count: int | None = None
+    credible_speaker_count: int | None = None
+    main_speaker_count: int | None = None
+    secondary_speaker_count: int | None = None
+    cameo_speaker_count: int | None = None
+    glitch_speaker_count: int | None = None
+    speaker_changes_per_minute: float | None = None
+    micro_turn_percent: float | None = None
+    low_confidence_word_percent: float | None = None
+    overlap_possible_word_percent: float | None = None
+    diarization_stability: str | None = None
+    recommended_preset: str | None = None
+    turn_source: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         item: dict[str, Any] = {
@@ -169,6 +293,34 @@ class ManifestItem:
             item["maxTranscriptGapSeconds"] = round(self.max_transcript_gap_seconds, 3)
         if self.large_transcript_gap_count is not None:
             item["largeTranscriptGapCount"] = self.large_transcript_gap_count
+        if self.speech_turn_count is not None:
+            item["speechTurnCount"] = self.speech_turn_count
+        if self.detected_speaker_count is not None:
+            item["detectedSpeakerCount"] = self.detected_speaker_count
+        if self.credible_speaker_count is not None:
+            item["credibleSpeakerCount"] = self.credible_speaker_count
+        if self.main_speaker_count is not None:
+            item["mainSpeakerCount"] = self.main_speaker_count
+        if self.secondary_speaker_count is not None:
+            item["secondarySpeakerCount"] = self.secondary_speaker_count
+        if self.cameo_speaker_count is not None:
+            item["cameoSpeakerCount"] = self.cameo_speaker_count
+        if self.glitch_speaker_count is not None:
+            item["glitchSpeakerCount"] = self.glitch_speaker_count
+        if self.speaker_changes_per_minute is not None:
+            item["speakerChangesPerMinute"] = self.speaker_changes_per_minute
+        if self.micro_turn_percent is not None:
+            item["microTurnPercent"] = self.micro_turn_percent
+        if self.low_confidence_word_percent is not None:
+            item["lowConfidenceWordPercent"] = self.low_confidence_word_percent
+        if self.overlap_possible_word_percent is not None:
+            item["overlapPossibleWordPercent"] = self.overlap_possible_word_percent
+        if self.diarization_stability is not None:
+            item["diarizationStability"] = self.diarization_stability
+        if self.recommended_preset is not None:
+            item["recommendedPreset"] = self.recommended_preset
+        if self.turn_source is not None:
+            item["turnSource"] = self.turn_source
         return item
 
 
@@ -233,10 +385,16 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", help="Re-transcribe even if output JSON exists")
     parser.add_argument("--language", default=None, help="Force language code (e.g. en)")
     parser.add_argument("--model", default="large-v3-turbo", help="Target ASR model name")
-    parser.add_argument("--compute-type", default="int8", help="CTranslate2 compute type")
-    parser.add_argument("--batch-size", type=int, default=4, help="ASR inference batch size")
+    parser.add_argument(
+        "--compute-type",
+        "--asr-compute-type",
+        dest="compute_type",
+        default=None,
+        help="CTranslate2 compute type (default: float16 on CUDA, int8 on CPU)",
+    )
+    parser.add_argument("--batch-size", "--asr-batch-size", dest="batch_size", type=int, default=4, help="ASR inference batch size")
     parser.add_argument("--align-batch-size", type=int, default=None, help="Reserved for future use")
-    parser.add_argument("--device", default=None, help="ASR device: cuda or cpu (auto-detect if omitted)")
+    parser.add_argument("--device", "--asr-device", dest="device", default=None, help="ASR device: cuda or cpu (auto-detect if omitted)")
     parser.add_argument(
         "--align-device",
         default=None,
@@ -251,8 +409,22 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--diarize", action="store_true", help="Enable speaker diarization (requires HF token)")
     parser.add_argument("--hf-token", default=None, help="HuggingFace token (or set HF_TOKEN / .env)")
-    parser.add_argument("--min-speakers", type=int, default=1, help="Min speakers for diarization")
-    parser.add_argument("--max-speakers", type=int, default=6, help="Max speakers for diarization")
+    parser.add_argument("--min-speakers", type=int, default=2, help="Min speakers for diarization")
+    parser.add_argument("--max-speakers", type=int, default=8, help="Max speakers for diarization")
+    parser.add_argument("--num-speakers", type=int, default=None, help="Fixed speaker count (forced-two-host rerun only)")
+    parser.add_argument(
+        "--speaker-mode",
+        default="adaptive",
+        choices=["adaptive", "normal", "group", "chaotic", "forced-two-host"],
+        help="Speaker analysis/smoothing mode",
+    )
+    parser.add_argument(
+        "--speaker-smoothing",
+        default=None,
+        choices=["normal", "aggressive", "conservative"],
+        help="Override smoothing intensity",
+    )
+    parser.add_argument("--turn-strategy", default=TURN_STRATEGY_DEFAULT, help="Canonical turn build strategy")
     parser.add_argument("--row-strategy", default=ROW_STRATEGY_DEFAULT, help="Display row rebuild strategy")
     parser.add_argument("--row-min-words", type=int, default=6, help="Min words before sentence can split a row")
     parser.add_argument("--row-max-words", type=int, default=40, help="Soft target max words per display row")
@@ -267,7 +439,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--no-progress",
         action="store_true",
-        help="Disable per-stage progress % and timing logs",
+        help="Disable per-stage progress %% and timing logs",
     )
     parser.add_argument(
         "--diarize-cpu-fallback",
@@ -281,6 +453,20 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument("--limit", type=int, default=None, help="Process at most N files")
     parser.add_argument("--start-after", default=None, help="Skip until after this exact filename")
+    parser.add_argument("--cache-version", default=CACHE_SCHEMA_VERSION, help="Required cache schema version")
+    parser.add_argument("--reuse-cache", dest="reuse_cache", action="store_true", help="Reuse cached stage outputs (default)")
+    parser.add_argument("--no-cache", dest="reuse_cache", action="store_false", help="Disable stage cache reads")
+    parser.add_argument("--force-asr", action="store_true", help="Force ASR stage rerun")
+    parser.add_argument("--force-align", action="store_true", help="Force alignment stage rerun")
+    parser.add_argument("--force-diarize", action="store_true", help="Force diarization stage rerun")
+    parser.add_argument("--force-turns", action="store_true", help="Force turn-building stage rerun")
+    parser.add_argument("--rebuild-turns-only", action="store_true", help="Rebuild turns/rows from cached diarization")
+    parser.add_argument("--rebuild-rows-only", action="store_true", help="Rebuild display rows from cached speech turns")
+    parser.add_argument("--write-diagnostics", dest="write_diagnostics", action="store_true", help="Write diagnostics (default)")
+    parser.add_argument("--no-write-diagnostics", dest="write_diagnostics", action="store_false")
+    parser.add_argument("--fail-on-invalid", action="store_true", help="Fail save when validation fails")
+    parser.add_argument("--qa-report", action="store_true", help="Write QA summary from manifest after run")
+    parser.set_defaults(reuse_cache=True, write_diagnostics=True)
     align_group = parser.add_mutually_exclusive_group()
     align_group.add_argument(
         "--reuse-align-model",
@@ -294,7 +480,20 @@ def parse_args() -> argparse.Namespace:
         action="store_false",
         help="Free/reload alignment model per file (VRAM safety)",
     )
-    parser.set_defaults(reuse_align_model=True)
+    diarize_reuse_group = parser.add_mutually_exclusive_group()
+    diarize_reuse_group.add_argument(
+        "--reuse-diarize-model",
+        dest="reuse_diarize_model",
+        action="store_true",
+        help="Reuse diarization model across files",
+    )
+    diarize_reuse_group.add_argument(
+        "--no-reuse-diarize-model",
+        dest="reuse_diarize_model",
+        action="store_false",
+        help="Free/reload diarization model per file; safer on 6GB GPUs",
+    )
+    parser.set_defaults(reuse_align_model=True, reuse_diarize_model=None)
     return parser.parse_args()
 
 
@@ -409,9 +608,13 @@ def asr_attempt_plan(device: str, compute_type: str) -> list[tuple[str, str]]:
     """Ordered (device, compute_type) fallbacks for ASR."""
     plan: list[tuple[str, str]] = [(device, compute_type)]
     if device == "cuda":
-        if compute_type != "float16":
+        if compute_type not in {"float16", "int8_float16"}:
             plan.append((device, "float16"))
-        plan.append(("cpu", compute_type))
+        if compute_type != "int8_float16":
+            plan.append((device, "int8_float16"))
+        if compute_type != "int8":
+            plan.append((device, "int8"))
+        plan.append(("cpu", "int8"))
     return plan
 
 
@@ -539,6 +742,30 @@ def free_gpu(*objects: Any) -> None:
         torch.cuda.empty_cache()
 
 
+def clear_model_caches(
+    align_cache: AlignCache | None = None,
+    diarize_cache: DiarizeCache | None = None,
+) -> None:
+    """Actually release cached model references between files/stages."""
+    objects: list[Any] = []
+
+    if align_cache is not None:
+        if align_cache.model is not None:
+            objects.append(align_cache.model)
+        align_cache.model = None
+        align_cache.metadata = None
+        align_cache.language = None
+        align_cache.device = None
+
+    if diarize_cache is not None:
+        if diarize_cache.model is not None:
+            objects.append(diarize_cache.model)
+        diarize_cache.model = None
+        diarize_cache.device = None
+
+    free_gpu(*objects)
+
+
 def round_time(value: float | None) -> float | None:
     if value is None:
         return None
@@ -555,17 +782,25 @@ def sanitize_text(text: str) -> str:
 
 
 def sanitize_json_value(value: Any) -> Any:
+    if is_dataclass(value):
+        return sanitize_json_value(asdict(value))
     if isinstance(value, str):
         return sanitize_text(value)
     if isinstance(value, list):
         return [sanitize_json_value(item) for item in value]
     if isinstance(value, dict):
-        return {key: sanitize_json_value(item) for key, item in value.items()}
+        return {str(key): sanitize_json_value(item) for key, item in value.items()}
     return value
 
 
 def sanitize_transcript_document(document: dict[str, Any]) -> dict[str, Any]:
     return sanitize_json_value(document)
+
+
+def resolve_compute_type(requested: str | None, device: str) -> str:
+    if requested:
+        return requested
+    return "float16" if device == "cuda" else "int8"
 
 
 def validate_transcript_document(document: dict[str, Any]) -> None:
@@ -577,6 +812,14 @@ def validate_transcript_document(document: dict[str, Any]) -> None:
 
     if document.get("format") != TRANSCRIPT_FORMAT:
         raise TranscriptValidationError(f"Unexpected format: {document.get('format')!r}")
+
+    version = str(document.get("version", "1.1.0"))
+    if version >= "1.2.0":
+        for key in ("diarizationSegments", "speechTurns"):
+            if key not in document:
+                raise TranscriptValidationError(f"Missing required v1.2 field: {key}")
+            if not isinstance(document[key], list):
+                raise TranscriptValidationError(f"{key} must be an array")
 
     metadata = document["metadata"]
     if not isinstance(metadata, dict):
@@ -602,6 +845,20 @@ def validate_transcript_document(document: dict[str, Any]) -> None:
         raise TranscriptValidationError(
             f"diagnostics.segmentCount ({segment_count}) != len(segments) ({len(document['segments'])})"
         )
+
+    if version >= "1.2.0":
+        turn_count = diagnostics.get("speechTurnCount")
+        if turn_count is not None and turn_count != len(document["speechTurns"]):
+            raise TranscriptValidationError(
+                f"diagnostics.speechTurnCount ({turn_count}) != len(speechTurns) ({len(document['speechTurns'])})"
+            )
+        if diagnostics.get("rowWordIntegrityOk") is False:
+            raise TranscriptValidationError("rowWordIntegrityOk is false")
+        single_word_pct = diagnostics.get("singleWordSegmentPercent")
+        if single_word_pct is not None and single_word_pct > 30:
+            raise TranscriptValidationError(
+                f"singleWordSegmentPercent ({single_word_pct}) exceeds 30% row fragmentation limit"
+            )
 
 
 def validate_json_file(path: Path) -> dict[str, Any]:
@@ -814,68 +1071,67 @@ def build_transcript_document(
     raw_segments: list[dict[str, Any]],
     display_segments: list[dict[str, Any]],
     word_segments: list[dict[str, Any]],
+    speech_turns: list[dict[str, Any]],
+    diarization_segments: list[dict[str, Any]],
     source_path: Path,
     input_dir: Path,
     language: str,
-    requested_model: str,
+    run_config: RunConfig,
     actual_model: str,
-    compute_type: str,
     duration_seconds: float,
     diarized: bool,
-    row_strategy: str,
-    row_settings: dict[str, Any],
-    missing_word_timestamps: int,
-    missing_speaker_assignments: int,
-    pipeline_timing: dict[str, Any] | None = None,
+    diagnostics: dict[str, Any],
+    asr_metadata: dict[str, Any] | None = None,
+    speaker_preset: str | None = None,
+    turn_source: str = "full_pipeline",
 ) -> dict[str, Any]:
-    speakers: set[str] = set()
-    if diarized:
-        for w in word_segments:
-            sp = w.get("speaker")
-            if sp:
-                speakers.add(str(sp))
-
-    diagnostics: dict[str, Any] = {
-        "wordCount": len(word_segments),
-        "segmentCount": len(display_segments),
-        "rawSegmentCount": len(raw_segments),
-        "missingWordTimestamps": missing_word_timestamps,
-        "durationSeconds": round(duration_seconds, 3),
-    }
-    display_diag = compute_display_diagnostics(
-        display_segments,
-        word_segments,
-        diarized=diarized,
-        row_settings=row_settings,
-    )
-    if diarized:
-        diagnostics["speakerCount"] = len(speakers)
-        diagnostics["missingSpeakerAssignments"] = missing_speaker_assignments
-    diagnostics.update(display_diag)
-    if pipeline_timing is not None:
-        diagnostics["pipelineTiming"] = pipeline_timing
-
     stem = filename_stem(source_path)
+    metadata: dict[str, Any] = {
+        "source_file": source_path.name,
+        "source_path": source_relative_path(source_path, input_dir),
+        "filenameStem": stem,
+        "language": language,
+        "requested_model": run_config.requested_model,
+        "model": actual_model,
+        "compute_type": run_config.compute_type,
+        "aligned": True,
+        "diarized": diarized,
+        "row_strategy": run_config.row_strategy,
+        "turn_strategy": run_config.turn_strategy,
+        "speaker_mode": run_config.speaker_mode,
+    }
+    if asr_metadata is not None:
+        metadata["asr"] = asr_metadata
+    if speaker_preset:
+        metadata["speaker_preset"] = speaker_preset
+    if turn_source:
+        metadata["turn_source"] = turn_source
+
     return {
         "version": TRANSCRIPT_VERSION,
         "format": TRANSCRIPT_FORMAT,
-        "metadata": {
-            "source_file": source_path.name,
-            "source_path": source_relative_path(source_path, input_dir),
-            "filenameStem": stem,
-            "language": language,
-            "requested_model": requested_model,
-            "model": actual_model,
-            "compute_type": compute_type,
-            "aligned": True,
-            "diarized": diarized,
-            "row_strategy": row_strategy,
-        },
-        "segments": display_segments,
-        "wordSegments": word_segments,
+        "metadata": metadata,
         "rawSegments": raw_segments,
+        "diarizationSegments": diarization_segments,
+        "wordSegments": word_segments,
+        "speechTurns": speech_turns,
+        "segments": display_segments,
         "diagnostics": diagnostics,
     }
+
+
+def filter_supported_kwargs(fn: Any, kwargs: dict[str, Any]) -> dict[str, Any]:
+    """Drop kwargs unsupported by the installed WhisperX transcribe method."""
+    try:
+        sig = inspect.signature(fn)
+    except (TypeError, ValueError):
+        return kwargs
+
+    params = sig.parameters
+    if any(p.kind == inspect.Parameter.VAR_KEYWORD for p in params.values()):
+        return kwargs
+
+    return {k: v for k, v in kwargs.items() if k in params}
 
 
 def _run_asr_transcribe(
@@ -886,6 +1142,7 @@ def _run_asr_transcribe(
     language: str | None,
     batch_size: int,
     progress_callback: Any | None = None,
+    vad_settings: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], str]:
     batch_sizes: list[int] = []
     bs = batch_size
@@ -907,10 +1164,12 @@ def _run_asr_transcribe(
     try:
         for try_bs in batch_sizes:
             transcribe_kwargs: dict[str, Any] = {"batch_size": try_bs}
+            transcribe_kwargs.update(build_transcribe_vad_kwargs(vad_settings))
             if language:
                 transcribe_kwargs["language"] = language
             if progress_callback is not None:
                 transcribe_kwargs["progress_callback"] = progress_callback
+            transcribe_kwargs = filter_supported_kwargs(model.transcribe, transcribe_kwargs)
             try:
                 if try_bs < batch_size:
                     print(f"  Retrying transcription with batch_size={try_bs}")
@@ -941,6 +1200,7 @@ def transcribe_audio(
     language: str | None,
     batch_size: int,
     monitor: PipelineMonitor | None = None,
+    vad_settings: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any], Any, str, float, str]:
     import whisperx
 
@@ -967,6 +1227,7 @@ def transcribe_audio(
                 language,
                 batch_size,
                 progress_callback,
+                vad_settings=vad_settings,
             )
             if attempt_idx > 0:
                 print(
@@ -1097,9 +1358,8 @@ def _load_diarize_model(
     return model, diarize_cache
 
 
-def diarize_and_assign(
+def run_diarization(
     audio: Any,
-    aligned_result: dict[str, Any],
     hf_token: str,
     diarize_device: str,
     min_speakers: int,
@@ -1108,9 +1368,9 @@ def diarize_and_assign(
     reuse_diarize_model: bool,
     monitor: PipelineMonitor | None = None,
     cpu_fallback: bool = False,
-) -> tuple[dict[str, Any], DiarizeCache]:
-    from whisperx.diarize import assign_word_speakers
-
+    num_speakers: int | None = None,
+) -> tuple[list[dict[str, Any]], DiarizeCache]:
+    """Run pyannote on full audio; return serialized diarizationSegments."""
     free_gpu()
     devices_to_try = [diarize_device]
     if diarize_device == "cuda" and cpu_fallback:
@@ -1134,22 +1394,24 @@ def diarize_and_assign(
             model, diarize_cache = _load_diarize_model(
                 hf_token, attempt_device, diarize_cache, reuse_diarize_model
             )
-            diarize_segments = model(
-                audio,
-                min_speakers=min_speakers,
-                max_speakers=max_speakers,
-                progress_callback=progress_callback,
-            )
-            if monitor and monitor.enabled:
-                word_count = sum(len(seg.get("words", [])) for seg in aligned_result.get("segments", []))
-                print(
-                    f"  [diarize] assigning speakers to {word_count} words...",
-                    flush=True,
+            diarize_kwargs: dict[str, Any] = {
+                "min_speakers": min_speakers,
+                "max_speakers": max_speakers,
+                "progress_callback": progress_callback,
+            }
+            if num_speakers is not None:
+                diarize_kwargs["num_speakers"] = num_speakers
+            raw_segments = model(audio, **diarize_kwargs)
+            log_diarization_result(raw_segments)
+            timeline = serialize_diarization_segments(raw_segments)
+            log_serialized_diarization(timeline)
+            if not timeline:
+                raise RuntimeError(
+                    f"Diarization returned {type(raw_segments)!r} but serialized to zero segments."
                 )
-            result = assign_word_speakers(diarize_segments, aligned_result)
             if not reuse_diarize_model:
                 free_gpu(model)
-            return result, diarize_cache
+            return timeline, diarize_cache
         except Exception as exc:
             last_error = exc
             if attempt_device == "cuda" and is_cuda_oom(exc):
@@ -1168,6 +1430,159 @@ def diarize_and_assign(
     ) from last_error
 
 
+def require_diarization_segments(
+    diarization_segments: list[dict[str, Any]],
+    *,
+    turn_source: str,
+) -> None:
+    if turn_source == "legacy_word_speakers":
+        return
+    if not diarization_segments:
+        raise RuntimeError(
+            "Diarization produced zero diarizationSegments; refusing to save full_pipeline transcript."
+        )
+
+
+def require_speaker_assignment(
+    word_segments: list[dict[str, Any]],
+    *,
+    turn_source: str,
+    threshold_percent: float = 50.0,
+) -> None:
+    if turn_source == "legacy_word_speakers":
+        return
+    unknown_percent = percent_unknown_words(word_segments)
+    if unknown_percent > threshold_percent:
+        raise RuntimeError(
+            f"Speaker assignment failed: {unknown_percent:.1f}% UNKNOWN words."
+        )
+
+
+def manifest_item_from_diag(
+    *,
+    source_file: str,
+    filename_stem: str,
+    transcript_file: str,
+    status: str,
+    run_config: RunConfig,
+    diag: dict[str, Any],
+    reason: str | None = None,
+    error: str | None = None,
+) -> ManifestItem:
+    manifest_extra = manifest_fields_from_diagnostics(diag)
+    return ManifestItem(
+        source_file=source_file,
+        filename_stem=filename_stem,
+        transcript_file=transcript_file,
+        status=status,
+        reason=reason,
+        error=error,
+        duration_seconds=diag.get("durationSeconds"),
+        word_count=diag.get("wordCount"),
+        segment_count=diag.get("segmentCount"),
+        version=TRANSCRIPT_VERSION,
+        diarized=run_config.diarize,
+        speaker_count=diag.get("detectedSpeakerCount") or diag.get("speakerCount"),
+        raw_segment_count=diag.get("rawSegmentCount"),
+        quality_flags=diag.get("qualityFlags") or None,
+        single_word_segment_percent=diag.get("singleWordSegmentPercent"),
+        max_transcript_gap_seconds=diag.get("maxTranscriptGapSeconds"),
+        large_transcript_gap_count=diag.get("largeTranscriptGapCount"),
+        speech_turn_count=manifest_extra.get("speechTurnCount"),
+        detected_speaker_count=manifest_extra.get("detectedSpeakerCount"),
+        credible_speaker_count=manifest_extra.get("credibleSpeakerCount"),
+        main_speaker_count=manifest_extra.get("mainSpeakerCount"),
+        secondary_speaker_count=manifest_extra.get("secondarySpeakerCount"),
+        cameo_speaker_count=manifest_extra.get("cameoSpeakerCount"),
+        glitch_speaker_count=manifest_extra.get("glitchSpeakerCount"),
+        speaker_changes_per_minute=manifest_extra.get("speakerChangesPerMinute"),
+        micro_turn_percent=manifest_extra.get("microTurnPercent"),
+        low_confidence_word_percent=manifest_extra.get("lowConfidenceWordPercent"),
+        overlap_possible_word_percent=manifest_extra.get("overlapPossibleWordPercent"),
+        diarization_stability=manifest_extra.get("diarizationStability"),
+        recommended_preset=manifest_extra.get("recommendedPreset"),
+        turn_source=manifest_extra.get("turnSource"),
+    )
+
+
+def finalize_from_stages(
+    *,
+    source_path: Path,
+    input_dir: Path,
+    output_path: Path,
+    run_config: RunConfig,
+    cache: TranscriptCache,
+    episode_key: str,
+    audio_hash: str,
+    raw_segments: list[dict[str, Any]],
+    aligned_flat_words: list[dict[str, Any]],
+    diarization_segments: list[dict[str, Any]],
+    word_segments: list[dict[str, Any]],
+    speech_turns: list[dict[str, Any]],
+    display_segments: list[dict[str, Any]],
+    duration_seconds: float,
+    language: str,
+    actual_model: str,
+    asr_metadata: dict[str, Any],
+    speaker_analysis: dict[str, Any] | None,
+    turn_counters: dict[str, int],
+    vad_mismatch_count: int,
+    missing_word_timestamps: int,
+    turn_source: str,
+    speaker_preset: str,
+    pipeline_timing: dict[str, Any] | None,
+    monitor: PipelineMonitor,
+) -> dict[str, Any]:
+    diagnostics = build_episode_diagnostics(
+        raw_segments=raw_segments,
+        diarization_segments=diarization_segments,
+        word_segments=word_segments,
+        speech_turns=speech_turns,
+        display_segments=display_segments,
+        duration_seconds=duration_seconds,
+        diarized=run_config.diarize,
+        speaker_analysis=speaker_analysis,
+        turn_counters=turn_counters,
+        vad_mismatch_count=vad_mismatch_count,
+        missing_word_timestamps=missing_word_timestamps,
+        turn_source=turn_source,
+        row_settings=run_config.row_settings_dict(),
+        pipeline_timing=pipeline_timing,
+    )
+    if run_config.write_diagnostics:
+        diagnostics["speakerAnalysis"] = speaker_analysis
+        diagnostics["preset"] = preset_to_dict(resolve_smoothing_preset(
+            speaker_analysis or {},
+            speaker_mode=run_config.speaker_mode,
+            explicit_preset=speaker_preset,
+            speaker_smoothing=run_config.speaker_smoothing,
+        ))
+
+    document = build_transcript_document(
+        raw_segments=raw_segments,
+        display_segments=display_segments,
+        word_segments=word_segments,
+        speech_turns=speech_turns,
+        diarization_segments=diarization_segments,
+        source_path=source_path,
+        input_dir=input_dir,
+        language=language,
+        run_config=run_config,
+        actual_model=actual_model,
+        duration_seconds=duration_seconds,
+        diarized=run_config.diarize,
+        diagnostics=diagnostics,
+        asr_metadata=asr_metadata,
+        speaker_preset=speaker_preset,
+        turn_source=turn_source,
+    )
+
+    if run_config.fail_on_invalid:
+        validate_transcript_document(document)
+
+    return document
+
+
 def process_file(
     source_path: Path,
     input_dir: Path,
@@ -1180,12 +1595,27 @@ def process_file(
     force: bool,
 ) -> tuple[ManifestItem, AlignCache, DiarizeCache]:
     stem = filename_stem(source_path)
+    episode_key = stem
     output_path = transcript_output_path(
         source_path, input_dir, output_dir, run_config.preserve_folders
     )
     manifest_rel = transcript_file_manifest_path(output_path, output_dir)
+    cache = TranscriptCache(
+        run_config.cache_dir,
+        cache_schema_version=run_config.cache_schema_version,
+        reuse_cache=run_config.reuse_cache,
+    )
 
-    if output_path.exists() and not force:
+    needs_work = (
+        force
+        or run_config.force_asr
+        or run_config.force_align
+        or run_config.force_diarize
+        or run_config.force_turns
+        or run_config.rebuild_turns_only
+        or run_config.rebuild_rows_only
+    )
+    if output_path.exists() and not needs_work:
         print(f"SKIP: {source_path.name} (transcript exists)")
         item = ManifestItem(
             source_file=source_path.name,
@@ -1197,122 +1627,480 @@ def process_file(
         update_manifest_atomic(output_dir, item, run_config)
         return item, align_cache, diarize_cache
 
-    total_steps = 5 if run_config.diarize else 4
-    print(f"Processing: {source_path.name}")
-    free_gpu(align_cache.model, diarize_cache.model)
-
-    effective_batch = resolve_batch_size(
-        run_config.batch_size, run_config.device, run_config.diarize
-    )
-
-    monitor = PipelineMonitor(source_path.name, enabled=run_config.show_progress)
-    try:
-        print(f"  [1/{total_steps}] Transcribing: {source_path.name}")
-        monitor.start_stage("transcribe", run_config.device)
-        asr_result, audio, actual_model, duration_seconds, actual_compute = transcribe_audio(
-            source_path,
-            run_config.device,
-            run_config.requested_model,
-            run_config.compute_type,
-            run_config.language,
-            effective_batch,
-            monitor=monitor,
-        )
-        monitor.end_stage()
-        run_config.actual_model = actual_model
-        run_config.compute_type = actual_compute
-        language = asr_result.get("language") or run_config.language or "en"
-
-        print(f"  [2/{total_steps}] Aligning: {source_path.name} (device={run_config.align_device})")
-        monitor.start_stage("align", run_config.align_device)
-        aligned_result, align_cache = align_words(
-            asr_result["segments"],
-            audio,
-            language,
-            run_config.align_device,
-            align_cache,
-            reuse_align_model,
-            monitor=monitor,
-        )
-        monitor.end_stage()
-
-        if run_config.diarize:
-            if not run_config.hf_token:
-                raise RuntimeError(HF_SETUP_MSG)
-            if (
-                run_config.diarize_device == "cuda"
-                and align_cache.device == "cuda"
-                and align_cache.model is not None
-            ):
-                print(
-                    "  NOTE: Unloading alignment model from GPU before diarization "
-                    "(frees VRAM for pyannote on 6GB GPUs)"
-                )
-                release_align_cache_from_gpu(align_cache)
-                free_gpu()
-            print(
-                f"  [3/{total_steps}] Diarizing + assigning speakers: {source_path.name} "
-                f"(device={run_config.diarize_device})"
+    if run_config.rebuild_rows_only:
+        cached_turns = cache.load_stage(episode_key, STAGE_SPEECH_TURNS)
+        if not cached_turns:
+            raise RuntimeError(
+                f"--rebuild-rows-only requires cached speech turns for {episode_key}"
             )
-            monitor.start_stage("diarize", run_config.diarize_device)
-            aligned_result, diarize_cache = diarize_and_assign(
-                audio,
-                aligned_result,
-                run_config.hf_token,
-                run_config.diarize_device,
-                run_config.min_speakers,
-                run_config.max_speakers,
-                diarize_cache,
-                reuse_diarize_model,
-                monitor=monitor,
-                cpu_fallback=run_config.diarize_cpu_fallback,
-            )
-            monitor.end_stage()
-
-        build_step = 4 if run_config.diarize else 3
-        save_step = 5 if run_config.diarize else 4
-
-        print(f"  [{build_step}/{total_steps}] Building display rows: {source_path.name}")
-        monitor.start_stage("rows", None)
-        raw_segments, flat_words, missing_ts = extract_raw_segments(aligned_result)
-        flat_words, missing_speakers = normalize_speakers(
-            flat_words,
-            run_config.row_pause_sec,
-            run_config.diarize,
-        )
+        cached_aligned = cache.load_stage(episode_key, STAGE_ALIGNED) or {}
+        cached_words = cache.load_stage(episode_key, STAGE_WORD_SPEAKERS) or {}
+        word_segments = cached_words.get("words") or cached_aligned.get("flatWords") or []
+        speech_turns = cached_turns.get("speechTurns") or []
         display_segments, word_segments = rebuild_display_rows(
-            flat_words,
-            strategy=run_config.row_strategy,
+            word_segments,
+            strategy=ROW_STRATEGY_V2,
+            speech_turns=speech_turns,
+            word_segments=word_segments,
             row_min_words=run_config.row_min_words,
             row_max_words=run_config.row_max_words,
             row_hard_max_words=run_config.row_hard_max_words,
             row_pause_sec=run_config.row_pause_sec,
-            turn_pause_sec=run_config.row_turn_pause_sec,
             diarized=run_config.diarize,
         )
+        existing = validate_json_file(output_path) if output_path.exists() else {}
+        diagnostics = build_episode_diagnostics(
+            raw_segments=existing.get("rawSegments", []),
+            diarization_segments=existing.get("diarizationSegments", []),
+            word_segments=word_segments,
+            speech_turns=speech_turns,
+            display_segments=display_segments,
+            duration_seconds=existing.get("diagnostics", {}).get("durationSeconds", 0),
+            diarized=run_config.diarize,
+            speaker_analysis=existing.get("diagnostics", {}).get("speakerAnalysis"),
+            turn_counters=cached_turns.get("counters"),
+            vad_mismatch_count=existing.get("diagnostics", {}).get("vadWordMismatchCount", 0),
+            missing_word_timestamps=existing.get("diagnostics", {}).get("missingWordTimestamps", 0),
+            turn_source=cached_turns.get("turnSource", "full_pipeline"),
+            row_settings=run_config.row_settings_dict(),
+        )
+        document = {
+            **existing,
+            "version": TRANSCRIPT_VERSION,
+            "segments": display_segments,
+            "wordSegments": word_segments,
+            "speechTurns": speech_turns,
+            "diagnostics": diagnostics,
+        }
+        save_transcript_json(output_path, document)
+        item = manifest_item_from_diag(
+            source_file=source_path.name,
+            filename_stem=stem,
+            transcript_file=manifest_rel,
+            status="ok",
+            run_config=run_config,
+            diag=diagnostics,
+        )
+        update_manifest_atomic(output_dir, item, run_config)
+        return item, align_cache, diarize_cache
+
+    total_steps = 8 if run_config.diarize else 6
+    print(f"Processing: {source_path.name}")
+    if run_config.device == "cuda" and run_config.diarize_device == "cuda":
+        clear_model_caches(align_cache, diarize_cache)
+    else:
+        free_gpu()
+
+    audio_hash = hash_file(source_path)
+    cache.save_stage(
+        episode_key,
+        STAGE_AUDIO,
+        {"sourceFile": source_path.name, "durationSeconds": None},
+        audio_hash=audio_hash,
+        config_hash=hash_config({"source": source_path.name}),
+    )
+
+    effective_batch = resolve_batch_size(
+        run_config.batch_size, run_config.device, run_config.diarize
+    )
+    vad_settings = run_config.vad_settings or default_vad_settings()
+    monitor = PipelineMonitor(source_path.name, enabled=run_config.show_progress)
+
+    actual_model = run_config.actual_model or run_config.requested_model
+    language = run_config.language or "en"
+    duration_seconds = 0.0
+    asr_metadata = run_config.asr_metadata(actual_model, effective_batch)
+    raw_segments: list[dict[str, Any]] = []
+    aligned_flat_words: list[dict[str, Any]] = []
+    diarization_segments: list[dict[str, Any]] = []
+    word_segments: list[dict[str, Any]] = []
+    speech_turns: list[dict[str, Any]] = []
+    display_segments: list[dict[str, Any]] = []
+    speaker_analysis: dict[str, Any] | None = None
+    turn_counters: dict[str, int] = {}
+    vad_mismatch_count = 0
+    missing_ts = 0
+    turn_source = "full_pipeline"
+    speaker_preset = run_config.speaker_mode
+    audio: Any = None
+    asr_result: Any = None
+    aligned_result: Any = None
+    transcript: dict[str, Any] | None = None
+
+    try:
+        skip_gpu = run_config.rebuild_turns_only
+
+        if not skip_gpu:
+            asr_payload = None if run_config.force_asr else cache.load_stage(
+                episode_key, STAGE_ASR, audio_hash=audio_hash, config_hash=run_config.asr_config_hash()
+            )
+            if asr_payload:
+                print(f"  [cache] ASR loaded for {source_path.name}")
+                asr_result = asr_payload["result"]
+                actual_model = asr_payload.get("actualModel", actual_model)
+                run_config.compute_type = asr_payload.get(
+                    "actualComputeType",
+                    asr_payload.get("computeType", run_config.requested_compute_type),
+                )
+                language = asr_result.get("language") or language
+                duration_seconds = asr_payload.get("durationSeconds", 0.0)
+                import whisperx
+                audio = whisperx.load_audio(str(source_path))
+                if not duration_seconds:
+                    duration_seconds = len(audio) / SAMPLE_RATE
+            else:
+                print(f"  [1/{total_steps}] Transcribing: {source_path.name}")
+                monitor.start_stage("transcribe", run_config.device)
+                asr_result, audio, actual_model, duration_seconds, actual_compute = transcribe_audio(
+                    source_path,
+                    run_config.device,
+                    run_config.requested_model,
+                    run_config.requested_compute_type,
+                    run_config.language,
+                    effective_batch,
+                    monitor=monitor,
+                    vad_settings=vad_settings,
+                )
+                monitor.end_stage()
+                run_config.actual_model = actual_model
+                run_config.compute_type = actual_compute
+                language = asr_result.get("language") or run_config.language or "en"
+                asr_metadata = run_config.asr_metadata(actual_model, effective_batch)
+                cache.save_stage(
+                    episode_key,
+                    STAGE_ASR,
+                    {
+                        "result": asr_result,
+                        "actualModel": actual_model,
+                        "actualComputeType": actual_compute,
+                        "computeType": actual_compute,
+                        "requestedComputeType": run_config.requested_compute_type,
+                        "durationSeconds": duration_seconds,
+                        "asrMetadata": asr_metadata,
+                    },
+                    audio_hash=audio_hash,
+                    config_hash=run_config.asr_config_hash(),
+                )
+                vad_regions = derive_regions_from_segments(asr_result.get("segments", []))
+                cache.save_stage(
+                    episode_key,
+                    STAGE_VAD,
+                    build_vad_cache_payload(vad_settings, vad_regions),
+                    audio_hash=audio_hash,
+                    config_hash=hash_config(vad_settings),
+                )
+
+            align_payload = None if run_config.force_align else cache.load_stage(
+                episode_key,
+                STAGE_ALIGNED,
+                audio_hash=audio_hash,
+                config_hash=run_config.align_config_hash(language),
+            )
+            if align_payload:
+                print(f"  [cache] Alignment loaded for {source_path.name}")
+                aligned_result = align_payload["aligned"]
+                raw_segments = align_payload.get("rawSegments", [])
+                aligned_flat_words = align_payload.get("flatWords", [])
+                missing_ts = align_payload.get("missingWordTimestamps", 0)
+            else:
+                if audio is None:
+                    import whisperx
+                    audio = whisperx.load_audio(str(source_path))
+                    duration_seconds = len(audio) / SAMPLE_RATE
+                print(f"  [2/{total_steps}] Aligning: {source_path.name} (device={run_config.align_device})")
+                monitor.start_stage("align", run_config.align_device)
+                aligned_result, align_cache = align_words(
+                    asr_result["segments"],
+                    audio,
+                    language,
+                    run_config.align_device,
+                    align_cache,
+                    reuse_align_model,
+                    monitor=monitor,
+                )
+                monitor.end_stage()
+                raw_segments, aligned_flat_words, missing_ts = extract_raw_segments(aligned_result)
+                cache.save_stage(
+                    episode_key,
+                    STAGE_ALIGNED,
+                    {
+                        "aligned": aligned_result,
+                        "rawSegments": raw_segments,
+                        "flatWords": aligned_flat_words,
+                        "missingWordTimestamps": missing_ts,
+                    },
+                    audio_hash=audio_hash,
+                    config_hash=run_config.align_config_hash(language),
+                )
+
+            vad_payload = cache.load_stage(
+                episode_key,
+                STAGE_VAD,
+                audio_hash=audio_hash,
+                config_hash=hash_config(vad_settings),
+            )
+            if vad_payload:
+                aligned_flat_words, vad_mismatch_count = flag_vad_mismatches(
+                    aligned_flat_words,
+                    vad_payload.get("regions", []),
+                )
+                monitor.start_stage("vad_export", None)
+                monitor.end_stage()
+
+            if run_config.diarize:
+                if not run_config.hf_token:
+                    raise RuntimeError(HF_SETUP_MSG)
+                if (
+                    run_config.diarize_device == "cuda"
+                    and align_cache.device == "cuda"
+                    and align_cache.model is not None
+                ):
+                    print(
+                        "  NOTE: Unloading alignment model from GPU before diarization "
+                        "(frees VRAM for pyannote on 6GB GPUs)"
+                    )
+                    release_align_cache_from_gpu(align_cache)
+                    free_gpu()
+
+                diar_payload = None if run_config.force_diarize else cache.load_stage(
+                    episode_key,
+                    STAGE_DIARIZATION,
+                    audio_hash=audio_hash,
+                    config_hash=run_config.diarize_config_hash(),
+                )
+                if diar_payload:
+                    print(f"  [cache] Diarization loaded for {source_path.name}")
+                    diarization_segments = diar_payload.get("segments", [])
+                    require_diarization_segments(
+                        diarization_segments,
+                        turn_source=turn_source,
+                    )
+                else:
+                    if audio is None:
+                        import whisperx
+                        audio = whisperx.load_audio(str(source_path))
+                    num_speakers = run_config.effective_num_speakers()
+                    print(
+                        f"  [3/{total_steps}] Diarizing: {source_path.name} "
+                        f"(device={run_config.diarize_device}, full audio)"
+                    )
+                    monitor.start_stage("diarize", run_config.diarize_device)
+                    diarization_segments, diarize_cache = run_diarization(
+                        audio,
+                        run_config.hf_token,
+                        run_config.diarize_device,
+                        run_config.min_speakers,
+                        run_config.max_speakers,
+                        diarize_cache,
+                        reuse_diarize_model,
+                        monitor=monitor,
+                        cpu_fallback=run_config.diarize_cpu_fallback,
+                        num_speakers=num_speakers,
+                    )
+                    monitor.end_stage()
+                    require_diarization_segments(
+                        diarization_segments,
+                        turn_source=turn_source,
+                    )
+                    cache.save_stage(
+                        episode_key,
+                        STAGE_DIARIZATION,
+                        {"segments": diarization_segments},
+                        audio_hash=audio_hash,
+                        config_hash=run_config.diarize_config_hash(),
+                    )
+        else:
+            aligned_payload = cache.load_stage(
+                episode_key,
+                STAGE_ALIGNED,
+                audio_hash=audio_hash,
+            )
+            if not aligned_payload:
+                raise RuntimeError(
+                    f"--rebuild-turns-only requires cached alignment for {episode_key}"
+                )
+            raw_segments = aligned_payload.get("rawSegments", [])
+            aligned_flat_words = aligned_payload.get("flatWords", [])
+            missing_ts = aligned_payload.get("missingWordTimestamps", 0)
+            duration_seconds = float(
+                (cache.load_stage(episode_key, STAGE_ASR, audio_hash=audio_hash) or {}).get("durationSeconds", 0) or 0
+            )
+            diar_payload = cache.load_stage(
+                episode_key,
+                STAGE_DIARIZATION,
+                audio_hash=audio_hash,
+                config_hash=run_config.diarize_config_hash(),
+            )
+            if run_config.diarize and not diar_payload:
+                if output_path.exists():
+                    existing_doc = validate_json_file(output_path)
+                    version = str(existing_doc.get("version", "1.1.0"))
+                    legacy_words = existing_doc.get("wordSegments") or []
+                    has_legacy_speakers = any(w.get("speaker") for w in legacy_words)
+                    if version < "1.2.0" and has_legacy_speakers and legacy_words:
+                        print(
+                            "  [legacy] No diarization cache; deriving speechTurns from v1.1 word speakers"
+                        )
+                        aligned_flat_words = legacy_words
+                        turn_source = "legacy_word_speakers"
+                        diarization_segments = existing_doc.get("diarizationSegments", [])
+                        raw_segments = existing_doc.get("rawSegments", raw_segments)
+                    else:
+                        raise RuntimeError(
+                            f"--rebuild-turns-only requires cached diarization for {episode_key} "
+                            "(or existing v1.1 wordSegments with speaker labels)"
+                        )
+                else:
+                    raise RuntimeError(
+                        f"--rebuild-turns-only requires cached diarization for {episode_key}"
+                    )
+            else:
+                diarization_segments = (diar_payload or {}).get("segments", [])
+                require_diarization_segments(
+                    diarization_segments,
+                    turn_source=turn_source,
+                )
+
+        step_assign = 4 if run_config.diarize and not skip_gpu else 1
+        if run_config.diarize:
+            print(f"  [{step_assign}/{total_steps}] Assigning speakers")
+            monitor.start_stage("speaker_assign", None)
+            if turn_source == "legacy_word_speakers":
+                word_segments = [dict(w) for w in aligned_flat_words]
+            else:
+                word_segments = assign_words_from_diarization(
+                    aligned_flat_words,
+                    diarization_segments,
+                    padding_sec=run_config.speaker_assignment_padding_sec,
+                )
+                require_speaker_assignment(word_segments, turn_source=turn_source)
+                cache.save_stage(
+                    episode_key,
+                    STAGE_WORD_SPEAKERS,
+                    {"words": word_segments},
+                    audio_hash=audio_hash,
+                    config_hash=run_config.diarize_config_hash(),
+                )
+            monitor.end_stage()
+        else:
+            word_segments = [dict(w) for w in aligned_flat_words]
+            speech_turns = [
+                {
+                    "turnId": 0,
+                    "speaker": None,
+                    "speakerClass": "unknown_or_overlap",
+                    "startTime": word_segments[0].get("startTime") if word_segments else 0,
+                    "endTime": word_segments[-1].get("endTime") if word_segments else 0,
+                    "body": " ".join(w["body"] for w in word_segments),
+                    "words": word_segments,
+                    "wordCount": len(word_segments),
+                    "durationSeconds": duration_seconds,
+                    "confidence": 0.0,
+                    "speakerMargin": 0.0,
+                    "source": "no_diarization",
+                    "flags": [],
+                }
+            ] if word_segments else []
+
+        if run_config.diarize:
+            print(f"  [{step_assign + 1}/{total_steps}] Analyzing speakers")
+            monitor.start_stage("analyze", None)
+            explicit_preset = None
+            if run_config.speaker_mode in {"normal", "group", "chaotic"}:
+                explicit_preset = run_config.speaker_mode
+            elif run_config.speaker_mode == "forced-two-host":
+                explicit_preset = PRESET_FORCED_TWO_HOST
+            speaker_analysis = analyze_speakers(
+                word_segments,
+                duration_seconds,
+                speaker_mode=run_config.speaker_mode,
+                explicit_preset=explicit_preset,
+            )
+            if turn_source == "legacy_word_speakers":
+                speaker_analysis["diarizationStability"] = "legacy"
+            speaker_preset = speaker_analysis.get("recommendedPreset", "normal")
+            monitor.end_stage()
+
+            print(f"  [{step_assign + 2}/{total_steps}] Building speech turns (preset={speaker_preset})")
+            monitor.start_stage("turns", None)
+            smoothing = resolve_smoothing_preset(
+                speaker_analysis,
+                speaker_mode=run_config.speaker_mode,
+                explicit_preset=explicit_preset,
+                speaker_smoothing=run_config.speaker_smoothing,
+            )
+            speech_turns, turn_counters = build_speech_turns(
+                word_segments,
+                speaker_analysis,
+                smoothing,
+                turn_source=turn_source,
+            )
+            monitor.end_stage()
+            cache.save_stage(
+                episode_key,
+                STAGE_SPEECH_TURNS,
+                {"speechTurns": speech_turns, "turnSource": turn_source, "counters": turn_counters},
+                audio_hash=audio_hash,
+                config_hash=run_config.turns_config_hash(speaker_preset),
+            )
+
+        print(f"  [{total_steps - 1}/{total_steps}] Building display rows")
+        monitor.start_stage("rows", None)
+        if run_config.row_strategy == ROW_STRATEGY_V2:
+            display_segments, word_segments = rebuild_display_rows(
+                word_segments,
+                strategy=ROW_STRATEGY_V2,
+                speech_turns=speech_turns,
+                word_segments=word_segments,
+                row_min_words=run_config.row_min_words,
+                row_max_words=run_config.row_max_words,
+                row_hard_max_words=run_config.row_hard_max_words,
+                row_pause_sec=run_config.row_pause_sec,
+                diarized=run_config.diarize,
+            )
+        else:
+            display_segments, word_segments = rebuild_display_rows(
+                word_segments,
+                strategy=ROW_STRATEGY_V1,
+                row_min_words=run_config.row_min_words,
+                row_max_words=run_config.row_max_words,
+                row_hard_max_words=run_config.row_hard_max_words,
+                row_pause_sec=run_config.row_pause_sec,
+                turn_pause_sec=run_config.row_turn_pause_sec,
+                diarized=run_config.diarize,
+            )
         monitor.end_stage()
 
         pipeline_timing = monitor.to_diagnostics()
-        transcript = build_transcript_document(
-            raw_segments=raw_segments,
-            display_segments=display_segments,
-            word_segments=word_segments,
+        transcript = finalize_from_stages(
             source_path=source_path,
             input_dir=input_dir,
-            language=language,
-            requested_model=run_config.requested_model,
-            actual_model=actual_model,
-            compute_type=run_config.compute_type,
+            output_path=output_path,
+            run_config=run_config,
+            cache=cache,
+            episode_key=episode_key,
+            audio_hash=audio_hash,
+            raw_segments=raw_segments,
+            aligned_flat_words=aligned_flat_words,
+            diarization_segments=diarization_segments,
+            word_segments=word_segments,
+            speech_turns=speech_turns,
+            display_segments=display_segments,
             duration_seconds=duration_seconds,
-            diarized=run_config.diarize,
-            row_strategy=run_config.row_strategy,
-            row_settings=run_config.row_settings_dict(),
+            language=language,
+            actual_model=actual_model,
+            asr_metadata=asr_metadata,
+            speaker_analysis=speaker_analysis,
+            turn_counters=turn_counters,
+            vad_mismatch_count=vad_mismatch_count,
             missing_word_timestamps=missing_ts,
-            missing_speaker_assignments=missing_speakers,
+            turn_source=turn_source,
+            speaker_preset=speaker_preset,
             pipeline_timing=pipeline_timing,
+            monitor=monitor,
         )
 
-        print(f"  [{save_step}/{total_steps}] Saving: {output_path.name}")
+        print(f"  [{total_steps}/{total_steps}] Saving: {output_path.name}")
         monitor.start_stage("save", None)
         save_transcript_json(output_path, transcript)
         monitor.end_stage()
@@ -1321,22 +2109,13 @@ def process_file(
         raise
 
     diag = transcript["diagnostics"]
-    item = ManifestItem(
+    item = manifest_item_from_diag(
         source_file=source_path.name,
         filename_stem=stem,
         transcript_file=manifest_rel,
         status="ok",
-        duration_seconds=diag["durationSeconds"],
-        word_count=diag["wordCount"],
-        segment_count=diag["segmentCount"],
-        version=TRANSCRIPT_VERSION,
-        diarized=run_config.diarize,
-        speaker_count=diag.get("speakerCount"),
-        raw_segment_count=diag.get("rawSegmentCount"),
-        quality_flags=diag.get("qualityFlags") or None,
-        single_word_segment_percent=diag.get("singleWordSegmentPercent"),
-        max_transcript_gap_seconds=diag.get("maxTranscriptGapSeconds"),
-        large_transcript_gap_count=diag.get("largeTranscriptGapCount"),
+        run_config=run_config,
+        diag=diag,
     )
     update_manifest_atomic(output_dir, item, run_config)
     flag_note = ""
@@ -1344,8 +2123,9 @@ def process_file(
         flag_note = f", flags={','.join(diag['qualityFlags'])}"
     print(
         f"  Done: {diag['wordCount']} words, {diag['segmentCount']} display rows, "
+        f"{diag.get('speechTurnCount', 0)} speech turns, "
         f"{diag['rawSegmentCount']} raw segments"
-        + (f", {diag.get('speakerCount', 0)} speakers" if run_config.diarize else "")
+        + (f", {diag.get('detectedSpeakerCount', 0)} speakers" if run_config.diarize else "")
         + f", single-word rows {diag.get('singleWordSegmentPercent', 0)}%"
         + flag_note
     )
@@ -1355,6 +2135,19 @@ def process_file(
         for stage in timing.get("stages", []):
             dev = f" ({stage['device']})" if stage.get("device") else ""
             print(f"    {stage['name']}{dev}: {stage['elapsedSeconds']}s")
+
+    audio = None
+    asr_result = None
+    aligned_result = None
+    raw_segments = []
+    aligned_flat_words = []
+    diarization_segments = []
+    word_segments = []
+    speech_turns = []
+    display_segments = []
+    transcript = None
+    free_gpu()
+
     return item, align_cache, diarize_cache
 
 
@@ -1374,10 +2167,27 @@ def main() -> int:
     args = parse_args()
     reuse_align_model = args.reuse_align_model
     device = resolve_device(args.device)
+    compute_type = resolve_compute_type(args.compute_type, device)
     align_device = resolve_align_device(args.align_device, device)
     diarize_device = resolve_diarize_device(args.diarize_device, device, align_device)
     warn_if_cpu_torch_on_cuda_device(device)
     extensions = parse_extensions(args.extensions)
+
+    if args.cache_version != CACHE_SCHEMA_VERSION:
+        print(
+            f"ERROR: --cache-version must be {CACHE_SCHEMA_VERSION} (got {args.cache_version})",
+            file=sys.stderr,
+        )
+        return 1
+
+    if args.speaker_mode == "forced-two-host" and args.num_speakers not in (None, 2):
+        print("ERROR: forced-two-host mode requires --num-speakers 2 or omitted", file=sys.stderr)
+        return 1
+    if args.num_speakers is not None and args.speaker_mode != "forced-two-host":
+        print(
+            "WARNING: --num-speakers is only intended for --speaker-mode forced-two-host",
+            file=sys.stderr,
+        )
 
     hf_token = resolve_hf_token(args.hf_token) if args.diarize else None
     if args.diarize and not hf_token:
@@ -1387,6 +2197,8 @@ def main() -> int:
     input_dir = args.input.resolve()
     output_dir = args.output.resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
+    cache_dir = (SCRIPT_DIR / CACHE_SUBDIR).resolve()
+    cache_dir.mkdir(parents=True, exist_ok=True)
 
     if args.preserve_folders and not args.recursive:
         print("NOTE: --preserve-folders is most useful with --recursive for nested archives.")
@@ -1397,8 +2209,10 @@ def main() -> int:
     run_config = RunConfig(
         input_dir=input_dir,
         output_dir=output_dir,
+        cache_dir=cache_dir,
         requested_model=args.model,
-        compute_type=args.compute_type,
+        compute_type=compute_type,
+        requested_compute_type=compute_type,
         batch_size=args.batch_size,
         align_batch_size=args.align_batch_size,
         language=args.language,
@@ -1411,7 +2225,11 @@ def main() -> int:
         hf_token=hf_token,
         min_speakers=args.min_speakers,
         max_speakers=args.max_speakers,
+        num_speakers=args.num_speakers,
+        speaker_mode=args.speaker_mode,
+        speaker_smoothing=args.speaker_smoothing,
         row_strategy=args.row_strategy,
+        turn_strategy=args.turn_strategy,
         row_min_words=args.row_min_words,
         row_max_words=args.row_max_words,
         row_hard_max_words=args.row_hard_max_words,
@@ -1419,6 +2237,18 @@ def main() -> int:
         row_turn_pause_sec=args.row_turn_pause_sec,
         show_progress=not args.no_progress,
         diarize_cpu_fallback=args.diarize_cpu_fallback,
+        reuse_cache=args.reuse_cache,
+        cache_schema_version=args.cache_version,
+        vad_settings=default_vad_settings(),
+        rebuild_turns_only=args.rebuild_turns_only,
+        rebuild_rows_only=args.rebuild_rows_only,
+        force_asr=args.force_asr,
+        force_align=args.force_align,
+        force_diarize=args.force_diarize,
+        force_turns=args.force_turns,
+        write_diagnostics=args.write_diagnostics,
+        fail_on_invalid=args.fail_on_invalid,
+        qa_report=args.qa_report,
     )
 
     try:
@@ -1431,9 +2261,17 @@ def main() -> int:
         all_files, args.start_after, args.limit, args.test, args.only
     )
 
-    mode = "diarize + rows" if args.diarize else "rows only"
+    if args.reuse_diarize_model is None:
+        reuse_diarize_model = args.diarize and not _gpu_vram_under_8gb()
+    else:
+        reuse_diarize_model = args.reuse_diarize_model
+
+    mode = "diarize + adaptive turns" if args.diarize else "rows only"
     print(f"Device: {device} (ASR) | {align_device} (align)" + (f" | {diarize_device} (diarize)" if args.diarize else ""))
-    print(f"Mode:   {mode} | strategy={args.row_strategy}")
+    if args.diarize:
+        print(f"Diarize model reuse: {reuse_diarize_model}")
+    print(f"ASR: {compute_type} on {device} | cache={cache_dir}")
+    print(f"Mode:   {mode} | row={args.row_strategy} | speaker={args.speaker_mode}")
     print(f"Input:  {input_dir}")
     print(f"Output: {output_dir}")
     print(f"Found {len(all_files)} audio file(s); {len(files)} queued for this run")
@@ -1444,8 +2282,8 @@ def main() -> int:
     stats = RunStats(remaining=len(files))
     align_cache = AlignCache()
     diarize_cache = DiarizeCache()
-    reuse_diarize_model = args.diarize
     interrupted = False
+    force = args.force or args.force_asr or args.force_align or args.force_diarize or args.force_turns
 
     try:
         for i, source_path in enumerate(files):
@@ -1460,7 +2298,7 @@ def main() -> int:
                     align_cache,
                     diarize_cache,
                     reuse_diarize_model,
-                    args.force,
+                    force,
                 )
                 if item.status == "ok":
                     stats.processed += 1
@@ -1486,14 +2324,16 @@ def main() -> int:
     except KeyboardInterrupt:
         interrupted = True
         print("\nInterrupted — saving progress...")
-        free_gpu(align_cache.model, diarize_cache.model)
-        align_cache.model = None
-        diarize_cache.model = None
+        clear_model_caches(align_cache, diarize_cache)
         print_summary(stats, interrupted=True)
         return 130
 
-    free_gpu(align_cache.model, diarize_cache.model)
+    clear_model_caches(align_cache, diarize_cache)
     print_summary(stats)
+    if args.qa_report:
+        report_path = output_dir / "qa-report.json"
+        write_qa_report(output_dir / MANIFEST_NAME, report_path)
+        print(f"QA report: {report_path}")
     return 1 if stats.failed else 0
 
 

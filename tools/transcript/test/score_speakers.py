@@ -1,26 +1,5 @@
 #!/usr/bin/env python3
-"""Score a generated transcript's speaker accuracy against hand-reviewed ground truth.
-
-Usage:
-    python score_speakers.py <corrections.json> <candidate_transcript.json>
-
-corrections.json comes from review.html's "Export corrections" button: a list of
-rows the human actually checked by ear, each marked correct / wrong (with the
-right speaker) / nonspeech (music, not a real speaker turn -- excluded from scoring).
-
-candidate_transcript.json is any transcript JSON in the same format you already
-generate (segments[] with startTime/endTime/speaker), e.g. output from the old
-engine, the new engine, or a future tuned version -- whatever you want to test.
-
-Matching is done by time overlap, not by row index, because rebuild_display_rows
-can produce a different number of rows between engine versions (longer/shorter
-rows, merges, splits). For each reviewed ground-truth row, this script finds the
-candidate segment(s) that overlap its time range and checks whether the *majority
-of overlapping words* (by duration) agree with the ground-truth speaker.
-
-Output: a single accuracy percentage plus a breakdown, so you can compare configs
-run over run without re-reading the transcript by eye every time.
-"""
+"""Score speaker accuracy against hand-reviewed ground truth."""
 
 from __future__ import annotations
 
@@ -31,55 +10,65 @@ from typing import Any
 
 
 def load_json(path: str) -> dict[str, Any]:
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
+    with open(path, "r", encoding="utf-8") as handle:
+        return json.load(handle)
 
 
 def overlap_duration(a_start: float, a_end: float, b_start: float, b_end: float) -> float:
     return max(0.0, min(a_end, b_end) - max(a_start, b_start))
 
 
+def flatten_words(candidate_doc: dict[str, Any]) -> list[dict[str, Any]]:
+    words = candidate_doc.get("wordSegments")
+    if words:
+        return list(words)
+    flat: list[dict[str, Any]] = []
+    for seg in candidate_doc.get("segments", []):
+        flat.extend(seg.get("words", []))
+    return flat
+
+
 def candidate_speaker_for_window(
     candidate_words: list[dict[str, Any]],
     start: float,
     end: float,
-) -> tuple[str | None, dict[str, float]]:
-    """Return the speaker with the most overlapping word-duration in [start, end],
-    plus a breakdown of overlap-seconds per speaker (for transparency on close calls).
-    """
+) -> tuple[str | None, dict[str, float], float]:
     tally: dict[str, float] = {}
-    for w in candidate_words:
-        ws, we = w.get("startTime"), w.get("endTime")
+    weight_total = 0.0
+    for word in candidate_words:
+        ws, we = word.get("startTime"), word.get("endTime")
         if ws is None or we is None:
             continue
         ov = overlap_duration(start, end, float(ws), float(we))
         if ov <= 0:
             continue
-        spk = str(w.get("speaker") or "UNKNOWN")
-        tally[spk] = tally.get(spk, 0.0) + ov
+        score = float(word.get("speakerAssignmentScore", word.get("speakerConfidence", 1.0)) or 1.0)
+        weight = ov * max(score, 0.1)
+        spk = str(word.get("speaker") or "UNKNOWN")
+        tally[spk] = tally.get(spk, 0.0) + weight
+        weight_total += weight
 
     if not tally:
-        return None, {}
+        return None, {}, 0.0
     winner = max(tally, key=tally.get)
-    return winner, tally
+    return winner, tally, weight_total
 
 
 def main() -> None:
     if len(sys.argv) != 3:
         print(__doc__)
+        print("Usage: python score_speakers.py <corrections.json> <candidate_transcript.json>")
         sys.exit(1)
 
     corrections_path, candidate_path = sys.argv[1], sys.argv[2]
     corrections_doc = load_json(corrections_path)
     candidate_doc = load_json(candidate_path)
 
-    candidate_words = candidate_doc.get("wordSegments")
-    if not candidate_words:
-        # fall back to flattening segments[] if wordSegments absent
-        candidate_words = []
-        for seg in candidate_doc.get("segments", []):
-            candidate_words.extend(seg.get("words", []))
+    turn_source = candidate_doc.get("metadata", {}).get("turn_source") or candidate_doc.get("diagnostics", {}).get("turnSource")
+    if turn_source == "legacy_word_speakers":
+        print("WARNING: candidate uses legacy_word_speakers — scores are lower-trust.\n")
 
+    candidate_words = flatten_words(candidate_doc)
     rows = corrections_doc.get("corrections", [])
     scored_rows = [r for r in rows if r.get("review") in ("correct", "wrong")]
     skipped_nonspeech = sum(1 for r in rows if r.get("review") == "nonspeech")
@@ -96,7 +85,7 @@ def main() -> None:
         start, end = row["startTime"], row["endTime"]
         truth_speaker = row["correctSpeaker"]
 
-        cand_speaker, tally = candidate_speaker_for_window(candidate_words, start, end)
+        cand_speaker, tally, _ = candidate_speaker_for_window(candidate_words, start, end)
 
         if cand_speaker is None:
             no_overlap.append(row)
@@ -118,6 +107,8 @@ def main() -> None:
 
     print(f"Ground truth:  {corrections_doc.get('episode', corrections_path)}")
     print(f"Candidate:     {candidate_path}")
+    if turn_source:
+        print(f"Turn source:   {turn_source}")
     print()
     print(f"Reviewed rows used for scoring: {scored_total}")
     print(f"  (skipped: {skipped_nonspeech} marked non-speech, {len(no_overlap)} had no time overlap in candidate)")
@@ -127,17 +118,20 @@ def main() -> None:
 
     if mismatches:
         print(f"--- {len(mismatches)} mismatches ---")
-        for m in mismatches:
-            print(f"  [{m['time']}] truth={m['truth']!r} candidate={m['candidate']!r}  \"{m['body']}\"")
-            print(f"      overlap breakdown: {m['overlap_breakdown']}")
+        for mismatch in mismatches:
+            print(
+                f"  [{mismatch['time']}] truth={mismatch['truth']!r} "
+                f"candidate={mismatch['candidate']!r}  \"{mismatch['body']}\""
+            )
+            print(f"      overlap breakdown: {mismatch['overlap_breakdown']}")
     else:
         print("No mismatches. Clean run against this ground truth set.")
 
     if no_overlap:
         print()
-        print(f"--- {len(no_overlap)} rows had no candidate words in that time window (check alignment/timing) ---")
-        for r in no_overlap[:10]:
-            print(f"  [{r['startTime']:.1f}-{r['endTime']:.1f}] \"{r['body'][:60]}\"")
+        print(f"--- {len(no_overlap)} rows had no candidate words in that time window ---")
+        for row in no_overlap[:10]:
+            print(f"  [{row['startTime']:.1f}-{row['endTime']:.1f}] \"{row['body'][:60]}\"")
 
 
 if __name__ == "__main__":
