@@ -42,30 +42,70 @@ body.launch-loading .launch {
   visibility: hidden;
 }
 
-.launch__header,
+.launch__top-bar,
+.launch__heading,
 .launch__content,
 .launch__browse,
 .launch__archive {
   min-width: 0;
 }
 
-.launch__header {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: start;
-  gap: clamp(18px, 3vw, 34px);
-  margin-bottom: clamp(20px, 3vw, 34px);
+.launch__top-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: clamp(8px, 1.5vw, 12px);
 }
 
 .launch__brand {
   display: block;
-  width: clamp(24px, 2.5vw, 34px);
+  width: 32px;
   height: auto;
-  padding-top: 2px;
+  flex: 0 0 auto;
   user-select: none;
 }
 
+.launch__paytch-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 10px;
+  color: #fff;
+  background: #f96854;
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1;
+  cursor: pointer;
+  transition: filter 160ms ease;
+}
+
+.launch__paytch-link:hover {
+  filter: brightness(1.05);
+}
+
+.launch__paytch-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.launch__paytch-link__icon {
+  display: block;
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.launch__paytch-link__label {
+  white-space: nowrap;
+}
+
 .launch__heading {
+  margin-bottom: clamp(16px, 2.5vw, 28px);
   min-width: 0;
 }
 
@@ -389,20 +429,11 @@ h1 {
 }
 
 @media (max-width: 760px) {
-  .launch__header {
-    grid-template-columns: 1fr;
-    gap: 10px;
-  }
-
   .launch__heading h1 {
     font-size: clamp(1.55rem, 7vw, 3.3rem);
     letter-spacing: -0.035em;
     overflow-wrap: normal;
     white-space: nowrap;
-  }
-
-  .launch__brand {
-    width: 30px;
   }
 
   .collection-hero {
@@ -447,8 +478,8 @@ h1 {
 }
 
 @media (max-width: 480px) {
-  .launch__header {
-    margin-bottom: 18px;
+  .launch__heading {
+    margin-bottom: 14px;
   }
 
   .collection-hero {

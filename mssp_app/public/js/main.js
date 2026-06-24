@@ -283,7 +283,10 @@ async function init() {
     if (patreonSources.getStoredUrl()) {
       void patreonSources.reconnect(archiveEpisodes)
         .then(() => refreshPrivateSources())
-        .catch(() => {});
+        .catch(() => {})
+        .finally(() => patreonRssModal?.syncLaunchButton?.());
+    } else {
+      patreonRssModal?.syncLaunchButton?.();
     }
 
     await new Promise((resolve) => {

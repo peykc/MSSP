@@ -84,15 +84,24 @@
     </div>
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
-        <header class="launch__header">
-          <button class="launch__brand-button" id="patreonRssLogoButton" type="button" aria-label="Connect private Patreon RSS">
-            <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="">
+        <div class="launch__top-bar">
+          <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="Matt and Shane's Secret Podcast">
+          <button class="launch__paytch-link" id="patreonRssLogoButton" type="button" aria-label="Link PAYTCH">
+            <span class="launch__paytch-link__label">Link PAYTCH</span>
+            <svg class="launch__paytch-link__icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" aria-hidden="true">
+              <g transform="matrix(.47407 0 0 .47407 .383 .422)">
+                <clipPath id="launchPatreonClip"><path d="M0 0h1080v1080H0z"/></clipPath>
+                <g clip-path="url(#launchPatreonClip)">
+                  <path fill="currentColor" fill-rule="nonzero" d="M1033.05 324.45c-.19-137.9-107.59-250.92-233.6-291.7-156.48-50.64-362.86-43.3-512.28 27.2-181.1 85.46-237.99 272.66-240.11 459.36-1.74 153.5 13.58 557.79 241.62 560.67 169.44 2.15 194.67-216.18 273.07-321.33 55.78-74.81 127.6-95.94 216.01-117.82 151.95-37.61 255.51-157.53 255.29-316.38z"/>
+                </g>
+              </g>
+            </svg>
           </button>
-          <div class="launch__heading">
-            <p class="eyebrow">Matt and Shane's Secret Podcast</p>
-            <h1>The Complete Collection</h1>
-          </div>
-        </header>
+        </div>
+        <div class="launch__heading">
+          <p class="eyebrow">Matt and Shane's Secret Podcast</p>
+          <h1>The Complete Collection</h1>
+        </div>
         <div class="launch__content">
           <div class="launch__hero" id="launchHero"></div>
           <section class="launch__browse" aria-labelledby="launchBrowseTitle">
