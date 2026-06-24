@@ -191,37 +191,82 @@
     </div>
     <div class="patreon-rss-modal" id="patreonRssModal" aria-hidden="true" hidden>
       <section class="patreon-rss-dialog" id="patreonRssDialog" role="dialog" aria-modal="true" aria-labelledby="patreonRssTitle" tabindex="-1">
+        <button class="patreon-rss-dialog__drag" id="patreonRssDragHandle" type="button" aria-label="Close Patreon RSS connection">
+          <span class="patreon-rss-dialog__grabber" aria-hidden="true"></span>
+        </button>
         <header class="patreon-rss-dialog__header">
           <div>
-            <p class="eyebrow">The key to the treasure chest</p>
+            <p class="eyebrow">The Ark of the Covenant</p>
             <h2 id="patreonRssTitle">Connect Patreon RSS</h2>
           </div>
-          <button class="patreon-rss-dialog__close" id="patreonRssClose" type="button" aria-label="Close Patreon RSS connection">
-            <span aria-hidden="true"></span>
+          <button class="patreon-rss-dialog__info" id="patreonRssInfo" type="button" aria-label="How to find your RSS link" aria-expanded="false">
+            <span class="patreon-rss-dialog__info-mark" aria-hidden="true">?</span>
           </button>
         </header>
-        <p class="patreon-rss-dialog__intro">Paste your private Patreon audio RSS link.</p>
-        <form id="patreonRssForm" novalidate>
-          <div class="patreon-rss-field">
-            <label for="patreonRssInput">Private RSS link</label>
-            <span class="patreon-rss-field__control">
-              <input id="patreonRssInput" type="password" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" required>
-              <button id="patreonRssReveal" type="button" aria-label="Show private RSS link" aria-pressed="false">Show</button>
-            </span>
+        <div class="patreon-rss-dialog__guide" id="patreonRssGuide" hidden>
+          <h3 class="patreon-rss-dialog__guide-title">Find your private RSS link</h3>
+          <div class="patreon-rss-dialog__guide-layout patreon-rss-dialog__guide-layout--mobile">
+            <div class="patreon-rss-dialog__guide-copy">
+              <ol class="patreon-rss-dialog__steps">
+                <li>Log in at <a href="https://www.patreon.com/login" target="_blank" rel="noopener noreferrer">patreon.com</a>.</li>
+                <li>Open <a href="https://www.patreon.com/MSsecretpod" target="_blank" rel="noopener noreferrer">Matt and Shane&apos;s Secret Podcast</a>.</li>
+                <li>
+                  Tap
+                  <span class="patreon-rss-guide-chip patreon-rss-guide-chip--menu" aria-hidden="true"><span class="patreon-rss-guide-chip__dots">&#8943;</span></span>
+                  and <strong>Add to podcast app</strong>.
+                </li>
+                <li>Copy RSS link.</li>
+              </ol>
+              <p class="patreon-rss-dialog__guide-hint">Patreon links open in the app when it is installed.</p>
+            </div>
+            <figure class="patreon-rss-dialog__guide-visual">
+              <img src="./images/patreon-rss/mobilepaytch.gif" alt="Patreon mobile page with the menu open on Matt and Shane's Secret Podcast." decoding="async">
+            </figure>
           </div>
-          <label class="patreon-rss-remember" for="patreonRssRemember">
-            <input id="patreonRssRemember" type="checkbox" checked>
-            <span>Remember this feed on this device. This stores your private RSS URL in this browser profile until you remove it.</span>
-          </label>
-          <p class="patreon-rss-dialog__privacy">Your private Patreon RSS URL is sent only to the MSSP RSS Worker so the browser can read the feed. The Worker does not store, cache, log, or proxy audio. Matching and playback happen locally in your browser.</p>
-          <p class="patreon-rss-dialog__status" id="patreonRssStatus" role="status" aria-live="polite"></p>
-          <div class="patreon-rss-dialog__actions">
-            <button class="patreon-rss-action patreon-rss-action--danger" id="patreonRssRemove" type="button" hidden>Remove</button>
-            <span class="patreon-rss-dialog__action-spacer"></span>
-            <button class="patreon-rss-action" id="patreonRssCancel" type="button">Cancel</button>
-            <button class="patreon-rss-action patreon-rss-action--primary" id="patreonRssSubmit" type="submit">Connect</button>
+          <div class="patreon-rss-dialog__guide-layout patreon-rss-dialog__guide-layout--desktop">
+            <div class="patreon-rss-dialog__guide-copy">
+              <ol class="patreon-rss-dialog__steps">
+                <li>Log in at <a href="https://www.patreon.com/login" target="_blank" rel="noopener noreferrer">patreon.com</a>.</li>
+                <li>Open <a href="https://www.patreon.com/MSsecretpod" target="_blank" rel="noopener noreferrer">Matt and Shane&apos;s Secret Podcast</a>.</li>
+                <li>
+                  Press
+                  <span class="patreon-rss-guide-chip patreon-rss-guide-chip--podcast" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="currentColor" d="M13.208 2.685a9.78 9.78 0 0 1 6.6 3.649h-.012a9.8 9.8 0 0 1 2.085 7.249 9.9 9.9 0 0 1-.877 3.097 9.9 9.9 0 0 1-1.755 2.565c-.353.371-.615.536-.893.536-.251-.015-.51-.21-.847-.63-.289-.36-.398-.581-.387-.78.008-.198.14-.409.458-.75a7.5 7.5 0 0 0 1.988-4.301 7.47 7.47 0 0 0-1.59-5.531 7.47 7.47 0 0 0-5.037-2.786 8 8 0 0 0-.844-.042c-.28 0-.562.011-.843.042a7.47 7.47 0 0 0-5.036 2.786 7.5 7.5 0 0 0-1.59 5.531 7.5 7.5 0 0 0 1.987 4.301c.319.341.446.552.458.75.01.199-.098.417-.387.78-.337.42-.596.615-.847.63-.274 0-.54-.165-.893-.536a9.8 9.8 0 0 1-2.632-5.663 9.78 9.78 0 0 1 2.089-7.248 9.8 9.8 0 0 1 7.702-3.709q.551 0 1.102.06"></path>
+                      <path fill="currentColor" d="M18.176 13.163a6.07 6.07 0 0 0-1.293-4.497 6.08 6.08 0 0 0-4.778-2.302 6.07 6.07 0 0 0-4.778 2.303 6.08 6.08 0 0 0-1.293 4.496 6.06 6.06 0 0 0 1.631 3.51c.199.21.502.49.9.46.375-.022.634-.288.84-.543.18-.225.345-.476.33-.776-.015-.281-.169-.499-.394-.743a3.8 3.8 0 0 1-.667-.982A3.7 3.7 0 0 1 8.34 12.9a3.8 3.8 0 0 1 .802-2.794 3.77 3.77 0 0 1 2.967-1.428 3.77 3.77 0 0 1 2.966 1.429 3.77 3.77 0 0 1 .803 2.793 3.7 3.7 0 0 1-.334 1.189c-.169.36-.394.694-.668.982-.228.244-.382.462-.393.743-.016.303.15.551.33.776.202.259.464.521.84.544.397.03.7-.252.9-.462a6.1 6.1 0 0 0 1.631-3.51z"></path>
+                      <path fill="currentColor" d="M9.986 12.356a2.119 2.119 0 1 1 4.238 0 2.119 2.119 0 0 1-4.238 0m1.047 3.731c.255-.393.682-.446 1.072-.446s.821.056 1.072.446c.184.285.26.724.26 1.512v2.126c0 .787-.076 1.226-.26 1.511-.25.394-.682.447-1.072.447-.39-.004-.821-.057-1.072-.447-.184-.285-.26-.724-.26-1.511v-2.126c0-.788.076-1.227.26-1.512"></path>
+                    </svg>
+                  </span>
+                  and click <strong>Other podcast apps</strong>.
+                </li>
+                <li>Copy RSS link.</li>
+              </ol>
+            </div>
+            <figure class="patreon-rss-dialog__guide-visual">
+              <img src="./images/patreon-rss/desktoppaytch.gif" alt="Patreon desktop page showing the podcast icon below Matt and Shane's Secret Podcast." decoding="async">
+            </figure>
           </div>
-        </form>
+        </div>
+        <div class="patreon-rss-dialog__body" id="patreonRssBody">
+          <p class="patreon-rss-dialog__intro">Paste your private Patreon audio RSS link.</p>
+          <form id="patreonRssForm" novalidate>
+            <div class="patreon-rss-field">
+              <label for="patreonRssInput">Private RSS link</label>
+              <span class="patreon-rss-field__control">
+                <input id="patreonRssInput" type="password" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+                <button id="patreonRssReveal" type="button" aria-label="Show private RSS link" aria-pressed="false">Show</button>
+              </span>
+            </div>
+            <p class="patreon-rss-dialog__privacy">Your link is saved on this device so PAYTCH episodes unlock for future playback. Your link is only used to verify your Patreon membership and is not stored online; playback still comes straight from Patreon.</p>
+            <p class="patreon-rss-dialog__status" id="patreonRssStatus" role="status" aria-live="polite"></p>
+            <div class="patreon-rss-dialog__actions">
+              <button class="patreon-rss-action patreon-rss-action--danger" id="patreonRssRemove" type="button" hidden>Remove</button>
+              <span class="patreon-rss-dialog__action-spacer"></span>
+              <button class="patreon-rss-action" id="patreonRssCancel" type="button">Cancel</button>
+              <button class="patreon-rss-action patreon-rss-action--primary" id="patreonRssSubmit" type="submit">Connect</button>
+            </div>
+          </form>
+        </div>
       </section>
     </div>
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
