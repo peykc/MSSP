@@ -330,6 +330,87 @@ h1 {
   scroll-margin-top: clamp(18px, 3vw, 40px);
 }
 
+.launch-footer {
+  margin-top: clamp(16px, 2.5vw, 28px);
+  padding-bottom: clamp(16px, 2.5vw, 28px);
+}
+
+.launch-footer__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(20px, 3vw, 36px);
+  width: 100%;
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.launch-footer__item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.launch-footer__icon {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 1px;
+}
+
+.launch-footer__icon svg {
+  display: block;
+  width: 22px;
+  height: 22px;
+  overflow: visible;
+}
+
+.launch-footer__icon--github svg {
+  width: 20px;
+  height: 20px;
+}
+
+.launch-footer__icon--heart {
+  color: #f96854;
+}
+
+.launch-footer__icon--shield,
+.launch-footer__icon--github {
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.launch-footer__copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  max-width: 18rem;
+  text-align: left;
+}
+
+.launch-footer__copy strong {
+  color: var(--text);
+  font-size: clamp(0.88rem, 1.2vw, 0.98rem);
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.launch-footer__copy span {
+  color: var(--muted);
+  font-size: clamp(0.8rem, 1.05vw, 0.88rem);
+  line-height: 1.35;
+}
+
+.launch-footer__link {
+  color: var(--text);
+  font-size: inherit;
+  line-height: inherit;
+  text-decoration: none;
+}
+
 .collection-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -413,11 +494,6 @@ h1 {
   background:
     radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 58%),
     linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.48)),
-    repeating-linear-gradient(
-      135deg,
-      rgba(255, 255, 255, 0.022) 0 1px,
-      transparent 1px 3px
-    ),
     color-mix(in srgb, var(--accent) 11%, #100f0e);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
@@ -649,6 +725,16 @@ h1 {
 
   .collection-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .launch-footer__grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    max-width: 24rem;
+  }
+
+  .launch-footer__item {
+    justify-content: flex-start;
   }
 }
 

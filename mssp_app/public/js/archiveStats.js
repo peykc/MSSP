@@ -1,4 +1,6 @@
-const SECTION_ORDER = ["old", "new", "paytch"];
+import { renderCollectionGlyphSvg } from "./collectionGlyphs.js";
+
+const SECTION_ORDER = ["old", "paytch", "new"];
 // September 16, 2019 at 2:15 PM ET (EDT, UTC-4)
 const CANCELLED_DATE = "2019-09-16";
 const CANCELLED_AT_MS = Date.parse("2019-09-16T14:15:00-04:00");
@@ -15,31 +17,13 @@ const SEVEN_SEGMENT_MAP = Object.freeze({
   "8": "abcdefg",
   "9": "abcdfg",
 });
-const METRICS = Object.freeze({
-  busiestYear: {
-    label: "Busiest Year",
-    value: (stats) => stats.busiestYearCount,
-    format: (_, stats) => formatBusiestYear(stats),
-  },
-  hours: {
-    label: "Hours",
-    value: (stats) => stats.durationSecondsTotal / 3600,
-    format: (_, stats) => formatDuration(stats.durationSecondsTotal),
-  },
-  storage: {
-    label: "Storage",
-    value: (stats) => stats.fileSizeBytesTotal,
-    format: (value) => formatGiB(value),
-  },
-  averageLength: {
-    label: "Avg Length",
-    value: (stats) => stats.averageDurationSeconds,
-    format: (value) => `${formatDuration(value)} avg`,
-  },
+const HOURS_METRIC = Object.freeze({
+  label: "Hours",
+  value: (stats) => stats.durationSecondsTotal / 3600,
+  format: (_, stats) => formatDuration(stats.durationSecondsTotal),
 });
 
 export function createArchiveStatsView({ dom, state, fullCalendarModal }) {
-  let selectedMetric = null;
   let archiveStats = null;
 
   function setEpisodes(episodes) {
@@ -62,142 +46,90 @@ export function createArchiveStatsView({ dom, state, fullCalendarModal }) {
     `;
   }
 
-  function getGraphRowData() {
-    if (!selectedMetric) return [];
-    const metric = METRICS[selectedMetric];
-    const rows = SECTION_ORDER.map((id) => ({
-      id,
-      collection: state.collections.find((item) => item.id === id),
-      stats: archiveStats.collections[id],
-    }));
-    const maxValue = Math.max(...rows.map((row) => metric.value(row.stats)), 1);
-
-    return rows.map(({ id, collection, stats }) => {
-      const value = metric.value(stats);
-      const scale = Math.max(0, value / maxValue);
+  function getHoursSegments() {
+    const rows = SECTION_ORDER.map((id) => {
+      const collection = state.collections.find((item) => item.id === id);
+      const stats = archiveStats.collections[id];
       return {
         id,
         collection,
-        formatted: metric.format(value, stats),
-        barWidth: `${(scale * 100).toFixed(2)}%`,
+        stats,
+        name: collection?.name || id,
         accent: collection?.accent || "#f8f2ec",
+        seconds: stats.durationSecondsTotal,
       };
     });
+    const totalSeconds = Math.max(
+      rows.reduce((sum, row) => sum + row.seconds, 0),
+      1,
+    );
+
+    return rows.map((row) => ({
+      ...row,
+      width: `${((row.seconds / totalSeconds) * 100).toFixed(2)}%`,
+      formatted: HOURS_METRIC.format(HOURS_METRIC.value(row.stats), row.stats),
+    }));
   }
 
-  function renderGraphRow({ id, collection, formatted, barWidth, accent }) {
+  function renderHoursSlot(content, { id, width, accent }, className) {
     return `
-      <div class="stats-bar-row" data-section="${id}" style="--bar-width: ${barWidth}; --bar-accent: ${accent}">
-        <div class="stats-bar-row__label">
-          <span>${collection?.name || id}</span>
-          <strong>${formatted}</strong>
-        </div>
-        <div class="stats-bar" aria-hidden="true"><span class="stats-bar__fill"></span></div>
-      </div>
+      <span
+        class="${className}"
+        data-section="${id}"
+        style="--segment-width: ${width}; --accent: ${accent}"
+      >${content}</span>
     `;
   }
 
-  function buildGraphRows() {
-    return getGraphRowData().map(renderGraphRow).join("");
+  function renderHoursSegment({ id, width, accent }) {
+    return renderHoursSlot("", { id, width, accent }, "archive-hours__segment");
   }
 
-  function animateBarFill(fill, bar, row, targetPercent) {
-    const trackWidth = bar.clientWidth;
-    const targetWidth = `${targetPercent.toFixed(2)}%`;
-    if (!trackWidth) {
-      row.style.setProperty("--bar-width", targetWidth);
-      fill.style.width = "";
-      return;
-    }
+  function renderHoursPanel() {
+    const total = archiveStats.total;
+    const segments = getHoursSegments();
+    const barLabel = segments
+      .map(({ name, formatted }) => `${name}: ${formatted}`)
+      .join(", ");
 
-    const currentPercent = (fill.getBoundingClientRect().width / trackWidth) * 100;
-    if (Math.abs(currentPercent - targetPercent) < 0.5) {
-      row.style.setProperty("--bar-width", targetWidth);
-      fill.style.width = "";
-      return;
-    }
-
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      row.style.setProperty("--bar-width", targetWidth);
-      fill.style.width = "";
-      return;
-    }
-
-    fill.getAnimations().forEach((animation) => animation.cancel());
-    const animation = fill.animate(
-      [
-        { width: `${currentPercent}%` },
-        { width: targetWidth },
-      ],
-      {
-        duration: 360,
-        easing: "cubic-bezier(0.4, 0, 0.2, 1)",
-        fill: "forwards",
-      },
-    );
-    animation.onfinish = () => {
-      row.style.setProperty("--bar-width", targetWidth);
-      fill.style.width = "";
-    };
-  }
-
-  function updateGraph() {
-    const graph = dom.archiveStatsPanel.querySelector(".stats-graph");
-    if (!graph) return;
-
-    for (const button of dom.archiveStatsPanel.querySelectorAll("[data-metric]")) {
-      button.setAttribute("aria-pressed", String(button.dataset.metric === selectedMetric));
-    }
-
-    if (!selectedMetric) {
-      graph.hidden = true;
-      graph.innerHTML = "";
-      graph.setAttribute("aria-label", "Archive section breakdown");
-      return;
-    }
-
-    graph.hidden = false;
-    graph.setAttribute("aria-label", `${METRICS[selectedMetric].label} by archive section`);
-    const rowData = getGraphRowData();
-    const existingRows = [...graph.querySelectorAll(".stats-bar-row[data-section]")];
-
-    if (existingRows.length === rowData.length) {
-      for (const data of rowData) {
-        const row = graph.querySelector(`.stats-bar-row[data-section="${data.id}"]`);
-        if (!row) continue;
-
-        row.style.setProperty("--bar-accent", data.accent);
-        const label = row.querySelector(".stats-bar-row__label strong");
-        if (label && label.textContent !== data.formatted) {
-          label.textContent = data.formatted;
-        }
-
-        const bar = row.querySelector(".stats-bar");
-        const fill = row.querySelector(".stats-bar__fill");
-        if (bar && fill) {
-          animateBarFill(fill, bar, row, parseFloat(data.barWidth));
-        }
-      }
-    } else {
-      graph.innerHTML = rowData.map(renderGraphRow).join("");
-    }
+    return `
+      <section class="archive-hours" aria-label="Archive total length">
+        <div class="archive-hours__relic">
+          <header class="archive-hours__header">
+            <h3 class="archive-hours__title">Total Length</h3>
+            <p class="archive-hours__total">
+              <span class="archive-hours__total-value">${formatHours(total.durationSecondsTotal)}</span>
+              <span class="archive-hours__total-unit">Hours</span>
+            </p>
+          </header>
+          <div class="archive-hours__chart">
+            <div class="archive-hours__glyph-row" aria-hidden="true">
+              ${segments.map((segment) => renderHoursSlot(
+                renderCollectionGlyphSvg(segment.id, "archive-hours__glyph"),
+                segment,
+                "archive-hours__slot",
+              )).join("")}
+            </div>
+            <div class="archive-hours__bar" role="img" aria-label="${barLabel}">
+              ${segments.map(renderHoursSegment).join("")}
+            </div>
+            <div class="archive-hours__counts-row">
+              ${segments.map((segment) => renderHoursSlot(
+                `<span class="archive-hours__count">${formatHours(segment.seconds)}</span>`,
+                segment,
+                "archive-hours__slot",
+              )).join("")}
+            </div>
+          </div>
+        </div>
+      </section>
+    `;
   }
 
   function render() {
     if (!archiveStats) return renderLoading();
     const total = archiveStats.total;
     const pulseItems = buildPulseItems(total);
-
-    const summaryItems = [
-      { id: "busiestYear", value: formatBusiestYear(archiveStats.total), label: "busiest year" },
-      { id: "hours", value: formatHours(archiveStats.total.durationSecondsTotal), label: "hours" },
-      { id: "storage", value: formatGiB(archiveStats.total.fileSizeBytesTotal), label: "storage" },
-      {
-        id: "averageLength",
-        value: formatDuration(archiveStats.total.averageDurationSeconds),
-        label: "average length",
-      },
-    ];
 
     const pulseMarkup = pulseItems.length
       ? `
@@ -227,37 +159,7 @@ export function createArchiveStatsView({ dom, state, fullCalendarModal }) {
       fullCalendarModal.open(state.archiveEpisodes, event.currentTarget, { focusDate: CANCELLED_DATE });
     });
 
-    dom.archiveStatsPanel.innerHTML = `
-      <div class="archive-summary" role="group" aria-label="Archive statistic">
-        ${summaryItems.map(({ id, value, label }) => `
-          <button
-            type="button"
-            class="archive-summary__item"
-            data-metric="${id}"
-            aria-pressed="${id === selectedMetric}"
-          >
-            <span class="archive-summary__value">${value}</span>
-            <span class="archive-summary__label">${label}</span>
-          </button>
-        `).join("")}
-      </div>
-      <div
-        class="stats-graph"
-        role="group"
-        aria-label="${selectedMetric ? `${METRICS[selectedMetric].label} by archive section` : "Archive section breakdown"}"
-        ${selectedMetric ? "" : "hidden"}
-      >
-        ${selectedMetric ? buildGraphRows() : ""}
-      </div>
-    `;
-
-    for (const button of dom.archiveStatsPanel.querySelectorAll("[data-metric]")) {
-      button.addEventListener("click", () => {
-        const metric = button.dataset.metric;
-        selectedMetric = selectedMetric === metric ? null : metric;
-        updateGraph();
-      });
-    }
+    dom.archiveStatsPanel.innerHTML = renderHoursPanel();
   }
 
   setInterval(() => {
