@@ -3,11 +3,12 @@ const path = require("node:path");
 const { COLLECTIONS, EXPECTED_COUNTS } = require("../src/config/collections");
 const { ANTHOLOGY_METADATA, ANTHOLOGY_SOURCE, COVERS, PUBLIC_DIR, ROOT_DIR } = require("../src/config/paths");
 const { parseAnthology } = require("../src/data/anthologyParser");
+const { exportCoverAssets, staticCoverUrl } = require("./lib/exportCovers");
 
 const SCHEMA_VERSION = 2;
 const DATA_DIR = path.join(PUBLIC_DIR, "data");
 
-function main() {
+async function main() {
   const generatedAt = new Date().toISOString();
   const parsed = parseAnthology(ANTHOLOGY_SOURCE, { metadataPath: ANTHOLOGY_METADATA });
   const counts = deriveCounts(parsed.episodes);
@@ -51,7 +52,7 @@ function main() {
   };
 
   fs.mkdirSync(DATA_DIR, { recursive: true });
-  copyCoverAssets();
+  await exportCoverAssets();
   for (const [fileName, payload] of Object.entries(payloads)) {
     const filePath = path.join(DATA_DIR, fileName);
     fs.writeFileSync(filePath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
@@ -103,22 +104,6 @@ function toStaticCollection(collection, episodes) {
   };
 }
 
-function copyCoverAssets() {
-  const coversDir = path.join(PUBLIC_DIR, "assets", "covers");
-  fs.mkdirSync(coversDir, { recursive: true });
-
-  for (const [kind, cover] of Object.entries(COVERS)) {
-    fs.copyFileSync(cover.file, path.join(coversDir, `${kind}.jpg`));
-    if (cover.hoverFile) {
-      fs.copyFileSync(cover.hoverFile, path.join(coversDir, `${kind}-hover.jpg`));
-    }
-  }
-}
-
-function staticCoverUrl(kind) {
-  return `./assets/covers/${kind}.jpg`;
-}
-
 function deriveCounts(episodes) {
   return {
     anthology: episodes.length,
@@ -168,4 +153,7 @@ function toPortablePath(filePath) {
   return path.relative(ROOT_DIR, filePath).split(path.sep).join("/");
 }
 
-main();
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});

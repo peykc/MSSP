@@ -1,4 +1,7 @@
-const { COVERS } = require("../config/paths");
+const fs = require("node:fs");
+const path = require("node:path");
+const { COVERS, PUBLIC_DIR } = require("../config/paths");
+const { contentTypeFor } = require("../utils/contentTypes");
 const { sendFile } = require("../utils/http");
 
 function handleCoverRoutes(requestUrl, response) {
@@ -15,6 +18,12 @@ function handleCoverRoutes(requestUrl, response) {
     return true;
   }
 
+  const publicWebp = path.join(PUBLIC_DIR, "assets", "covers", `${id}.webp`);
+  if (fs.existsSync(publicWebp)) {
+    sendFile(response, publicWebp, contentTypeFor(publicWebp));
+    return true;
+  }
+
   const coverFile = isHoverCover ? cover.hoverFile : cover.file;
   if (!coverFile) {
     response.writeHead(404);
@@ -22,7 +31,7 @@ function handleCoverRoutes(requestUrl, response) {
     return true;
   }
 
-  sendFile(response, coverFile, "image/jpeg");
+  sendFile(response, coverFile, contentTypeFor(coverFile));
   return true;
 }
 

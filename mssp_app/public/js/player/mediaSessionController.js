@@ -112,17 +112,17 @@ function getArtwork(episode) {
   const coverKind = episode.coverKind || episode.collectionKind || "anthology";
 
   const coverByKind = {
-    old: "./assets/covers/old.jpg",
-    new: "./assets/covers/new.jpg",
-    paytch: "./assets/covers/paytch.jpg",
-    anthology: "./assets/covers/anthology.jpg",
+    old: "./assets/covers/old.webp",
+    new: "./assets/covers/new.webp",
+    paytch: "./assets/covers/paytch.webp",
+    anthology: "./assets/covers/anthology.webp",
   };
 
   const coverPath = coverByKind[coverKind] || coverByKind.anthology;
 
   return [
-    { src: new URL(coverPath, base).href, sizes: "512x512", type: "image/jpeg" },
-    { src: new URL(coverPath, base).href, sizes: "192x192", type: "image/jpeg" },
+    { src: new URL(coverPath, base).href, sizes: "512x512", type: "image/webp" },
+    { src: new URL(coverPath, base).href, sizes: "192x192", type: "image/webp" },
     { src: new URL("./android-chrome-512x512.png", base).href, sizes: "512x512", type: "image/png" },
   ];
 }

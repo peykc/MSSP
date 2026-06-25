@@ -1,3 +1,5 @@
+import { renderCalCellGlyph, renderCollectionGlyphSvg } from "./collectionGlyphs.js";
+
 const WEEKDAY_INITIALS = ["S", "M", "T", "W", "T", "F", "S"];
 const WEEKDAY_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const MONTH_NAMES = [
@@ -10,9 +12,13 @@ const COLLECTION_META = {
   new: { label: "New", accent: "#c79457" },
   paytch: { label: "PAYTCH", accent: "#db855f" },
 };
-const COLLECTION_ORDER = ["old", "new", "paytch"];
+const COLLECTION_ORDER = ["old", "paytch", "new"];
 
 const CANCELLED_DATE = "2019-09-16";
+const MONTH_GAP = 28;
+const MONTH_OVERSCAN = 2;
+const MONTHS_PADDING_TOP = 14;
+const PROBE_ROW_COUNTS = [4, 5, 6];
 
 const SEVEN_SEGMENTS = ["a", "b", "c", "d", "e", "f", "g"];
 const SEGMENT_MAP = {
@@ -74,6 +80,12 @@ function parseDateParts(date) {
   return { year: Number(match[1]), month: Number(match[2]) - 1, day: Number(match[3]) };
 }
 
+function dateOrdinal(dateKey) {
+  const parts = parseDateParts(dateKey);
+  if (!parts) return null;
+  return parts.year * 12 + parts.month;
+}
+
 export function createFullCalendarModal({ dom }) {
   let restoreFocusTo = null;
   let isOpen = false;
@@ -81,13 +93,23 @@ export function createFullCalendarModal({ dom }) {
   let hoverCell = null;
   let episodesByDate = new Map();
   let renderedEpisodes = null;
+  let monthIndex = [];
+  let monthHeightByRows = new Map();
+  let offsets = [];
+  let totalHeight = 0;
+  let mountedStart = -1;
+  let mountedEnd = -1;
   let viewportAnchor = null;
-  let activeResizeAnchor = null;
+  let activeRelayoutAnchor = null;
   let anchorFrame = null;
-  let resizeFrame = null;
-  let resizeEndTimer = null;
-  let spotlightCell = null;
+  let relayoutFrame = null;
+  let scrollFrame = null;
+  let relayoutEndTimer = null;
+  let spotlightDateKey = null;
+  let activeTooltipDate = null;
   let suppressScrollDismiss = false;
+  let monthsSpacer = null;
+  let monthsWindow = null;
 
   const tooltip = document.createElement("div");
   tooltip.className = "full-calendar-tooltip";
@@ -97,14 +119,23 @@ export function createFullCalendarModal({ dom }) {
 
   renderLegend();
   renderWeekdayHeader();
+  ensureVirtualShell();
   bindDelegatedEvents();
+
+  const resizeObserver = typeof ResizeObserver !== "undefined"
+    ? new ResizeObserver(() => {
+        if (isOpen) scheduleCalendarRelayout();
+      })
+    : null;
 
   function renderLegend() {
     dom.fullCalendarLegend.innerHTML = COLLECTION_ORDER.map((kind) => {
       const meta = COLLECTION_META[kind];
       return `
         <span class="full-calendar__legend-item">
-          <span class="full-calendar__dot" style="--dot-color: ${meta.accent}"></span>
+          <span class="full-calendar__legend-glyph" style="--glyph-color: ${meta.accent}">
+            ${renderCollectionGlyphSvg(kind, "full-calendar__legend-glyph__svg")}
+          </span>
           ${escapeHtml(meta.label)}
         </span>
       `;
@@ -115,6 +146,21 @@ export function createFullCalendarModal({ dom }) {
     dom.fullCalendarWeekdays.innerHTML = WEEKDAY_INITIALS.map((initial, index) =>
       `<span class="full-calendar__weekday" title="${WEEKDAY_NAMES[index]}">${initial}</span>`,
     ).join("");
+  }
+
+  function ensureVirtualShell() {
+    monthsSpacer = dom.fullCalendarMonths.querySelector(".full-calendar__months-spacer");
+    monthsWindow = dom.fullCalendarMonths.querySelector(".full-calendar__months-window");
+    if (monthsSpacer && monthsWindow) return;
+
+    dom.fullCalendarMonths.innerHTML = "";
+    monthsSpacer = document.createElement("div");
+    monthsSpacer.className = "full-calendar__months-spacer";
+    monthsSpacer.setAttribute("aria-hidden", "true");
+    monthsWindow = document.createElement("div");
+    monthsWindow.className = "full-calendar__months-window";
+    dom.fullCalendarMonths.appendChild(monthsSpacer);
+    dom.fullCalendarMonths.appendChild(monthsWindow);
   }
 
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -142,6 +188,7 @@ export function createFullCalendarModal({ dom }) {
     dom.app.inert = true;
     document.body.classList.add("calendar-open");
     isOpen = true;
+    resizeObserver?.observe(dom.fullCalendarBody);
 
     if (!prefersReducedMotion()) {
       dom.fullCalendarModal.classList.add("is-entering");
@@ -152,22 +199,25 @@ export function createFullCalendarModal({ dom }) {
 
     requestAnimationFrame(() => {
       if (focusDate) {
-        requestAnimationFrame(() => {
-          scrollToDate(focusDate);
-          dom.fullCalendarClose.focus();
-          requestAnimationFrame(() => {
-            viewportAnchor = captureViewportAnchor();
-          });
-        });
+        spotlightDateKey = focusDate;
+        rebuildMonthHtmlForSpotlight();
+      }
+
+      relayoutCalendar({ preserveScroll: false, deferVisible: true });
+
+      if (focusDate) {
+        scrollToDate(focusDate, { center: true });
+        showTooltipForDate(focusDate);
+        dom.fullCalendarClose.focus();
+        viewportAnchor = captureViewportAnchor();
         return;
       }
 
       dom.fullCalendarClose.focus();
       dom.fullCalendarBody.scrollLeft = 0;
-      dom.fullCalendarBody.scrollTop = dom.fullCalendarBody.scrollHeight;
-      requestAnimationFrame(() => {
-        viewportAnchor = captureViewportAnchor();
-      });
+      scrollToMonthsBottom();
+      renderVisibleMonths();
+      viewportAnchor = captureViewportAnchor();
     });
   }
 
@@ -202,13 +252,19 @@ export function createFullCalendarModal({ dom }) {
     hideTooltip();
     isOpen = false;
     viewportAnchor = null;
-    activeResizeAnchor = null;
+    activeRelayoutAnchor = null;
+    mountedStart = -1;
+    mountedEnd = -1;
+    resizeObserver?.unobserve(dom.fullCalendarBody);
     if (anchorFrame !== null) cancelAnimationFrame(anchorFrame);
-    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
-    if (resizeEndTimer !== null) clearTimeout(resizeEndTimer);
+    if (relayoutFrame !== null) cancelAnimationFrame(relayoutFrame);
+    if (scrollFrame !== null) cancelAnimationFrame(scrollFrame);
+    if (relayoutEndTimer !== null) clearTimeout(relayoutEndTimer);
     anchorFrame = null;
-    resizeFrame = null;
-    resizeEndTimer = null;
+    relayoutFrame = null;
+    scrollFrame = null;
+    relayoutEndTimer = null;
+    if (monthsWindow) monthsWindow.replaceChildren();
 
     if (prefersReducedMotion()) {
       finishClose();
@@ -233,10 +289,15 @@ export function createFullCalendarModal({ dom }) {
     hoverCell = null;
     clearSpotlight();
     hideTooltip();
+    ensureVirtualShell();
 
-    if (episodes === renderedEpisodes) return;
+    if (episodes === renderedEpisodes && monthIndex.length) return;
+
     renderedEpisodes = episodes;
     episodesByDate = new Map();
+    monthIndex = [];
+    mountedStart = -1;
+    mountedEnd = -1;
 
     let min = null;
     let max = null;
@@ -253,20 +314,251 @@ export function createFullCalendarModal({ dom }) {
 
     if (min === null || max === null) {
       dom.fullCalendarMonths.innerHTML = '<p class="full-calendar__empty">No release dates available.</p>';
+      monthsSpacer = null;
+      monthsWindow = null;
       return;
     }
 
-    const months = [];
+    ensureVirtualShell();
     for (let ordinal = min; ordinal <= max; ordinal += 1) {
-      months.push(renderMonth(Math.floor(ordinal / 12), ordinal % 12));
+      const year = Math.floor(ordinal / 12);
+      const month = ordinal % 12;
+      const meta = buildMonthMeta(year, month);
+      monthIndex.push(meta);
     }
-    dom.fullCalendarMonths.innerHTML = months.join("");
   }
 
-  function renderMonth(year, month) {
+  function buildMonthMeta(year, month) {
     const firstWeekday = new Date(Date.UTC(year, month, 1)).getUTCDay();
     const daysInMonth = new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
+    const rowCount = Math.ceil((firstWeekday + daysInMonth) / 7);
+    return {
+      ordinal: year * 12 + month,
+      year,
+      month,
+      rowCount,
+      firstWeekday,
+      daysInMonth,
+      html: renderMonth(year, month, firstWeekday, daysInMonth, rowCount),
+    };
+  }
 
+  function renderProbeMonth(rowCount) {
+    const cells = [];
+    const totalCells = rowCount * 7;
+    for (let index = 0; index < totalCells; index += 1) {
+      cells.push('<span class="cal-cell cal-cell--blank" aria-hidden="true"></span>');
+    }
+    return `
+      <section class="cal-month" data-rows="${rowCount}">
+        <h3 class="cal-month__title">
+          <span class="cal-month__name">${MONTH_NAMES[0]}</span>
+          <span class="cal-month__year">2000</span>
+        </h3>
+        <div class="cal-month__grid">${cells.join("")}</div>
+      </section>
+    `;
+  }
+
+  function measureMonthHeights() {
+    monthHeightByRows = new Map();
+    if (!monthsWindow || monthIndex.length === 0) return;
+
+    const probe = document.createElement("div");
+    probe.className = "full-calendar__measure-probe";
+    probe.setAttribute("aria-hidden", "true");
+    monthsWindow.appendChild(probe);
+
+    for (const rowCount of PROBE_ROW_COUNTS) {
+      probe.innerHTML = renderProbeMonth(rowCount);
+      const el = probe.firstElementChild;
+      if (el) {
+        monthHeightByRows.set(rowCount, el.getBoundingClientRect().height);
+      }
+    }
+
+    probe.remove();
+  }
+
+  function computeOffsets() {
+    offsets = new Array(monthIndex.length);
+    let y = MONTHS_PADDING_TOP;
+    for (let index = 0; index < monthIndex.length; index += 1) {
+      offsets[index] = y;
+      const height = monthHeightByRows.get(monthIndex[index].rowCount) || 0;
+      y += height + (index < monthIndex.length - 1 ? MONTH_GAP : 0);
+    }
+    totalHeight = y;
+  }
+
+  function updateSpacerHeight() {
+    if (!monthsSpacer) return;
+    monthsSpacer.style.setProperty("--calendar-total-height", `${totalHeight}px`);
+    monthsSpacer.style.height = `${totalHeight}px`;
+  }
+
+  function getMonthIndexForDate(dateKey) {
+    const ordinal = dateOrdinal(dateKey);
+    if (ordinal === null) return -1;
+    return monthIndex.findIndex((entry) => entry.ordinal === ordinal);
+  }
+
+  function isDateInMountedRange(dateKey) {
+    const index = getMonthIndexForDate(dateKey);
+    if (index < 0) return false;
+    return index >= mountedStart && index <= mountedEnd;
+  }
+
+  function syncTooltipWithMountedRange() {
+    if (activeTooltipDate && !isDateInMountedRange(activeTooltipDate)) {
+      pinnedCell = null;
+      hoverCell = null;
+      hideTooltip();
+    }
+  }
+
+  function findMonthIndexAtOffset(offsetY) {
+    if (!offsets.length) return 0;
+    let low = 0;
+    let high = offsets.length - 1;
+    let result = 0;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      if (offsets[mid] <= offsetY) {
+        result = mid;
+        low = mid + 1;
+      } else {
+        high = mid - 1;
+      }
+    }
+    return result;
+  }
+
+  function getStickyOffset() {
+    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
+    const weekdayRect = dom.fullCalendarWeekdays.getBoundingClientRect();
+    return Math.max(0, weekdayRect.bottom - bodyRect.top);
+  }
+
+  function getMonthsOffsetTop() {
+    return dom.fullCalendarMonths.offsetTop;
+  }
+
+  function getMonthsScrollY() {
+    return dom.fullCalendarBody.scrollTop + getStickyOffset() - getMonthsOffsetTop();
+  }
+
+  function scrollTopForMonthsY(monthsY) {
+    return monthsY - getStickyOffset() + getMonthsOffsetTop();
+  }
+
+  function getVisibleMonthsHeight() {
+    return dom.fullCalendarBody.clientHeight - getStickyOffset();
+  }
+
+  function scrollToMonthsBottom() {
+    dom.fullCalendarBody.scrollTop = Math.max(0, scrollTopForMonthsY(totalHeight - getVisibleMonthsHeight()));
+  }
+
+  function renderVisibleMonths() {
+    if (!monthsWindow || !monthIndex.length) return;
+
+    syncTooltipWithMountedRange();
+
+    const monthScrollY = getMonthsScrollY();
+    const viewportHeight = getVisibleMonthsHeight();
+    const firstVisible = findMonthIndexAtOffset(monthScrollY);
+    const lastVisible = findMonthIndexAtOffset(monthScrollY + viewportHeight);
+
+    const nextStart = Math.max(0, firstVisible - MONTH_OVERSCAN);
+    const nextEnd = Math.min(monthIndex.length - 1, lastVisible + MONTH_OVERSCAN);
+
+    if (nextStart === mountedStart && nextEnd === mountedEnd) return;
+
+    mountedStart = nextStart;
+    mountedEnd = nextEnd;
+
+    const fragment = document.createDocumentFragment();
+    for (let index = nextStart; index <= nextEnd; index += 1) {
+      const wrapper = document.createElement("div");
+      wrapper.className = "cal-month-mount";
+      wrapper.style.transform = `translateY(${offsets[index]}px)`;
+      wrapper.innerHTML = monthIndex[index].html;
+      fragment.appendChild(wrapper);
+    }
+
+    monthsWindow.replaceChildren(fragment);
+    syncTooltipWithMountedRange();
+
+    if (pinnedCell && !monthsWindow.contains(pinnedCell)) {
+      pinnedCell = null;
+    }
+    if (hoverCell && !monthsWindow.contains(hoverCell)) {
+      hoverCell = null;
+    }
+
+    if (activeTooltipDate && isDateInMountedRange(activeTooltipDate)) {
+      const cell = monthsWindow.querySelector(`.cal-cell[data-date="${activeTooltipDate}"]`);
+      if (cell && !tooltip.hidden) {
+        positionTooltip(cell);
+      }
+    }
+  }
+
+  function scheduleVisibleMonths() {
+    if (scrollFrame !== null) return;
+    scrollFrame = requestAnimationFrame(() => {
+      scrollFrame = null;
+      renderVisibleMonths();
+    });
+  }
+
+  function relayoutCalendar({ preserveScroll = true, deferVisible = false } = {}) {
+    if (!monthIndex.length || !monthsWindow) return;
+
+    const anchor = preserveScroll ? (activeRelayoutAnchor || viewportAnchor || captureViewportAnchor()) : null;
+    measureMonthHeights();
+    computeOffsets();
+    updateSpacerHeight();
+    mountedStart = -1;
+    mountedEnd = -1;
+
+    if (!deferVisible) {
+      renderVisibleMonths();
+    }
+
+    if (anchor?.date) {
+      restoreViewportAnchor(anchor);
+      renderVisibleMonths();
+    }
+
+    if (!preserveScroll) return;
+    viewportAnchor = captureViewportAnchor();
+  }
+
+  function scheduleCalendarRelayout() {
+    if (!isOpen) return;
+
+    activeRelayoutAnchor ||= viewportAnchor || captureViewportAnchor();
+    pinnedCell = null;
+    hoverCell = null;
+    hideTooltip();
+
+    if (relayoutFrame !== null) cancelAnimationFrame(relayoutFrame);
+    relayoutFrame = requestAnimationFrame(() => {
+      relayoutFrame = null;
+      relayoutCalendar({ preserveScroll: true });
+    });
+
+    if (relayoutEndTimer !== null) clearTimeout(relayoutEndTimer);
+    relayoutEndTimer = setTimeout(() => {
+      relayoutEndTimer = null;
+      relayoutCalendar({ preserveScroll: true });
+      activeRelayoutAnchor = null;
+    }, 140);
+  }
+
+  function renderMonth(year, month, firstWeekday, daysInMonth, rowCount) {
     const cells = [];
     for (let blank = 0; blank < firstWeekday; blank += 1) {
       cells.push('<span class="cal-cell cal-cell--blank" aria-hidden="true"></span>');
@@ -275,9 +567,11 @@ export function createFullCalendarModal({ dom }) {
     for (let day = 1; day <= daysInMonth; day += 1) {
       const dateKey = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
       const dayEpisodes = episodesByDate.get(dateKey);
+      const spotlightClass = dateKey === spotlightDateKey ? " cal-cell--spotlight" : "";
+
       if (dateKey === CANCELLED_DATE) {
         cells.push(`
-          <button type="button" class="cal-cell cal-cell--event cal-cell--cancelled" data-date="${dateKey}" data-cancelled="true" aria-label="September 16, 2019: the day he got cancelled">
+          <button type="button" class="cal-cell cal-cell--event cal-cell--cancelled${spotlightClass}" data-date="${dateKey}" data-cancelled="true" aria-label="September 16, 2019: the day he got cancelled">
             <span class="cal-cell__num">${day}</span>
             <span class="cal-cell__cancel-mark" aria-hidden="true">!</span>
           </button>
@@ -290,7 +584,7 @@ export function createFullCalendarModal({ dom }) {
 
         let variantClass;
         let styleVars;
-        let dots;
+        let glyphs;
         if (kinds.length >= 2) {
           const topLeftKind = kinds.find((kind) => kind !== "paytch") || kinds[0];
           const bottomRightKind = kinds.includes("paytch")
@@ -300,30 +594,29 @@ export function createFullCalendarModal({ dom }) {
           const bottomRightAccent = COLLECTION_META[bottomRightKind].accent;
           variantClass = "cal-cell--split";
           styleVars = `--accent-a: ${topLeftAccent}; --accent-b: ${bottomRightAccent}`;
-          dots =
-            `<span class="cal-cell__dot cal-cell__dot--tl" style="--dot-color: ${topLeftAccent}"></span>` +
-            `<span class="cal-cell__dot cal-cell__dot--br" style="--dot-color: ${bottomRightAccent}"></span>`;
+          glyphs =
+            renderCalCellGlyph(topLeftKind, "cal-cell__glyph--tl", topLeftAccent) +
+            renderCalCellGlyph(bottomRightKind, "cal-cell__glyph--br", bottomRightAccent);
         } else {
           const accent = COLLECTION_META[kinds[0]]?.accent || "#888";
           variantClass = "cal-cell--single";
           styleVars = `--cell-accent: ${accent}`;
-          dots = `<span class="cal-cell__dot cal-cell__dot--center" style="--dot-color: ${accent}"></span>`;
+          glyphs = renderCalCellGlyph(kinds[0], "cal-cell__glyph--center", accent);
         }
 
         cells.push(`
-          <button type="button" class="cal-cell cal-cell--event cal-cell--release ${variantClass}" data-date="${dateKey}" style="${styleVars}" aria-label="${escapeHtml(label)}">
+          <button type="button" class="cal-cell cal-cell--event cal-cell--release ${variantClass}${spotlightClass}" data-date="${dateKey}" style="${styleVars}" aria-label="${escapeHtml(label)}">
             <span class="cal-cell__num">${day}</span>
-            ${dots}
+            ${glyphs}
           </button>
         `);
       } else {
-        cells.push(`<span class="cal-cell" data-date="${dateKey}"><span class="cal-cell__num">${day}</span></span>`);
+        cells.push(`<span class="cal-cell${spotlightClass}" data-date="${dateKey}"><span class="cal-cell__num">${day}</span></span>`);
       }
     }
 
-    const rows = Math.ceil((firstWeekday + daysInMonth) / 7);
     return `
-      <section class="cal-month" data-rows="${rows}">
+      <section class="cal-month" data-rows="${rowCount}">
         <h3 class="cal-month__title">
           <span class="cal-month__name">${MONTH_NAMES[month]}</span>
           <span class="cal-month__year">${year}</span>
@@ -337,8 +630,7 @@ export function createFullCalendarModal({ dom }) {
     const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
     if (bodyRect.width <= 0 || bodyRect.height <= 0) return viewportAnchor;
 
-    const weekdayRect = dom.fullCalendarWeekdays.getBoundingClientRect();
-    const stickyOffset = Math.max(0, weekdayRect.bottom - bodyRect.top);
+    const stickyOffset = getStickyOffset();
     const anchorY = Math.min(
       bodyRect.bottom - 1,
       bodyRect.top + stickyOffset + Math.max(36, Math.min(90, bodyRect.height * 0.18)),
@@ -354,20 +646,19 @@ export function createFullCalendarModal({ dom }) {
       if (cell && dom.fullCalendarBody.contains(cell)) return anchorFromCell(cell, bodyRect);
     }
 
-    let bestCell = null;
-    let bestDistance = Number.POSITIVE_INFINITY;
-    for (const cell of dom.fullCalendarMonths.querySelectorAll(".cal-cell[data-date]")) {
-      const rect = cell.getBoundingClientRect();
-      const isVisible = rect.bottom > bodyRect.top + stickyOffset && rect.top < bodyRect.bottom;
-      if (!isVisible) continue;
-      const distance = Math.abs(rect.top - anchorY) + Math.abs((rect.left + rect.width / 2) - sampleXs[0]) * 0.15;
-      if (distance < bestDistance) {
-        bestDistance = distance;
-        bestCell = cell;
-      }
-    }
+    const monthScrollY = getMonthsScrollY();
+    const anchorMonthsY = monthScrollY + Math.max(36, Math.min(90, bodyRect.height * 0.18));
+    const monthIdx = findMonthIndexAtOffset(anchorMonthsY);
+    const meta = monthIndex[monthIdx];
+    if (!meta) return viewportAnchor;
 
-    return bestCell ? anchorFromCell(bestCell, bodyRect) : viewportAnchor;
+    const parts = parseDateParts(`${meta.year}-${String(meta.month + 1).padStart(2, "0")}-01`);
+    if (!parts) return viewportAnchor;
+
+    return {
+      date: `${meta.year}-${String(meta.month + 1).padStart(2, "0")}-01`,
+      offset: anchorMonthsY - offsets[monthIdx],
+    };
   }
 
   function anchorFromCell(cell, bodyRect) {
@@ -380,92 +671,125 @@ export function createFullCalendarModal({ dom }) {
 
   function restoreViewportAnchor(anchor) {
     if (!anchor?.date) return;
-    const cell = dom.fullCalendarMonths.querySelector(`.cal-cell[data-date="${anchor.date}"]`);
-    if (!cell) return;
 
-    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
-    const rect = cell.getBoundingClientRect();
+    const monthIdx = getMonthIndexForDate(anchor.date);
+    if (monthIdx < 0 || !offsets[monthIdx]) return;
+
+    mountedStart = -1;
+    mountedEnd = -1;
+    renderVisibleMonths();
+
+    const cell = monthsWindow?.querySelector(`.cal-cell[data-date="${anchor.date}"]`);
+    if (cell) {
+      const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
+      const rect = cell.getBoundingClientRect();
+      dom.fullCalendarBody.scrollLeft = 0;
+      dom.fullCalendarBody.scrollTop += rect.top - bodyRect.top - anchor.offset;
+      return;
+    }
+
     dom.fullCalendarBody.scrollLeft = 0;
-    dom.fullCalendarBody.scrollTop += rect.top - bodyRect.top - anchor.offset;
+    dom.fullCalendarBody.scrollTop = Math.max(0, scrollTopForMonthsY(offsets[monthIdx] + anchor.offset));
+    renderVisibleMonths();
   }
 
-  function scrollToDate(dateKey) {
-    const cell = dom.fullCalendarMonths.querySelector(`.cal-cell[data-date="${dateKey}"]`);
-    if (!cell) return null;
+  function estimateScrollTopForDate(dateKey, { center = false } = {}) {
+    const parts = parseDateParts(dateKey);
+    const monthIdx = getMonthIndexForDate(dateKey);
+    if (!parts || monthIdx < 0) return 0;
 
-    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
-    const weekdayRect = dom.fullCalendarWeekdays.getBoundingClientRect();
-    const stickyOffset = Math.max(0, weekdayRect.bottom - bodyRect.top);
-    const cellRect = cell.getBoundingClientRect();
-    const visibleHeight = bodyRect.height - stickyOffset;
-    const targetScroll = dom.fullCalendarBody.scrollTop
-      + cellRect.top
-      - bodyRect.top
-      - stickyOffset
-      - (visibleHeight / 2)
-      + (cellRect.height / 2);
+    const meta = monthIndex[monthIdx];
+    const monthHeight = monthHeightByRows.get(meta.rowCount) || 0;
+    const cellIndex = meta.firstWeekday + parts.day - 1;
+    const row = Math.floor(cellIndex / 7);
+    const rowHeight = monthHeight / meta.rowCount;
+    const cellCenterY = offsets[monthIdx] + row * rowHeight + rowHeight / 2;
 
-    dom.fullCalendarBody.scrollLeft = 0;
+    if (!center) return Math.max(0, scrollTopForMonthsY(offsets[monthIdx]));
+
+    const visibleHeight = getVisibleMonthsHeight();
+    return Math.max(0, scrollTopForMonthsY(cellCenterY - visibleHeight / 2));
+  }
+
+  function scrollToDate(dateKey, { center = true } = {}) {
+    if (!monthsWindow || getMonthIndexForDate(dateKey) < 0) return null;
+
     suppressScrollDismiss = true;
-    dom.fullCalendarBody.scrollTop = Math.max(0, targetScroll);
+    dom.fullCalendarBody.scrollLeft = 0;
+    dom.fullCalendarBody.scrollTop = estimateScrollTopForDate(dateKey, { center });
+    mountedStart = -1;
+    mountedEnd = -1;
+    renderVisibleMonths();
+
+    const cell = monthsWindow.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+    if (cell && center) {
+      const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
+      const stickyOffset = getStickyOffset();
+      const cellRect = cell.getBoundingClientRect();
+      const visibleHeight = bodyRect.height - stickyOffset;
+      const targetScroll = dom.fullCalendarBody.scrollTop
+        + cellRect.top
+        - bodyRect.top
+        - stickyOffset
+        - visibleHeight / 2
+        + cellRect.height / 2;
+      dom.fullCalendarBody.scrollTop = Math.max(0, targetScroll);
+      renderVisibleMonths();
+    }
+
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
         suppressScrollDismiss = false;
       });
     });
-    return cell;
+
+    return monthsWindow.querySelector(`.cal-cell[data-date="${dateKey}"]`);
   }
 
   function clearSpotlight() {
-    if (!spotlightCell) return;
-    spotlightCell.classList.remove("cal-cell--spotlight");
-    spotlightCell = null;
+    if (!spotlightDateKey) return;
+    spotlightDateKey = null;
+    if (renderedEpisodes && monthIndex.length) {
+      rebuildMonthHtmlForSpotlight();
+      if (isOpen) {
+        mountedStart = -1;
+        mountedEnd = -1;
+        renderVisibleMonths();
+      }
+    }
   }
 
-  function spotlightDate(dateKey) {
-    clearSpotlight();
-    const cell = scrollToDate(dateKey);
-    if (!cell) return null;
-
-    cell.classList.add("cal-cell--spotlight");
-    spotlightCell = cell;
-
-    if (cell.classList.contains("cal-cell--event")) {
-      pinnedCell = cell;
-      showTooltip(cell);
+  function rebuildMonthHtmlForSpotlight() {
+    for (const meta of monthIndex) {
+      meta.html = renderMonth(meta.year, meta.month, meta.firstWeekday, meta.daysInMonth, meta.rowCount);
     }
+  }
 
+  function applySpotlight(dateKey) {
+    spotlightDateKey = dateKey;
+    rebuildMonthHtmlForSpotlight();
+    if (!isOpen) return null;
+    mountedStart = -1;
+    mountedEnd = -1;
+    const cell = scrollToDate(dateKey, { center: true });
+    showTooltipForDate(dateKey);
     return cell;
   }
 
+  function showTooltipForDate(dateKey) {
+    if (!monthsWindow) return;
+    const cell = monthsWindow.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+    if (!cell) return;
+    pinnedCell = cell;
+    showTooltip(cell);
+  }
+
   function scheduleAnchorCapture() {
-    if (activeResizeAnchor || anchorFrame !== null) return;
+    if (activeRelayoutAnchor || anchorFrame !== null) return;
     anchorFrame = requestAnimationFrame(() => {
       anchorFrame = null;
       viewportAnchor = captureViewportAnchor();
     });
-  }
-
-  function handleResize() {
-    if (!isOpen) return;
-    pinnedCell = null;
-    hoverCell = null;
-    hideTooltip();
-
-    activeResizeAnchor ||= viewportAnchor || captureViewportAnchor();
-    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
-    resizeFrame = requestAnimationFrame(() => {
-      resizeFrame = null;
-      restoreViewportAnchor(activeResizeAnchor);
-    });
-
-    if (resizeEndTimer !== null) clearTimeout(resizeEndTimer);
-    resizeEndTimer = setTimeout(() => {
-      resizeEndTimer = null;
-      restoreViewportAnchor(activeResizeAnchor);
-      viewportAnchor = captureViewportAnchor();
-      activeResizeAnchor = null;
-    }, 140);
   }
 
   function bindDelegatedEvents() {
@@ -503,6 +827,8 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function showTooltip(cell) {
+    activeTooltipDate = cell.dataset.date || null;
+
     if (cell.dataset.cancelled) {
       showCancelledTooltip(cell);
       return;
@@ -538,6 +864,7 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function showCancelledTooltip(cell) {
+    activeTooltipDate = cell.dataset.date || CANCELLED_DATE;
     tooltip.classList.add("full-calendar-tooltip--cancelled");
     tooltip.innerHTML = `
       <div class="fc-tip__hazard">Cancelled</div>
@@ -572,6 +899,7 @@ export function createFullCalendarModal({ dom }) {
 
   function hideTooltip() {
     tooltip.hidden = true;
+    activeTooltipDate = null;
   }
 
   function handleKeydown(event) {
@@ -613,13 +941,15 @@ export function createFullCalendarModal({ dom }) {
       hoverCell = null;
       hideTooltip();
     }
+    scheduleVisibleMonths();
     scheduleAnchorCapture();
   }, { passive: true });
-  window.addEventListener("resize", handleResize);
+  window.addEventListener("resize", scheduleCalendarRelayout);
   document.addEventListener("keydown", handleKeydown);
 
   return {
     close,
     open,
+    applySpotlight,
   };
 }

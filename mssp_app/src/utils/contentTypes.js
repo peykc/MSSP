@@ -12,6 +12,7 @@ function contentTypeFor(filePath) {
     ".jpeg": "image/jpeg",
     ".png": "image/png",
     ".svg": "image/svg+xml",
+    ".webp": "image/webp",
     ".webmanifest": "application/manifest+json; charset=utf-8",
   }[ext] || "application/octet-stream";
 }

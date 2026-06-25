@@ -166,6 +166,8 @@ h1 {
 }
 
 .collection-hero__cover {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
@@ -335,70 +337,170 @@ h1 {
 }
 
 .collection-card {
+  --card-border: color-mix(in srgb, var(--accent) 62%, rgba(255, 255, 255, 0.16));
+  --card-rule: color-mix(in srgb, var(--accent) 48%, rgba(255, 255, 255, 0.12));
+  --card-ink: color-mix(in srgb, var(--accent) 34%, var(--text));
+  --card-muted: color-mix(in srgb, var(--accent) 18%, var(--muted));
   display: grid;
   grid-template-columns: minmax(110px, 42%) minmax(0, 1fr);
   min-width: 0;
   min-height: 150px;
   overflow: hidden;
-  gap: 14px;
-  align-items: center;
-  padding: 12px;
-  color: var(--text);
-  text-align: left;
+  gap: 0;
+  align-items: stretch;
+  padding: 0;
+  color: var(--card-ink);
+  text-align: center;
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.018);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 8px;
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.24);
-  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+  background: color-mix(in srgb, var(--accent) 8%, #121110);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 24px 70px rgba(0, 0, 0, 0.28);
+  transition: transform 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
 }
 
 .collection-card:hover,
 .collection-card:focus-visible {
   transform: translateY(-3px);
-  background: rgba(255, 255, 255, 0.09);
-  border-color: rgba(255, 255, 255, 0.32);
+  border-color: color-mix(in srgb, var(--accent) 78%, rgba(255, 255, 255, 0.28));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 28px 78px rgba(0, 0, 0, 0.34);
   outline: none;
 }
 
 .collection-card__art {
+  position: relative;
   display: block;
   width: 100%;
   min-width: 0;
   overflow: hidden;
   aspect-ratio: 1;
-  border-radius: 6px;
+  border-right: 1px solid color-mix(in srgb, var(--accent) 24%, rgba(0, 0, 0, 0.45));
 }
 
 .collection-card__cover {
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   filter: grayscale(1) saturate(0.18) brightness(0.88);
-  transition: filter 220ms ease, transform 220ms ease;
+  transition: filter 220ms ease;
 }
 
 @media (hover: hover) and (pointer: fine) {
   .collection-card:hover .collection-card__cover,
   .collection-card:focus-visible .collection-card__cover {
     filter: grayscale(0) saturate(1) brightness(1);
-    transform: scale(1.02);
   }
+}
+
+.collection-card__relic {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(8px, 1.4vw, 12px);
+  min-width: 0;
+  min-height: 0;
+  padding: clamp(10px, 1.6vw, 14px) clamp(10px, 1.8vw, 16px);
+  background:
+    radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05), transparent 58%),
+    linear-gradient(180deg, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.48)),
+    repeating-linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.022) 0 1px,
+      transparent 1px 3px
+    ),
+    color-mix(in srgb, var(--accent) 11%, #100f0e);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.collection-card__seal {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.collection-card__seal-arm {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+}
+
+.collection-card__seal-line {
+  flex: 1;
+  min-width: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--card-rule) 18%,
+    var(--card-rule) 82%,
+    transparent
+  );
+}
+
+.collection-card__seal-tip {
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border: 1px solid var(--card-rule);
+  background: color-mix(in srgb, var(--accent) 16%, rgba(0, 0, 0, 0.4));
+  transform: rotate(45deg);
+}
+
+.collection-card__numeral {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+  width: 1.65rem;
+  height: 1.65rem;
+  padding-top: 0.06em;
+  color: var(--card-ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid var(--card-rule);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 14%, rgba(0, 0, 0, 0.42));
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(0, 0, 0, 0.22);
 }
 
 .collection-card__copy {
   display: grid;
-  min-width: 0;
+  flex: 1;
+  gap: 4px;
   align-content: center;
+  min-width: 0;
+  width: 100%;
 }
 
 .collection-card h2 {
   display: -webkit-box;
-  margin: 0 0 4px;
+  margin: 0;
   overflow: hidden;
-  font-size: clamp(1.05rem, 1.7vw, 1.45rem);
-  line-height: 1.1;
+  color: var(--card-ink);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+  font-size: clamp(0.92rem, 1.45vw, 1.18rem);
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   overflow-wrap: anywhere;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
@@ -407,25 +509,42 @@ h1 {
 .collection-card p {
   margin: 0;
   overflow: hidden;
-  color: var(--muted);
-  font-size: 0.82rem;
+  color: var(--card-muted);
+  font-size: clamp(0.62rem, 1vw, 0.72rem);
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.collection-card__browse {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: fit-content;
-  margin-top: 18px;
-  color: var(--text);
-  font-size: 0.78rem;
+.collection-card__glyph {
+  display: block;
+  flex: 0 0 auto;
+  width: 42px;
+  height: 22px;
+  margin-top: auto;
+  color: color-mix(in srgb, var(--accent) 52%, rgba(255, 255, 255, 0.42));
+  opacity: 0.88;
 }
 
-.collection-card__browse span {
-  font-size: 1.15rem;
-  line-height: 0.7;
+@media (min-width: 761px) {
+  .collection-card {
+    grid-template-columns: minmax(110px, 42%) minmax(0, 1fr);
+    grid-template-rows: none;
+    min-height: 150px;
+    text-align: center;
+  }
+
+  .collection-card__art {
+    border-right: 1px solid color-mix(in srgb, var(--accent) 24%, rgba(0, 0, 0, 0.45));
+    border-bottom: 0;
+  }
+
+  .collection-card__relic {
+    justify-content: space-between;
+    padding-block: clamp(12px, 1.8vw, 16px);
+  }
 }
 
 @media (max-width: 760px) {
@@ -452,28 +571,50 @@ h1 {
 
   .collection-card {
     grid-template-columns: 1fr;
+    grid-template-rows: auto minmax(0, 1fr);
     min-height: 0;
-    gap: 8px;
-    padding: 7px;
+    border-radius: 9px;
   }
 
   .collection-card__art {
-    max-width: 150px;
-    justify-self: center;
+    width: 100%;
+    max-width: none;
+    border-right: 0;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 24%, rgba(0, 0, 0, 0.45));
   }
 
-  .collection-card .eyebrow,
-  .collection-card__browse {
-    display: none;
+  .collection-card__relic {
+    flex: 1;
+    justify-content: space-between;
+    gap: clamp(6px, 2.2vw, 10px);
+    min-height: clamp(92px, 24vw, 118px);
+    padding: clamp(8px, 2.8vw, 12px) clamp(8px, 2.4vw, 10px) clamp(10px, 3vw, 12px);
+  }
+
+  .collection-card__seal {
+    gap: 6px;
+  }
+
+  .collection-card__numeral {
+    width: 1.35rem;
+    height: 1.35rem;
+    font-size: 0.62rem;
+    padding-top: 0.05em;
   }
 
   .collection-card h2 {
-    margin-bottom: 3px;
-    font-size: clamp(0.78rem, 3.5vw, 1rem);
+    font-size: clamp(0.68rem, 2.8vw, 0.88rem);
+    letter-spacing: 0.06em;
   }
 
   .collection-card p {
-    font-size: clamp(0.68rem, 2.8vw, 0.82rem);
+    font-size: clamp(0.54rem, 2.2vw, 0.64rem);
+    letter-spacing: 0.1em;
+  }
+
+  .collection-card__glyph {
+    width: 34px;
+    height: 18px;
   }
 }
 

@@ -51,7 +51,7 @@ function renderCollections() {
       : "";
     button.innerHTML = `
       <span class="collection-card__art">
-        <img class="collection-card__cover" src="${collection.coverUrl}" alt="">
+        <img class="collection-card__cover" src="${collection.coverUrl}" alt="" decoding="async" width="768" height="768">
         ${hoverCover}
       </span>
       <span class="collection-card__copy">

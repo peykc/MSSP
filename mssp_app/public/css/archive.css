@@ -905,11 +905,19 @@ body.calendar-open {
   text-transform: uppercase;
 }
 
-.full-calendar__dot {
-  width: 9px;
-  height: 9px;
-  border-radius: 999px;
-  background: var(--dot-color, #888);
+.full-calendar__legend-glyph {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 12px;
+  color: var(--glyph-color, #888);
+}
+
+.full-calendar__legend-glyph__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
 .full-calendar-dialog {
@@ -934,6 +942,9 @@ body.calendar-open {
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  padding-inline: var(--cal-pad);
+  padding-bottom: 14px;
+  scrollbar-gutter: stable;
 }
 
 .full-calendar__weekdays {
@@ -946,7 +957,7 @@ body.calendar-open {
   gap: 4px;
   min-width: 0;
   max-width: 100%;
-  padding: 6px var(--cal-pad) 10px;
+  padding: 6px 0 10px;
   background: var(--bg);
 }
 
@@ -959,13 +970,43 @@ body.calendar-open {
 }
 
 .full-calendar__months {
-  display: grid;
+  position: relative;
+  display: block;
   width: 100%;
-  gap: 28px;
   min-width: 0;
   max-width: 100%;
   padding-block: 14px 0;
-  padding-inline: var(--cal-pad);
+  padding-inline: 0;
+}
+
+.full-calendar__months-spacer {
+  width: 100%;
+  height: var(--calendar-total-height, 0px);
+  pointer-events: none;
+}
+
+.full-calendar__months-window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+}
+
+.cal-month-mount {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  will-change: transform;
+}
+
+.full-calendar__measure-probe {
+  position: absolute;
+  visibility: hidden;
+  pointer-events: none;
+  left: 0;
+  top: 0;
+  width: 100%;
+  contain: layout style paint;
 }
 
 .full-calendar__empty {
@@ -1018,14 +1059,14 @@ body.calendar-open {
   position: relative;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   justify-content: flex-start;
   aspect-ratio: 1;
   min-width: 0;
   padding: 5px;
   color: var(--muted);
   font: inherit;
-  text-align: center;
+  text-align: left;
   background: rgba(255, 255, 255, 0.045);
   border: 0;
   border-radius: 7px;
@@ -1049,6 +1090,8 @@ body.calendar-open {
 }
 
 .cal-cell--release .cal-cell__num {
+  position: relative;
+  z-index: 1;
   font-weight: 700;
 }
 
@@ -1067,9 +1110,9 @@ body.calendar-open {
 .cal-cell--split {
   background: linear-gradient(
     to bottom right,
-    color-mix(in srgb, var(--accent-a, #888) 30%, var(--bg)) 0 calc(50% - 1px),
-    rgba(0, 0, 0, 0.42) calc(50% - 1px) calc(50% + 1px),
-    color-mix(in srgb, var(--accent-b, #888) 30%, var(--bg)) calc(50% + 1px) 100%
+    color-mix(in srgb, var(--accent-a, #888) 30%, var(--bg)) 0 calc(50% - 1.5px),
+    rgba(0, 0, 0, 0.42) calc(50% - 1.5px) calc(50% + 1.5px),
+    color-mix(in srgb, var(--accent-b, #888) 30%, var(--bg)) calc(50% + 1.5px) 100%
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
@@ -1080,31 +1123,41 @@ body.calendar-open {
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.6);
 }
 
-.cal-cell__dot {
+.cal-cell__glyph {
   position: absolute;
-  width: clamp(8px, 2vw, 11px);
-  height: clamp(8px, 2vw, 11px);
-  border-radius: 999px;
-  background: var(--dot-color, #888);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  display: grid;
+  place-items: center;
+  width: clamp(32px, 48%, 54px);
+  height: auto;
+  aspect-ratio: 36 / 20;
+  color: var(--glyph-color, #888);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
 }
 
-.cal-cell__dot--center {
+.cal-cell--split .cal-cell__glyph {
+  width: clamp(28px, 44%, 48px);
+}
+
+.cal-cell__glyph__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.cal-cell__glyph--center {
   left: 50%;
   top: 50%;
-  transform: translate(-50%, -50%);
 }
 
-.cal-cell__dot--tl {
-  left: 37%;
-  top: 37%;
-  transform: translate(-50%, -50%);
+.cal-cell__glyph--tl {
+  left: 33%;
+  top: 33%;
 }
 
-.cal-cell__dot--br {
-  left: 63%;
-  top: 63%;
-  transform: translate(-50%, -50%);
+.cal-cell__glyph--br {
+  left: 67%;
+  top: 67%;
 }
 
 .cal-cell--cancelled {
@@ -1388,7 +1441,7 @@ body.calendar-open {
     width: 100%;
     height: 100%;
     max-height: none;
-    padding: 14px 0;
+    padding-block: 14px 0;
     border: 0;
     border-radius: 0;
   }
@@ -1397,26 +1450,26 @@ body.calendar-open {
     max-height: none;
   }
 
-  body.has-player.calendar-open #fullCalendarModal .full-calendar__months {
-    padding-bottom: calc(var(--mini-player-height) + var(--mini-player-bottom-fill));
+  body.has-player.calendar-open #fullCalendarModal .full-calendar {
+    padding-bottom: calc(14px + var(--mini-player-height) + var(--mini-player-bottom-fill));
   }
 
   .cal-cell--split {
     background: linear-gradient(
       to right,
-      color-mix(in srgb, var(--accent-a, #888) 30%, rgba(255, 255, 255, 0.03)) 0 calc(50% - 1px),
-      rgba(0, 0, 0, 0.42) calc(50% - 1px) calc(50% + 1px),
-      color-mix(in srgb, var(--accent-b, #888) 30%, rgba(255, 255, 255, 0.03)) calc(50% + 1px) 100%
+      color-mix(in srgb, var(--accent-a, #888) 30%, rgba(255, 255, 255, 0.03)) 0 calc(50% - 1.5px),
+      rgba(0, 0, 0, 0.42) calc(50% - 1.5px) calc(50% + 1.5px),
+      color-mix(in srgb, var(--accent-b, #888) 30%, rgba(255, 255, 255, 0.03)) calc(50% + 1.5px) 100%
     );
   }
 
-  .cal-cell__dot--tl {
-    left: 27%;
+  .cal-cell__glyph--tl {
+    left: 25%;
     top: 50%;
   }
 
-  .cal-cell__dot--br {
-    left: 73%;
+  .cal-cell__glyph--br {
+    left: 75%;
     top: 50%;
   }
 }

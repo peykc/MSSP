@@ -1,6 +1,8 @@
 import { formatCount, formatDateRange } from "./utils.js";
+import { renderCollectionCardGlyph } from "./collectionGlyphs.js";
 
-const COLLECTION_ORDER = ["old", "new", "paytch"];
+const COLLECTION_ORDER = ["old", "paytch", "new"];
+const COLLECTION_NUMERALS = { old: "I", paytch: "II", new: "III" };
 
 export function createCollectionsView({
   dom,
@@ -27,13 +29,25 @@ export function createCollectionsView({
       button.style.setProperty("--accent", collection.accent);
       button.innerHTML = `
         <span class="collection-card__art">
-          <img class="collection-card__cover" src="${collection.coverUrl}" alt="">
+          <img class="collection-card__cover" src="${collection.coverUrl}" alt="" decoding="async" width="768" height="768">
         </span>
-        <span class="collection-card__copy">
-          <span class="eyebrow">${formatDateRange(collection)}</span>
-          <h2>${collection.name}</h2>
-          <p>${formatCount(collection.count)}</p>
-          <span class="collection-card__browse" aria-hidden="true">Browse <span>›</span></span>
+        <span class="collection-card__relic">
+          <span class="collection-card__seal" aria-hidden="true">
+            <span class="collection-card__seal-arm">
+              <span class="collection-card__seal-line"></span>
+              <span class="collection-card__seal-tip"></span>
+            </span>
+            <span class="collection-card__numeral">${COLLECTION_NUMERALS[id] || ""}</span>
+            <span class="collection-card__seal-arm">
+              <span class="collection-card__seal-tip"></span>
+              <span class="collection-card__seal-line"></span>
+            </span>
+          </span>
+          <span class="collection-card__copy">
+            <h2>${collection.name}</h2>
+            <p>${formatCount(collection.count)}</p>
+          </span>
+          ${renderCollectionCardGlyph(id)}
         </span>
       `;
       button.addEventListener("click", () => onOpenCollection(collection.id));
@@ -59,9 +73,9 @@ export function createCollectionsView({
     hero.style.setProperty("--accent", anthology.accent);
     hero.innerHTML = `
       <span class="collection-hero__art">
-        <img class="collection-hero__cover" src="${anthology.coverUrl}" alt="">
+        <img class="collection-hero__cover" src="${anthology.coverUrl}" alt="" decoding="async" width="1536" height="960">
         ${anthology.hoverCoverUrl
-          ? `<img class="collection-hero__cover collection-hero__cover--hover" src="${anthology.hoverCoverUrl}" alt="">`
+          ? `<img class="collection-hero__cover collection-hero__cover--hover" src="${anthology.hoverCoverUrl}" alt="" decoding="async" width="1536" height="960">`
           : ""}
       </span>
       <div class="collection-hero__copy">

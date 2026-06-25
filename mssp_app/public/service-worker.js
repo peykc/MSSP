@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v152";
+const CACHE_VERSION = "mssp-v160";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -29,6 +29,7 @@ const SHELL_PATHS = [
   "./js/patreonRssModal.js",
   "./js/archiveStats.js",
   "./js/calendarModal.js",
+  "./js/collectionGlyphs.js",
   "./js/collectionsView.js",
   "./js/dom.js",
   "./js/episodeDetails.js",
@@ -36,6 +37,7 @@ const SHELL_PATHS = [
   "./js/episodeList.js",
   "./js/filters.js",
   "./js/favoritesStore.js",
+  "./js/fullCalendarModal.js",
   "./js/libraryView.js",
   "./js/launchSplash.js",
   "./js/player/audioController.js",
@@ -54,11 +56,11 @@ const SHELL_PATHS = [
   "./js/state.js",
   "./js/tooltip.js",
   "./js/utils.js",
-  "./assets/covers/anthology-hover.jpg",
-  "./assets/covers/anthology.jpg",
-  "./assets/covers/new.jpg",
-  "./assets/covers/old.jpg",
-  "./assets/covers/paytch.jpg",
+  "./assets/covers/anthology-hover.webp",
+  "./assets/covers/anthology.webp",
+  "./assets/covers/new.webp",
+  "./assets/covers/old.webp",
+  "./assets/covers/paytch.webp",
   "./assets/brand/mssp-mark.png",
   "./assets/icons/archive.svg",
   "./assets/media-session/old-192.jpg",
