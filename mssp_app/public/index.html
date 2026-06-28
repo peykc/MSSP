@@ -29,6 +29,7 @@
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/launch.css">
     <link rel="stylesheet" href="./css/archive.css">
+    <link rel="stylesheet" href="./css/sealed-stone.css">
     <link rel="stylesheet" href="./css/library.css">
     <link rel="stylesheet" href="./css/episode-list.css">
     <link rel="stylesheet" href="./css/episode-details.css">
@@ -110,7 +111,55 @@
           </section>
           <section class="launch__archive" id="archiveStats" aria-labelledby="archiveStatsTitle">
             <h2 id="archiveStatsTitle">Archive Stats</h2>
-            <div class="archive-tidbits-card" id="archiveTidbitsPanel"></div>
+            <div class="archive-tidbits-card">
+              <div id="archiveTidbitsPanel"></div>
+              <section class="sealed-stone-card" id="sealedStoneCard" aria-label="Sealed stone reveal">
+                <div
+                  class="sealed-stone-scene"
+                  id="sealedStoneScene"
+                  data-phase="sealed"
+                  role="button"
+                  tabindex="0"
+                  aria-label="A sealed stone blocks the doorway. Open the archive calendar to find the day that rolls it aside."
+                >
+                  <div class="ssm-ground" aria-hidden="true"></div>
+                  <div class="ssm-spill" aria-hidden="true"></div>
+                  <div class="ssm-doorway">
+                    <div class="ssm-doorway__light" aria-hidden="true"></div>
+                    <div class="ssm-counter" data-stone-counter role="timer" aria-live="off">
+                      <div class="ssm-sacred-mark" aria-hidden="true">
+                        <svg viewBox="0 0 68 31" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round">
+                          <path d="M22 28V21a12 12 0 0 1 24 0v7" opacity="0.9"></path>
+                          <path d="M27 28V21a7 7 0 0 1 14 0v7" opacity="0.5"></path>
+                          <path d="M18 28H50" opacity="0.72"></path>
+                          <path d="M34 1V8 M24 3.5L28 10 M44 3.5L40 10 M16.5 9L23 13 M51.5 9L45 13 M12 17L21 19 M56 17L47 19 M11 25H20 M57 25H48" opacity="0.76"></path>
+                        </svg>
+                      </div>
+                      <div class="ssm-ornament" aria-hidden="true"><i></i></div>
+                      <div class="ssm-eyebrow">Time risen</div>
+                      <div class="ssm-days" data-stone-days>0</div>
+                      <div class="ssm-days-label">Days</div>
+                      <div class="ssm-ornament ssm-ornament--mid" aria-hidden="true"><i></i></div>
+                      <div class="ssm-clock">
+                        <span data-stone-hours>00</span><span class="ssm-clock__colon">:</span><span data-stone-minutes>00</span><span class="ssm-clock__colon">:</span><span data-stone-seconds>00</span>
+                      </div>
+                      <div class="ssm-clock-label">Hrs&nbsp;&nbsp;Min&nbsp;&nbsp;Sec</div>
+                      <div class="ssm-ornament ssm-ornament--bottom" aria-hidden="true"><i></i></div>
+                      <div class="ssm-status">
+                        <span class="ssm-status-title">“CANCELLED”</span>
+                        <span class="ssm-status-date">◇ 16 SEPTEMBER 2019 ◇</span>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="ssm-stone" aria-hidden="true">
+                    <div class="ssm-stone__shake">
+                      <img src="./assets/stone.svg" alt="">
+                    </div>
+                  </div>
+                </div>
+                <button class="sealed-stone-action" id="sealedStoneAction" type="button">Find the date · 16 Sept 2019</button>
+              </section>
+            </div>
             <div class="archive-stats" id="archiveStatsPanel"></div>
           </section>
         </div>
@@ -134,7 +183,7 @@
                 </svg>
               </span>
               <div class="launch-footer__copy">
-                <strong>Open source &amp; always will be.</strong>
+                <strong>Open source &amp; ad free.</strong>
                 <span>View on <a class="launch-footer__link" href="https://github.com/peykc/MSSP" target="_blank" rel="noopener noreferrer">GitHub →</a></span>
               </div>
             </div>

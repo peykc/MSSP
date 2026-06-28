@@ -1,29 +1,13 @@
 import { renderCollectionGlyphSvg } from "./collectionGlyphs.js";
 
 const SECTION_ORDER = ["old", "paytch", "new"];
-// September 16, 2019 at 2:15 PM ET (EDT, UTC-4)
-const CANCELLED_DATE = "2019-09-16";
-const CANCELLED_AT_MS = Date.parse("2019-09-16T14:15:00-04:00");
-const SEVEN_SEGMENTS = ["a", "b", "c", "d", "e", "f", "g"];
-const SEVEN_SEGMENT_MAP = Object.freeze({
-  "0": "abcdef",
-  "1": "bc",
-  "2": "abged",
-  "3": "abgcd",
-  "4": "fgbc",
-  "5": "afgcd",
-  "6": "afgedc",
-  "7": "abc",
-  "8": "abcdefg",
-  "9": "abcdfg",
-});
 const HOURS_METRIC = Object.freeze({
   label: "Hours",
   value: (stats) => stats.durationSecondsTotal / 3600,
   format: (_, stats) => formatDuration(stats.durationSecondsTotal),
 });
 
-export function createArchiveStatsView({ dom, state, fullCalendarModal }) {
+export function createArchiveStatsView({ dom, state }) {
   let archiveStats = null;
 
   function setEpisodes(episodes) {
@@ -149,26 +133,12 @@ export function createArchiveStatsView({ dom, state, fullCalendarModal }) {
 
     dom.archiveTidbitsPanel.innerHTML = `
       ${pulseMarkup}
-      ${renderSafetySign(Boolean(state.archiveEpisodes.length))}
     `;
 
     bindPulseTouchPause(dom.archiveTidbitsPanel.querySelector(".archive-pulse__viewport"));
 
-    dom.archiveTidbitsPanel.querySelector("[data-open-cancelled-calendar]")?.addEventListener("click", (event) => {
-      if (!state.archiveEpisodes.length) return;
-      fullCalendarModal.open(state.archiveEpisodes, event.currentTarget, { focusDate: CANCELLED_DATE });
-    });
-
     dom.archiveStatsPanel.innerHTML = renderHoursPanel();
   }
-
-  setInterval(() => {
-    const sign = dom.archiveTidbitsPanel.querySelector("[data-cancelled-sign]");
-    if (sign) {
-      sign.innerHTML = renderSafetySignDigits();
-      sign.setAttribute("aria-label", formatSafetySignLabel());
-    }
-  }, 1000);
 
   renderLoading();
   return {
@@ -348,70 +318,6 @@ function buildPulseItems(total) {
   return items;
 }
 
-function renderSafetySignCalendarButton(disabled) {
-  return `
-    <button
-      type="button"
-      class="safety-sign__calendar"
-      data-open-cancelled-calendar
-      aria-label="View cancellation date on archive calendar"
-      ${disabled ? "disabled" : ""}
-    >
-      <svg class="safety-sign__calendar-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-        <path fill="currentColor" d="M7 2a1 1 0 0 1 1 1v1h8V3a1 1 0 1 1 2 0v1h1a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h1V3a1 1 0 0 1 1-1zm12 8H5v10h14V10z"/>
-      </svg>
-    </button>
-  `;
-}
-
-function renderSafetySign(hasArchiveEpisodes) {
-  return `
-    <section class="safety-sign" aria-label="Time since cancelled">
-      <div class="safety-sign__header">
-        <span>Days Since Cancelled</span>
-        ${renderSafetySignCalendarButton(!hasArchiveEpisodes)}
-      </div>
-      <div class="safety-sign__display" data-cancelled-sign role="img" aria-label="${formatSafetySignLabel()}">
-        ${renderSafetySignDigits()}
-      </div>
-    </section>
-  `;
-}
-
-function renderSafetySignDigits() {
-  const { days, hours, minutes, seconds } = getCancelledElapsed();
-  const groups = [
-    { value: String(days).padStart(4, "0"), unit: "Days" },
-    { value: String(hours).padStart(2, "0"), unit: "Hrs" },
-    { value: String(minutes).padStart(2, "0"), unit: "Min" },
-    { value: String(seconds).padStart(2, "0"), unit: "Sec" },
-  ];
-  return groups.map(renderSegmentGroup).join('<span class="seg-colon" aria-hidden="true"><i></i><i></i></span>');
-}
-
-function renderSegmentGroup({ value, unit }) {
-  const digits = value.split("").map(renderSevenSegmentDigit).join("");
-  return `
-    <span class="seg-group">
-      <span class="seg-group__digits">${digits}</span>
-      <span class="seg-group__unit">${unit}</span>
-    </span>
-  `;
-}
-
-function renderSevenSegmentDigit(char) {
-  const active = SEVEN_SEGMENT_MAP[char] || "";
-  const segments = SEVEN_SEGMENTS.map(
-    (segment) => `<span class="seg seg--${segment}${active.includes(segment) ? " is-on" : ""}"></span>`,
-  ).join("");
-  return `<span class="seg-digit" aria-hidden="true">${segments}</span>`;
-}
-
-function formatSafetySignLabel() {
-  const { days, hours, minutes, seconds } = getCancelledElapsed();
-  return `${days.toLocaleString()} days, ${hours} hours, ${minutes} minutes, ${seconds} seconds since cancelled`;
-}
-
 function renderPulseItem({ value, label, icon, attr, hidden = false }) {
   const ariaHidden = hidden ? ' aria-hidden="true"' : "";
   const iconMarkup = PULSE_ICONS[icon] || "";
@@ -462,16 +368,6 @@ function getDateSpanDays(stats) {
   const last = Date.parse(stats.lastEpisodeDate);
   if (!Number.isFinite(first) || !Number.isFinite(last)) return 0;
   return Math.max(1, Math.round((last - first) / 86400000) + 1);
-}
-
-function getCancelledElapsed() {
-  const totalSeconds = Math.max(0, Math.floor((Date.now() - CANCELLED_AT_MS) / 1000));
-  return {
-    days: Math.floor(totalSeconds / 86400),
-    hours: Math.floor((totalSeconds % 86400) / 3600),
-    minutes: Math.floor((totalSeconds % 3600) / 60),
-    seconds: totalSeconds % 60,
-  };
 }
 
 function getYear(date) {

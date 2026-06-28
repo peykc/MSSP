@@ -86,7 +86,7 @@ function dateOrdinal(dateKey) {
   return parts.year * 12 + parts.month;
 }
 
-export function createFullCalendarModal({ dom }) {
+export function createFullCalendarModal({ dom, onOpenCancelled }) {
   let restoreFocusTo = null;
   let isOpen = false;
   let pinnedCell = null;
@@ -166,6 +166,7 @@ export function createFullCalendarModal({ dom }) {
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   let closeTransitionEnd = null;
   let closeFallbackTimer = null;
+  let afterClose = null;
 
   function clearPendingClose() {
     if (closeTransitionEnd) {
@@ -227,11 +228,18 @@ export function createFullCalendarModal({ dom }) {
     dom.fullCalendarModal.setAttribute("aria-hidden", "true");
     document.body.classList.remove("calendar-open");
     dom.app.inert = document.body.classList.contains("player-expanded");
-    if (document.body.classList.contains("player-expanded")) {
+    const callback = afterClose;
+    afterClose = null;
+    if (document.body.classList.contains("player-expanded") && !callback) {
       restoreFocusTo = null;
       return;
     }
     requestAnimationFrame(() => {
+      if (callback) {
+        restoreFocusTo = null;
+        callback();
+        return;
+      }
       const target = restoreFocusTo?.isConnected
         ? restoreFocusTo
         : dom.launchHero.querySelector('[data-hero-action="calendar"]');
@@ -244,8 +252,9 @@ export function createFullCalendarModal({ dom }) {
     });
   }
 
-  function close() {
+  function close(options) {
     if (!isOpen) return;
+    afterClose = typeof options?.onClosed === "function" ? options.onClosed : null;
     clearSpotlight();
     pinnedCell = null;
     hoverCell = null;
@@ -571,7 +580,7 @@ export function createFullCalendarModal({ dom }) {
 
       if (dateKey === CANCELLED_DATE) {
         cells.push(`
-          <button type="button" class="cal-cell cal-cell--event cal-cell--cancelled${spotlightClass}" data-date="${dateKey}" data-cancelled="true" aria-label="September 16, 2019: the day he got cancelled">
+          <button type="button" class="cal-cell cal-cell--event cal-cell--cancelled${spotlightClass}" data-date="${dateKey}" data-cancelled="true" aria-label="September 16, 2019: the day he got cancelled. Open the sealed stone.">
             <span class="cal-cell__num">${day}</span>
             <span class="cal-cell__cancel-mark" aria-hidden="true">!</span>
           </button>
@@ -816,6 +825,13 @@ export function createFullCalendarModal({ dom }) {
     dom.fullCalendarMonths.addEventListener("click", (event) => {
       const cell = event.target.closest(".cal-cell--event");
       if (!cell) return;
+      if (cell.dataset.cancelled) {
+        pinnedCell = null;
+        hoverCell = null;
+        hideTooltip();
+        onOpenCancelled?.(cell);
+        return;
+      }
       if (pinnedCell === cell) {
         pinnedCell = null;
         hideTooltip();

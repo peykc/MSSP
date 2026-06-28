@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v161";
+const CACHE_VERSION = "mssp-v177";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -13,6 +13,7 @@ const SHELL_PATHS = [
   "./css/layout.css",
   "./css/launch.css",
   "./css/archive.css",
+  "./css/sealed-stone.css",
   "./css/library.css",
   "./css/episode-list.css",
   "./css/episode-details.css",
@@ -38,6 +39,7 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js",
+  "./js/sealedStoneModal.js",
   "./js/libraryView.js",
   "./js/launchSplash.js",
   "./js/player/audioController.js",
@@ -62,6 +64,7 @@ const SHELL_PATHS = [
   "./assets/covers/old.webp",
   "./assets/covers/paytch.webp",
   "./assets/brand/mssp-mark.png",
+  "./assets/stone.svg",
   "./assets/icons/archive.svg",
   "./assets/media-session/old-192.jpg",
   "./assets/media-session/old-512.jpg",
