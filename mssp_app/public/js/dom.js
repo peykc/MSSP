@@ -43,7 +43,6 @@ export const dom = {
   fullCalendarMonths: getRequiredElement("fullCalendarMonths"),
   sealedStoneCard: getRequiredElement("sealedStoneCard"),
   sealedStoneScene: getRequiredElement("sealedStoneScene"),
-  sealedStoneAction: getRequiredElement("sealedStoneAction"),
   libraryView: getRequiredElement("libraryView"),
   heroPanel: getRequiredElement("heroPanel"),
   heroCover: getRequiredElement("heroCover"),

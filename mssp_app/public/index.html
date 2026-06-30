@@ -113,14 +113,17 @@
             <h2 id="archiveStatsTitle">Archive Stats</h2>
             <div class="archive-tidbits-card">
               <div id="archiveTidbitsPanel"></div>
-              <section class="sealed-stone-card" id="sealedStoneCard" aria-label="Sealed stone reveal">
+            </div>
+            <div class="archive-stats" id="archiveStatsPanel"></div>
+            <section class="sealed-stone-card" id="sealedStoneCard" aria-label="Sealed stone reveal">
                 <div
                   class="sealed-stone-scene"
                   id="sealedStoneScene"
                   data-phase="sealed"
                   role="button"
-                  tabindex="0"
-                  aria-label="A sealed stone blocks the doorway. Open the archive calendar to find the day that rolls it aside."
+                  tabindex="-1"
+                  aria-disabled="true"
+                  aria-label="A sealed stone blocks the doorway."
                 >
                   <div class="ssm-ground" aria-hidden="true"></div>
                   <div class="ssm-spill" aria-hidden="true"></div>
@@ -147,7 +150,6 @@
                       <div class="ssm-ornament ssm-ornament--bottom" aria-hidden="true"><i></i></div>
                       <div class="ssm-status">
                         <span class="ssm-status-title">“CANCELLED”</span>
-                        <span class="ssm-status-date">◇ 16 SEPTEMBER 2019 ◇</span>
                       </div>
                     </div>
                   </div>
@@ -157,10 +159,7 @@
                     </div>
                   </div>
                 </div>
-                <button class="sealed-stone-action" id="sealedStoneAction" type="button">Find the date · 16 Sept 2019</button>
-              </section>
-            </div>
-            <div class="archive-stats" id="archiveStatsPanel"></div>
+            </section>
           </section>
         </div>
         <footer class="launch-footer" aria-label="Site information">

@@ -358,98 +358,17 @@
   white-space: nowrap;
 }
 
-.archive-pulse__item[aria-hidden="true"] {
-  display: none;
-}
-
 @container archive-pulse (max-width: 920px) {
-  .archive-pulse__viewport {
-    overflow: hidden;
-    mask-image: linear-gradient(
-      90deg,
-      transparent,
-      black 18px,
-      black calc(100% - 18px),
-      transparent
-    );
-  }
-
   .archive-pulse__track {
-    display: flex;
-    width: max-content;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    animation: archive-pulse-scroll 24s linear infinite;
-  }
-
-  .archive-pulse__item {
-    flex: 0 0 auto;
-    width: 180px;
-  }
-
-  .archive-pulse__item[aria-hidden="true"] {
-    display: block;
-  }
-
-  .archive-pulse__viewport:hover .archive-pulse__track,
-  .archive-pulse__viewport:focus-within .archive-pulse__track,
-  .archive-pulse__viewport.is-touching .archive-pulse__track {
-    animation-play-state: paused;
-  }
-}
-
-@keyframes archive-pulse-scroll {
-  from {
-    transform: translateX(0);
-  }
-
-  to {
-    transform: translateX(calc(-50% - 5px));
   }
 }
 
 @media (max-width: 920px) {
-  .archive-pulse__viewport {
-    overflow: hidden;
-    mask-image: linear-gradient(
-      90deg,
-      transparent,
-      black 18px,
-      black calc(100% - 18px),
-      transparent
-    );
-  }
-
   .archive-pulse__track {
-    display: flex;
-    width: max-content;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    animation: archive-pulse-scroll 24s linear infinite;
-  }
-
-  .archive-pulse__item {
-    flex: 0 0 auto;
-    width: 180px;
-  }
-
-  .archive-pulse__item[aria-hidden="true"] {
-    display: block;
-  }
-
-  .archive-pulse__viewport:hover .archive-pulse__track,
-  .archive-pulse__viewport:focus-within .archive-pulse__track,
-  .archive-pulse__viewport.is-touching .archive-pulse__track {
-    animation-play-state: paused;
-  }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .archive-pulse__viewport {
-    overflow-x: auto;
-    mask-image: none;
-  }
-
-  .archive-pulse__track {
-    animation: none;
   }
 }
 

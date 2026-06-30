@@ -39,15 +39,8 @@ async function init() {
   const state = createAppState();
   const favoritesStore = createFavoritesStore();
   const calendarModal = createCalendarModal({ dom });
-  let fullCalendarModal;
-  const sealedStoneModal = createSealedStoneModal({
-    dom,
-    onFindDate: (trigger) => {
-      if (!state.archiveEpisodes.length) return;
-      fullCalendarModal.open(state.archiveEpisodes, trigger, { focusDate: "2019-09-16" });
-    },
-  });
-  fullCalendarModal = createFullCalendarModal({
+  const sealedStoneModal = createSealedStoneModal({ dom });
+  const fullCalendarModal = createFullCalendarModal({
     dom,
     onOpenCancelled: () => {
       fullCalendarModal.close({ onClosed: () => sealedStoneModal.open() });

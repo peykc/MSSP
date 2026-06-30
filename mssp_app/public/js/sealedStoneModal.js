@@ -3,7 +3,7 @@ const RUMBLE_MS = 900;
 const ROLL_MS = 6200;
 const MAX_PARTICLES = 70;
 
-export function createSealedStoneModal({ dom, onFindDate }) {
+export function createSealedStoneModal({ dom }) {
   let phase = "sealed";
   let revealStartedAt = 0;
   let phaseTimers = [];
@@ -74,11 +74,10 @@ export function createSealedStoneModal({ dom, onFindDate }) {
         ? "The stone has rolled aside, revealing the time since cancellation. Activate the scene to reseal it."
         : moving
           ? "The sealed stone is rolling aside. Activate the scene to reseal it."
-          : "A sealed stone blocks the doorway. Activate it to open the archive calendar and find the day that rolls it aside.",
+          : "A sealed stone blocks the doorway.",
     );
-    dom.sealedStoneAction.disabled = false;
-    dom.sealedStoneAction.hidden = phase !== "sealed";
-    dom.sealedStoneAction.textContent = "▸ Find the date · 16 Sept 2019";
+    dom.sealedStoneScene.tabIndex = phase === "sealed" ? -1 : 0;
+    dom.sealedStoneScene.setAttribute("aria-disabled", phase === "sealed" ? "true" : "false");
   }
 
   function setPhase(nextPhase) {
@@ -109,7 +108,7 @@ export function createSealedStoneModal({ dom, onFindDate }) {
     const rollDistance = (dom.sealedStoneScene.clientWidth / 2) + (stone.offsetWidth * 0.404);
     return {
       cx: (dom.sealedStoneScene.clientWidth / 2) + (rollDistance * eased),
-      cy: dom.sealedStoneScene.clientHeight - 4 - (stone.offsetWidth / 2) + (14 * eased),
+      cy: dom.sealedStoneScene.clientHeight / 2,
       radius: stone.offsetWidth * 0.48,
     };
   }
@@ -122,7 +121,7 @@ export function createSealedStoneModal({ dom, onFindDate }) {
       : (Math.PI * 0.75) + (Math.random() * Math.PI * 1.5);
     const x = cx + (Math.cos(angle) * radius);
     const y = cy + (Math.sin(angle) * radius);
-    if (y > dom.sealedStoneScene.clientHeight - 60) return;
+    if (y > dom.sealedStoneScene.clientHeight - 44) return;
 
     const size = 2 + (Math.random() * 5);
     const fall = 30 + (Math.random() * 48);
@@ -153,7 +152,7 @@ export function createSealedStoneModal({ dom, onFindDate }) {
     const { cx } = getStonePosition();
     const size = 18 + (Math.random() * 40);
     const x = cx + ((Math.random() - 0.5) * 78);
-    const y = (dom.sealedStoneScene.clientHeight - 54) - (size * 0.28);
+    const y = (dom.sealedStoneScene.clientHeight - 36) - (size * 0.28);
     const duration = 950 + (Math.random() * 1100);
     const alpha = 0.1 + (Math.random() * 0.1);
     const spread = (Math.random() - 0.5) * 52;
@@ -222,14 +221,8 @@ export function createSealedStoneModal({ dom, onFindDate }) {
     setPhase("sealed");
   }
 
-  function findDate() {
-    if (phase !== "sealed") return;
-    onFindDate?.(dom.sealedStoneAction);
-  }
-
   function toggleScene() {
-    if (phase === "sealed") findDate();
-    else reseal();
+    if (phase !== "sealed") reseal();
   }
 
   function open() {
@@ -242,8 +235,8 @@ export function createSealedStoneModal({ dom, onFindDate }) {
       behavior: prefersReducedMotion() ? "auto" : "smooth",
       block: "center",
     });
-    dom.sealedStoneScene.focus({ preventScroll: true });
     reveal();
+    dom.sealedStoneScene.focus({ preventScroll: true });
   }
 
   dom.sealedStoneScene.addEventListener("click", toggleScene);
@@ -252,7 +245,6 @@ export function createSealedStoneModal({ dom, onFindDate }) {
     event.preventDefault();
     toggleScene();
   });
-  dom.sealedStoneAction.addEventListener("click", findDate);
   window.addEventListener("resize", updateRollDistance);
   setInterval(updateCounter, 1000);
   updateCounter();

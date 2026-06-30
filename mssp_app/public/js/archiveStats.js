@@ -124,7 +124,6 @@ export function createArchiveStatsView({ dom, state }) {
               style="--pulse-count: ${pulseItems.length}"
             >
               ${pulseItems.map((item) => renderPulseItem(item)).join("")}
-              ${pulseItems.map((item) => renderPulseItem({ ...item, hidden: true })).join("")}
             </div>
           </div>
         </section>
@@ -134,8 +133,6 @@ export function createArchiveStatsView({ dom, state }) {
     dom.archiveTidbitsPanel.innerHTML = `
       ${pulseMarkup}
     `;
-
-    bindPulseTouchPause(dom.archiveTidbitsPanel.querySelector(".archive-pulse__viewport"));
 
     dom.archiveStatsPanel.innerHTML = renderHoursPanel();
   }
@@ -318,11 +315,10 @@ function buildPulseItems(total) {
   return items;
 }
 
-function renderPulseItem({ value, label, icon, attr, hidden = false }) {
-  const ariaHidden = hidden ? ' aria-hidden="true"' : "";
+function renderPulseItem({ value, label, icon, attr }) {
   const iconMarkup = PULSE_ICONS[icon] || "";
   return `
-    <div class="archive-pulse__item"${ariaHidden}>
+    <div class="archive-pulse__item">
       <span class="archive-pulse__relic">
         <span class="archive-pulse__seal" aria-hidden="true">
           <span class="archive-pulse__seal-arm">
@@ -340,15 +336,6 @@ function renderPulseItem({ value, label, icon, attr, hidden = false }) {
       </span>
     </div>
   `;
-}
-
-function bindPulseTouchPause(viewport) {
-  if (!viewport) return;
-  const pause = () => viewport.classList.add("is-touching");
-  const resume = () => viewport.classList.remove("is-touching");
-  viewport.addEventListener("touchstart", pause, { passive: true });
-  viewport.addEventListener("touchend", resume, { passive: true });
-  viewport.addEventListener("touchcancel", resume, { passive: true });
 }
 
 function formatBusiestYear(stats) {

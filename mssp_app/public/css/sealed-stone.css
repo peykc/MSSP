@@ -42,27 +42,16 @@
   container-type: inline-size;
   position: relative;
   width: 100%;
-  height: clamp(360px, 34vw, 370px);
+  height: clamp(275px, 26vw, 300px);
   justify-self: center;
   overflow: hidden;
   cursor: pointer;
-  background:
-    radial-gradient(ellipse at center, rgba(12, 8, 6, 0.34), transparent 72%),
-    repeating-linear-gradient(92deg, rgba(255, 255, 255, 0.016) 0 1px, transparent 1px 46px),
-    repeating-linear-gradient(2deg, rgba(0, 0, 0, 0.15) 0 1px, transparent 1px 58px),
-    var(--bg);
+  background: transparent;
   border: 0;
   border-radius: 0;
   box-shadow: none;
-}
-
-.sealed-stone-scene::after {
-  position: absolute;
-  inset: 0;
-  z-index: 12;
-  pointer-events: none;
-  content: "";
-  background: linear-gradient(90deg, var(--bg) 0%, transparent 12%, transparent 88%, var(--bg) 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
 }
 
 .sealed-stone-scene:focus-visible {
@@ -73,7 +62,7 @@
 .ssm-ground {
   position: absolute;
   right: 0;
-  bottom: 54px;
+  bottom: 36px;
   left: 0;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgba(120, 92, 60, 0.42) 30% 70%, transparent);
@@ -81,23 +70,23 @@
 
 .ssm-spill {
   position: absolute;
+  top: 50%;
   left: 50%;
-  bottom: 40px;
   z-index: 1;
-  width: min(360px, 78%);
-  height: min(430px, 77%);
+  width: min(255px, 72.4%);
+  height: min(241px, 71.4%);
   pointer-events: none;
   background: radial-gradient(closest-side at 50% 72%, rgba(255, 200, 120, 0.46), rgba(220, 130, 60, 0.16) 46%, transparent 72%);
   filter: blur(10px);
   opacity: 0;
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%);
   transition: opacity 2.1s ease;
 }
 
 .ssm-doorway {
   position: absolute;
+  top: 50%;
   left: 50%;
-  bottom: 64px;
   z-index: 2;
   width: min(212px, 62%);
   height: 264px;
@@ -105,7 +94,8 @@
   background: linear-gradient(180deg, #0b0705, #150e08);
   border-radius: 3px;
   box-shadow: inset 0 0 46px rgba(0, 0, 0, 0.9), inset 0 -10px 30px rgba(0, 0, 0, 0.6), inset 0 0 0 1px rgba(150, 110, 72, 0.16);
-  transform: translateX(-50%);
+  transform: translate(-50%, -50%) scale(0.707);
+  transform-origin: center;
 }
 
 .ssm-doorway__light {
@@ -130,16 +120,17 @@
 
 .ssm-counter {
   position: absolute;
-  top: 2.7%;
+  top: 50%;
   right: 4%;
   left: 4%;
   z-index: 4;
-  color: #e7b87f;
+  color: #fce7c2;
   font-family: "Times New Roman", Times, serif;
   font-weight: 400;
   text-align: center;
   opacity: 0;
-  transform: translateY(12px);
+  transform: translateY(calc(-50% + 12px)) scale(1.06);
+  transform-origin: center;
   transition: opacity 1s ease 300ms, transform 1s ease 300ms;
 }
 
@@ -149,7 +140,8 @@
 }
 
 .ssm-sacred-mark {
-  height: 25px;
+  height: 31px;
+  margin-bottom: 8px;
   color: #d9a35c;
 }
 
@@ -166,7 +158,7 @@
   align-items: center;
   width: 83px;
   height: 8px;
-  margin: 2px auto 4px;
+  margin: 0 auto 4px;
   color: #b9824c;
 }
 
@@ -190,7 +182,7 @@
 
 .ssm-eyebrow {
   margin-top: 1px;
-  font-size: 9.5px;
+  font-size: 11px;
   letter-spacing: 0.3em;
   text-transform: uppercase;
 }
@@ -207,8 +199,8 @@
 
 .ssm-days-label {
   margin-top: 5px;
-  color: #caa074;
-  font-size: clamp(7px, 2.05cqw, 9.5px);
+  color: #fce7c2;
+  font-size: clamp(10.5px, 2.7cqw, 13px);
   letter-spacing: 0.34em;
   text-transform: uppercase;
 }
@@ -217,12 +209,12 @@
   width: 94px;
   margin-top: 7px;
   margin-bottom: 5px;
-  color: #8e5d35;
+  color: #6b4328;
 }
 
 .ssm-clock {
-  color: #3b2618;
-  font-size: clamp(16px, 4.35cqw, 20px);
+  color: #382116;
+  font-size: clamp(20px, 5.15cqw, 24px);
   letter-spacing: 0.12em;
   font-variant-numeric: tabular-nums;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.14);
@@ -230,13 +222,13 @@
 
 .ssm-clock__colon {
   padding-inline: 3px;
-  color: #6f4529;
+  color: #382116;
 }
 
 .ssm-clock-label {
   margin-top: 3px;
-  color: #442a19;
-  font-size: clamp(6px, 1.8cqw, 8.25px);
+  color: #382116;
+  font-size: clamp(9px, 2.3cqw, 10.75px);
   letter-spacing: 0.42em;
   text-transform: uppercase;
 }
@@ -248,38 +240,29 @@
   color: #6d4528;
 }
 
-.ssm-status-title,
-.ssm-status-date {
+.ssm-status-title {
   display: block;
   line-height: 1;
   white-space: nowrap;
 }
 
 .ssm-status-title {
-  color: #2d190f;
-  font-size: clamp(9px, 2.5cqw, 11.5px);
+  color: #382116;
+  font-size: clamp(12px, 3.1cqw, 14.5px);
   line-height: 1.1;
   letter-spacing: 0.26em;
   text-indent: 0.26em;
 }
 
-.ssm-status-date {
-  margin-top: 8px;
-  color: #382116;
-  font-size: clamp(6.8px, 1.85cqw, 8.5px);
-  letter-spacing: 0.18em;
-  text-indent: 0.18em;
-}
-
 .ssm-stone {
   position: absolute;
+  top: 50%;
   left: 50%;
-  bottom: 4px;
   z-index: 7;
-  width: min(360px, 82%);
+  width: min(255px, 75.35%);
   aspect-ratio: 1;
-  filter: drop-shadow(0 26px 44px rgba(0, 0, 0, 0.72)) drop-shadow(0 8px 14px rgba(0, 0, 0, 0.48));
-  transform: translateX(-50%) rotate(0deg);
+  filter: none;
+  transform: translate(-50%, -50%) rotate(0deg);
   transform-origin: 50% 50%;
   transition: transform 6200ms cubic-bezier(0.3333, 0, 0.6667, 0.6667);
 }
@@ -321,7 +304,7 @@
 
 .sealed-stone-scene[data-phase="rolling"] .ssm-stone,
 .sealed-stone-scene[data-phase="open"] .ssm-stone {
-  transform: translateX(-50%) translate(var(--ssm-roll-x, 406px), 14px) rotate(140deg);
+  transform: translate(-50%, -50%) translateX(var(--ssm-roll-x, 406px)) rotate(140deg);
 }
 
 .sealed-stone-scene[data-phase="rolling"] .ssm-spill,
@@ -333,40 +316,11 @@
 
 .sealed-stone-scene[data-phase="open"] .ssm-counter {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(-50%) scale(1.06);
 }
 
 .sealed-stone-scene[data-phase="open"] .ssm-doorway__light::after {
   animation: ssm-breathe 5s ease-in-out infinite;
-}
-
-.sealed-stone-action {
-  width: 100%;
-  justify-self: center;
-  padding: 11px 14px;
-  color: #e7c89c;
-  font-family: "Times New Roman", Times, serif;
-  font-size: 0.72rem;
-  font-weight: 400;
-  letter-spacing: 0.18em;
-  text-transform: uppercase;
-  cursor: pointer;
-  background: rgba(211, 138, 83, 0.08);
-  border: 1px solid rgba(211, 138, 83, 0.34);
-  border-radius: 9px;
-  transition: background 160ms ease, border-color 160ms ease;
-}
-
-.sealed-stone-action:hover,
-.sealed-stone-action:focus-visible {
-  background: rgba(211, 138, 83, 0.16);
-  border-color: rgba(211, 138, 83, 0.6);
-  outline: none;
-}
-
-.sealed-stone-action:disabled {
-  cursor: progress;
-  opacity: 0.58;
 }
 
 @keyframes ssm-rumble {
