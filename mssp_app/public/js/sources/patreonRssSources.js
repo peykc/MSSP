@@ -1,5 +1,5 @@
 import { matchPatreonSources, normalizePatreonTitle } from "./patreonRssMatcher.js";
-import { addPatreonR2Sources } from "./patreonR2Sources.js";
+import { addPatreonR2Sources, hasPatreonR2Source } from "./patreonR2Sources.js";
 
 const STORAGE_KEY = "mssp:patreonRss";
 const STORAGE_SCHEMA_VERSION = 1;
@@ -54,7 +54,8 @@ export function createPatreonRssSources() {
     }
 
     const overrides = await loadOverrides();
-    const result = matchPatreonSources({ episodes, candidates, overrides });
+    const rssEpisodes = episodes.filter((episode) => !hasPatreonR2Source(episode));
+    const result = matchPatreonSources({ episodes: rssEpisodes, candidates, overrides });
     const nextSources = {};
     for (const match of result.matches) {
       nextSources[match.episode.episodeKey] = {
@@ -72,14 +73,22 @@ export function createPatreonRssSources() {
     // These R2 objects are intentionally exposed only after a valid Patreon feed
     // has been retrieved and parsed. They never pass through the RSS Worker.
     const privateR2Matched = addPatreonR2Sources(episodes, nextSources);
+    const eligiblePaytchEpisodes = episodes.filter((episode) => episode?.paytch === "PAYTCH");
+    const eligibleEpisodes = eligiblePaytchEpisodes.length;
+    const matched = Object.keys(nextSources).length;
+    const unmatchedEpisodeKeys = eligiblePaytchEpisodes
+      .filter((episode) => !nextSources[episode.episodeKey])
+      .map((episode) => episode.episodeKey);
 
     if (persist) persistUrl(url.href);
     else if (!preserveStored) clearStoredUrl();
     sources = nextSources;
     summary = {
       ...result.summary,
-      matched: result.summary.matched + privateR2Matched,
-      unmatchedEpisodes: Math.max(0, result.summary.unmatchedEpisodes - privateR2Matched),
+      eligibleEpisodes,
+      matched,
+      unmatchedEpisodes: Math.max(0, eligibleEpisodes - matched),
+      unmatchedEpisodeKeys,
       privateR2Matched,
     };
     notify();

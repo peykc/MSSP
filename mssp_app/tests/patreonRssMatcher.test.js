@@ -85,3 +85,16 @@ test("ignores non-PAYTCH episodes", async () => {
   assert.equal(result.summary.eligibleEpisodes, 0);
   assert.equal(result.summary.matched, 0);
 });
+
+test("manual override keys reference catalog PAYTCH episodes", () => {
+  const episodesPayload = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/data/episodes.json"), "utf8"));
+  const overridesPayload = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/data/patreon-rss-overrides.json"), "utf8"));
+  const paytchKeys = new Set(
+    episodesPayload.episodes
+      .filter((entry) => entry.paytch === "PAYTCH")
+      .map((entry) => entry.episodeKey),
+  );
+
+  const staleKeys = Object.keys(overridesPayload.matches).filter((episodeKey) => !paytchKeys.has(episodeKey));
+  assert.deepEqual(staleKeys, []);
+});

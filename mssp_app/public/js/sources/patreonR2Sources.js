@@ -11,11 +11,14 @@ const PRIVATE_R2_SOURCES = Object.freeze({
 export function addPatreonR2Sources(episodes, sources) {
   let added = 0;
   for (const episode of episodes || []) {
-    if (episode?.paytch !== "PAYTCH" || sources[episode.episodeKey]) continue;
+    if (!hasPatreonR2Source(episode) || sources[episode.episodeKey]) continue;
     const fallback = PRIVATE_R2_SOURCES[episode.episodeKey];
-    if (!fallback) continue;
     sources[episode.episodeKey] = { ...fallback };
     added += 1;
   }
   return added;
+}
+
+export function hasPatreonR2Source(episode) {
+  return episode?.paytch === "PAYTCH" && Boolean(PRIVATE_R2_SOURCES[episode.episodeKey]);
 }

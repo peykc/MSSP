@@ -23,10 +23,13 @@ test("adds the gated UFC R2 source after Patreon validation", async () => {
 });
 
 test("does not expose the fallback for unrelated or non-PAYTCH entries", async () => {
-  const { addPatreonR2Sources } = await loadModule("../public/js/sources/patreonR2Sources.js");
+  const { addPatreonR2Sources, hasPatreonR2Source } = await loadModule("../public/js/sources/patreonR2Sources.js");
   const sources = {};
 
   assert.equal(addPatreonR2Sources([{ ...UFC_EPISODE, paytch: "" }], sources), 0);
+  assert.equal(hasPatreonR2Source(UFC_EPISODE), true);
+  assert.equal(hasPatreonR2Source({ ...UFC_EPISODE, paytch: "" }), false);
+  assert.equal(hasPatreonR2Source({ ...UFC_EPISODE, episodeKey: "unrelated" }), false);
   assert.deepEqual(sources, {});
 });
 

@@ -3,14 +3,18 @@ const DRAG_VELOCITY_THRESHOLD = 0.45;
 const DRAG_COMPLETE_FRACTION = 0.28;
 const CLICK_SUPPRESS_MS = 350;
 const SLIDE_MS = 420;
+const GUIDE_RESIZE_MS = 300;
 
 export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSourcesChanged }) {
   let restoreFocusTo = null;
   let busy = false;
   let isOpen = false;
   let guideOpen = false;
+  let guideMode = null;
   let closeTransitionEnd = null;
   let closeFallbackTimer = null;
+  let resizeAnimation = null;
+  let resizeFallbackTimer = null;
   let isDragging = false;
   let gesture = null;
   let dragTranslate = 0;
@@ -29,6 +33,19 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
       clearTimeout(closeFallbackTimer);
       closeFallbackTimer = null;
     }
+  }
+
+  function clearPendingResize() {
+    if (resizeAnimation) {
+      const animation = resizeAnimation;
+      resizeAnimation = null;
+      animation.cancel();
+    }
+    if (resizeFallbackTimer !== null) {
+      clearTimeout(resizeFallbackTimer);
+      resizeFallbackTimer = null;
+    }
+    dom.patreonRssDialog.classList.remove("is-resizing");
   }
 
   function clampValue(value, min, max) {
@@ -62,9 +79,30 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     dom.patreonRssModal.style.opacity = "";
   }
 
-  function setGuideOpen(open) {
+  function setGuideMode(mode, { focus = false } = {}) {
+    guideMode = mode === "app" ? "app" : "web";
+    const appSelected = guideMode === "app";
+    const selectedVisual = appSelected ? dom.patreonRssAppGuideVisual : dom.patreonRssWebGuideVisual;
+    selectedVisual.prepend(dom.patreonRssGuideSwitch);
+    const pairs = [
+      [dom.patreonRssWebGuideTab, dom.patreonRssWebGuide, !appSelected],
+      [dom.patreonRssAppGuideTab, dom.patreonRssAppGuide, appSelected],
+    ];
+
+    pairs.forEach(([tab, panel, selected]) => {
+      tab.setAttribute("aria-selected", String(selected));
+      tab.tabIndex = selected ? 0 : -1;
+      panel.classList.toggle("is-active", selected);
+      panel.hidden = !selected;
+    });
+
+    if (focus) pairs.find(([, , selected]) => selected)?.[0].focus();
+  }
+
+  function applyGuideOpen(open) {
     guideOpen = Boolean(open);
     dom.patreonRssGuide.hidden = !guideOpen;
+    dom.patreonRssGuideSwitch.hidden = !guideOpen;
     dom.patreonRssBody.hidden = guideOpen;
     dom.patreonRssInfo.setAttribute("aria-expanded", String(guideOpen));
     dom.patreonRssInfo.setAttribute(
@@ -72,11 +110,68 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
       guideOpen ? "Back to RSS connection" : "How to find your RSS link",
     );
     if (guideOpen) {
+      if (!guideMode) {
+        setGuideMode(window.matchMedia("(max-width: 520px)").matches ? "app" : "web");
+      }
       requestAnimationFrame(() => {
-        const firstLink = dom.patreonRssGuide.querySelector("a");
-        firstLink?.focus();
+        (guideMode === "app" ? dom.patreonRssAppGuideTab : dom.patreonRssWebGuideTab).focus();
       });
     }
+  }
+
+  function setGuideOpen(open, { animate = false } = {}) {
+    const nextOpen = Boolean(open);
+    if (!animate || !isOpen || nextOpen === guideOpen || prefersReducedMotion()) {
+      clearPendingResize();
+      applyGuideOpen(nextOpen);
+      return;
+    }
+
+    const startHeight = dom.patreonRssDialog.getBoundingClientRect().height;
+    clearPendingResize();
+    applyGuideOpen(nextOpen);
+    const targetHeight = dom.patreonRssDialog.getBoundingClientRect().height;
+
+    if (Math.abs(targetHeight - startHeight) < 1) {
+      return;
+    }
+
+    dom.patreonRssDialog.classList.add("is-resizing");
+    const animation = dom.patreonRssDialog.animate([
+      { height: `${startHeight}px` },
+      { height: `${targetHeight}px` },
+    ], {
+      duration: GUIDE_RESIZE_MS,
+      easing: "cubic-bezier(0.32, 0.72, 0, 1)",
+    });
+    resizeAnimation = animation;
+
+    const finishResize = () => {
+      if (resizeAnimation !== animation) return;
+      resizeAnimation = null;
+      if (resizeFallbackTimer !== null) {
+        clearTimeout(resizeFallbackTimer);
+        resizeFallbackTimer = null;
+      }
+      dom.patreonRssDialog.classList.remove("is-resizing");
+    };
+    animation.addEventListener("finish", finishResize, { once: true });
+    resizeFallbackTimer = setTimeout(() => {
+      if (resizeAnimation === animation) animation.finish();
+    }, GUIDE_RESIZE_MS + 80);
+  }
+
+  function onGuideTabKeydown(event) {
+    const tabs = [dom.patreonRssWebGuideTab, dom.patreonRssAppGuideTab];
+    const currentIndex = tabs.indexOf(event.currentTarget);
+    let nextIndex = null;
+    if (event.key === "ArrowRight" || event.key === "ArrowDown") nextIndex = (currentIndex + 1) % tabs.length;
+    if (event.key === "ArrowLeft" || event.key === "ArrowUp") nextIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    if (event.key === "Home") nextIndex = 0;
+    if (event.key === "End") nextIndex = tabs.length - 1;
+    if (nextIndex === null) return;
+    event.preventDefault();
+    setGuideMode(nextIndex === 0 ? "web" : "app", { focus: true });
   }
 
   function open(trigger = document.activeElement) {
@@ -85,13 +180,16 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     const connected = patreonSources.isConnected();
     const hasConnection = connected || Boolean(storedUrl);
     dom.patreonRssInput.value = storedUrl;
-    setRevealed(false);
     setStatus("");
     setGuideOpen(false);
+    if (!guideMode) {
+      setGuideMode(window.matchMedia("(max-width: 520px)").matches ? "app" : "web");
+    }
     dom.patreonRssTitle.textContent = hasConnection ? "Manage Patreon RSS" : "Connect Patreon RSS";
     dom.patreonRssSubmit.textContent = hasConnection ? "Replace" : "Connect";
     dom.patreonRssRemove.hidden = !hasConnection;
     clearPendingClose();
+    clearPendingResize();
     endDragVisuals();
     gesture = null;
     dom.patreonRssModal.classList.remove("is-leaving");
@@ -112,6 +210,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
 
   function finishClose() {
     clearPendingClose();
+    clearPendingResize();
     endDragVisuals();
     gesture = null;
     dom.patreonRssModal.classList.remove("is-leaving", "is-entering", "is-dragging");
@@ -154,6 +253,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
 
   function close() {
     if (!isOpen || busy || isDragging) return;
+    clearPendingResize();
     isOpen = false;
     beginAnimatedClose();
   }
@@ -270,10 +370,18 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
         persist: true,
       });
       await onSourcesChanged();
-      dom.patreonRssTitle.textContent = "Patreon RSS connected";
+      dom.patreonRssTitle.textContent = "Manage Patreon RSS";
       dom.patreonRssSubmit.textContent = "Replace";
       dom.patreonRssRemove.hidden = false;
-      setStatus(`${result.matched} PAYTCH episodes unlocked. ${result.unmatchedEpisodes} still need a match.`, "success");
+      if (result.unmatchedEpisodeKeys?.length) {
+        console.warn("[MSSP] PAYTCH episodes still unmatched:", result.unmatchedEpisodeKeys);
+      }
+      setStatus(
+        result.unmatchedEpisodes === 0
+          ? "All PAYTCH episodes unlocked."
+          : `${result.matched} PAYTCH episodes unlocked. ${result.unmatchedEpisodes} still need a match.`,
+        "success",
+      );
     } catch (error) {
       setStatus(error?.name === "PatreonRssConnectionError" ? error.message : "That link could not be connected. Double-check it and try again.", "error");
     } finally {
@@ -302,7 +410,6 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
   function setBusy(value) {
     busy = Boolean(value);
     dom.patreonRssInput.disabled = busy;
-    dom.patreonRssReveal.disabled = busy;
     dom.patreonRssSubmit.disabled = busy;
     dom.patreonRssCancel.disabled = busy;
     dom.patreonRssRemove.disabled = busy;
@@ -315,20 +422,13 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     dom.patreonRssStatus.classList.toggle("is-success", kind === "success");
   }
 
-  function setRevealed(revealed) {
-    dom.patreonRssInput.type = revealed ? "url" : "password";
-    dom.patreonRssReveal.textContent = revealed ? "Hide" : "Show";
-    dom.patreonRssReveal.setAttribute("aria-label", `${revealed ? "Hide" : "Show"} private RSS link`);
-    dom.patreonRssReveal.setAttribute("aria-pressed", String(revealed));
-  }
-
   function toggleGuide() {
     if (guideOpen) {
-      setGuideOpen(false);
+      setGuideOpen(false, { animate: true });
       requestAnimationFrame(() => dom.patreonRssInput.focus());
       return;
     }
-    setGuideOpen(true);
+    setGuideOpen(true, { animate: true });
   }
 
   function onKeydown(event) {
@@ -336,7 +436,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     if (event.key === "Escape") {
       event.preventDefault();
       if (guideOpen) {
-        setGuideOpen(false);
+        setGuideOpen(false, { animate: true });
         requestAnimationFrame(() => dom.patreonRssInput.focus());
         return;
       }
@@ -360,8 +460,11 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
 
   dom.patreonRssLogoButton.addEventListener("click", (event) => open(event.currentTarget));
   dom.patreonRssForm.addEventListener("submit", submit);
-  dom.patreonRssReveal.addEventListener("click", () => setRevealed(dom.patreonRssInput.type === "password"));
   dom.patreonRssInfo.addEventListener("click", toggleGuide);
+  dom.patreonRssWebGuideTab.addEventListener("click", () => setGuideMode("web", { focus: true }));
+  dom.patreonRssAppGuideTab.addEventListener("click", () => setGuideMode("app", { focus: true }));
+  dom.patreonRssWebGuideTab.addEventListener("keydown", onGuideTabKeydown);
+  dom.patreonRssAppGuideTab.addEventListener("keydown", onGuideTabKeydown);
   dom.patreonRssCancel.addEventListener("click", close);
   dom.patreonRssRemove.addEventListener("click", remove);
   dom.patreonRssDragHandle.addEventListener("click", (event) => {
