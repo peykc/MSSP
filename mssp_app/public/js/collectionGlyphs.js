@@ -29,7 +29,7 @@ export function renderCollectionGlyphSvg(kind, className = "") {
 }
 
 export function renderCollectionCardGlyph(kind) {
-  return renderCollectionGlyphSvg(kind, "collection-card__glyph");
+  return `<span class="collection-card__glyph-frame">${renderCollectionGlyphSvg(kind, "collection-card__glyph")}</span>`;
 }
 
 export function renderCalCellGlyph(kind, positionClass, accent) {

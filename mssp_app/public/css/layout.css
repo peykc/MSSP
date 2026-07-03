@@ -13,7 +13,8 @@
   overflow-y: auto;
 }
 
-body.library-open .app {
+body.library-open .app,
+body.stats-open .app {
   overflow: hidden;
 }
 
@@ -26,4 +27,3 @@ body.library-open .app {
   height: 100%;
   min-height: 0;
 }
-

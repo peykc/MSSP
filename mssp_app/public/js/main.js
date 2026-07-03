@@ -9,6 +9,7 @@ import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js";
+import { createStatsPageView } from "./statsPageView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
 import { createPatreonRssModal } from "./patreonRssModal.js";
@@ -39,11 +40,17 @@ async function init() {
   const state = createAppState();
   const favoritesStore = createFavoritesStore();
   const calendarModal = createCalendarModal({ dom });
+  const statsPageView = createStatsPageView({ dom });
   const sealedStoneModal = createSealedStoneModal({ dom });
   const fullCalendarModal = createFullCalendarModal({
     dom,
     onOpenCancelled: () => {
-      fullCalendarModal.close({ onClosed: () => sealedStoneModal.open() });
+      fullCalendarModal.close({
+        onClosed: () => {
+          statsPageView.open(null);
+          sealedStoneModal.open();
+        },
+      });
     },
   });
   const archiveStatsView = createArchiveStatsView({ dom, state });
@@ -231,6 +238,7 @@ async function init() {
     fullCalendarModal,
     onOpenCollection: libraryView.openCollection,
     onOpenFavorites: libraryView.openFavorites,
+    onOpenStats: statsPageView.open,
   });
 
   async function refreshPrivateSources() {

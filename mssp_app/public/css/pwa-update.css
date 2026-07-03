@@ -67,3 +67,8 @@ body.pwa-update-visible:not(.player-expanded) .library {
   top: var(--pwa-update-bar-stack);
   height: calc(100dvh - var(--pwa-update-bar-stack));
 }
+
+body.pwa-update-visible:not(.player-expanded) .stats-view {
+  top: var(--pwa-update-bar-stack);
+  height: calc(100dvh - var(--pwa-update-bar-stack));
+}

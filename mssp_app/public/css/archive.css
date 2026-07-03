@@ -1,3 +1,108 @@
+.stats-view {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  padding: clamp(18px, 3vw, 40px);
+  overflow: hidden;
+  background: var(--bg);
+  box-shadow: -24px 0 60px rgba(0, 0, 0, 0.38);
+  transform: translateX(0);
+  transition: transform 340ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+body.has-player .stats-view {
+  padding-bottom: calc(clamp(18px, 3vw, 40px) + var(--mini-player-height));
+}
+
+.stats-view.is-entering,
+.stats-view.is-leaving {
+  transform: translateX(100%);
+}
+
+.stats-view__header {
+  display: flex;
+  width: min(100%, 1180px);
+  align-items: center;
+  gap: clamp(14px, 2.5vw, 24px);
+  margin-inline: auto;
+  padding-bottom: clamp(14px, 2vw, 22px);
+  border-bottom: 1px solid var(--line);
+}
+
+.stats-view .stats-view__back {
+  position: relative;
+  inset: auto;
+  flex: 0 0 auto;
+  grid-row: auto;
+}
+
+.stats-view__heading {
+  min-width: 0;
+}
+
+.stats-view__heading .eyebrow {
+  margin-bottom: 4px;
+}
+
+.stats-view__heading h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 3.6vw, 2.8rem);
+  line-height: 1;
+}
+
+.stats-view__scroller {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.stats-view__content {
+  display: grid;
+  width: min(100%, 1180px);
+  gap: 12px;
+  margin-inline: auto;
+  padding-block: clamp(16px, 2.5vw, 28px) 12px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stats-view {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .stats-view {
+    padding: 0;
+    box-shadow: none;
+  }
+
+  body.has-player .stats-view {
+    padding-bottom: 0;
+  }
+
+  .stats-view__header {
+    width: 100%;
+    padding: max(14px, env(safe-area-inset-top)) 14px 14px;
+  }
+
+  .stats-view__scroller {
+    padding-inline: 14px;
+  }
+
+  .stats-view__content {
+    padding-top: 16px;
+    padding-bottom: 20px;
+  }
+
+  body.has-player .stats-view__content {
+    padding-bottom: calc(20px + var(--mini-player-height) + var(--mini-player-bottom-fill));
+  }
+}
+
 .archive-tidbits-card {
   container-type: inline-size;
   container-name: archive-pulse;
