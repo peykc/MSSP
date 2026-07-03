@@ -257,7 +257,7 @@ p {
   position: relative;
   display: block;
   overflow: hidden;
-  aspect-ratio: 16 / 10;
+  aspect-ratio: 32 / 17;
   margin: -14px -16px 0;
 }
 
@@ -537,7 +537,7 @@ p {
     display: grid;
     grid-template-columns: minmax(0, 3fr) minmax(340px, 2fr);
     grid-template-rows: 1fr auto;
-    min-height: clamp(330px, 36vw, 430px);
+    min-height: 0;
     column-gap: clamp(22px, 3vw, 38px);
     align-items: stretch;
   }
@@ -548,7 +548,7 @@ p {
     align-self: stretch;
     height: auto;
     margin: -14px 0 -20px -16px;
-    aspect-ratio: auto;
+    aspect-ratio: 16 / 10;
   }
 
   .collection-hero__fade {
