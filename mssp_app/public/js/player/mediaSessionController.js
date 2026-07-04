@@ -45,9 +45,13 @@ export function createMediaSessionController({ playerState, audioController }) {
     }
 
     try {
-      navigator.mediaSession.playbackState = state.playbackStatus === PLAYBACK_STATUSES.PLAYING
-        ? "playing"
-        : "paused";
+      const isContinuingPlayback = state.playbackRequested && [
+        PLAYBACK_STATUSES.LOADING_SOURCE,
+        PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
+      ].includes(state.playbackStatus);
+      navigator.mediaSession.playbackState = (
+        state.playbackStatus === PLAYBACK_STATUSES.PLAYING || isContinuingPlayback
+      ) ? "playing" : "paused";
     } catch {
       // Playback state support varies across browsers.
     }
@@ -56,7 +60,7 @@ export function createMediaSessionController({ playerState, audioController }) {
       try {
         navigator.mediaSession.setPositionState({
           duration: state.duration,
-          playbackRate: 1,
+          playbackRate: audioController.getPlaybackRate?.() || 1,
           position: Math.max(0, Math.min(state.currentTime, state.duration)),
         });
       } catch {

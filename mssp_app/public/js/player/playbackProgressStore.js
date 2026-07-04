@@ -16,9 +16,32 @@ export function isRestorablePosition(currentTime, duration) {
 
 export function createPlaybackProgressStore({ onChange } = {}) {
   let positions = readPositions();
+  let completionVersion = 0;
+  let hasPendingPersistence = false;
+  let hasPendingNotification = false;
+  let pendingCompletionChanged = false;
 
-  function notifyChange() {
-    onChange?.();
+  function notifyChange(change = {}) {
+    onChange?.(change);
+  }
+
+  function stageMutation({ completionChanged = false } = {}) {
+    hasPendingPersistence = true;
+    hasPendingNotification = true;
+    if (completionChanged) {
+      completionVersion += 1;
+      pendingCompletionChanged = true;
+    }
+  }
+
+  function flushPending() {
+    if (hasPendingPersistence) persist();
+    const shouldNotify = hasPendingNotification;
+    const completionChanged = pendingCompletionChanged;
+    hasPendingPersistence = false;
+    hasPendingNotification = false;
+    pendingCompletionChanged = false;
+    if (shouldNotify) notifyChange({ completionChanged });
   }
 
   function savePosition({ episodeKey, currentTime, duration }) {
@@ -26,6 +49,7 @@ export function createPlaybackProgressStore({ onChange } = {}) {
     if (!Number.isFinite(currentTime) || currentTime < MIN_SAVE_SECONDS) return;
     if (!Number.isFinite(duration) || duration <= 0) return;
 
+    const completionChanged = positions[episodeKey]?.completed === true;
     positions[episodeKey] = {
       currentTime,
       duration,
@@ -33,8 +57,8 @@ export function createPlaybackProgressStore({ onChange } = {}) {
       updatedAt: Date.now(),
     };
     prunePositions();
-    persist();
-    notifyChange();
+    stageMutation({ completionChanged });
+    flushPending();
   }
 
   function getRestorablePosition(episodeKey, duration) {
@@ -74,21 +98,28 @@ export function createPlaybackProgressStore({ onChange } = {}) {
   }
 
   function markCompleted(episodeKey) {
+    if (!markCompletedInMemory(episodeKey)) return;
+    flushPending();
+  }
+
+  function markCompletedInMemory(episodeKey) {
     if (!episodeKey) return;
+    const completionChanged = positions[episodeKey]?.completed !== true;
     positions[episodeKey] = {
       completed: true,
       updatedAt: Date.now(),
     };
     prunePositions();
-    persist();
-    notifyChange();
+    stageMutation({ completionChanged });
+    return true;
   }
 
   function removePosition(episodeKey) {
     if (!episodeKey || !positions[episodeKey]) return;
+    const completionChanged = positions[episodeKey]?.completed === true;
     delete positions[episodeKey];
-    persist();
-    notifyChange();
+    stageMutation({ completionChanged });
+    flushPending();
   }
 
   function prunePositions() {
@@ -115,10 +146,13 @@ export function createPlaybackProgressStore({ onChange } = {}) {
   }
 
   return {
+    flushPending,
+    getCompletionVersion: () => completionVersion,
     getEpisodeProgress,
     getRestorablePosition,
     getSavedCurrentTime,
     markCompleted,
+    markCompletedInMemory,
     removePosition,
     savePosition,
   };

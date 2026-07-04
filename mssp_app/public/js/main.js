@@ -64,12 +64,15 @@ async function init() {
   let patreonRssModal;
   let archiveEpisodes = [];
   let refreshQueueProgress = null;
+  let audioController = null;
+  let sourceResolverVersion = 0;
   const playbackProgressStore = createPlaybackProgressStore({
-    onChange: () => {
+    onChange: ({ completionChanged } = {}) => {
       if (!dom.libraryView.classList.contains("is-hidden")) {
         episodeList?.renderVisibleRows();
       }
       refreshQueueProgress?.();
+      if (completionChanged) audioController?.notifyContextChanged("completion-status-changed");
     },
   });
   const queueCache = new Map();
@@ -137,42 +140,70 @@ async function init() {
     return options;
   }
 
+  function getNextPlaybackCandidate(fromEpisodeKey) {
+    const snapshot = playerState.getState();
+    const episode = playerState.getNextPlayableEpisode(
+      fromEpisodeKey,
+      (item) => playbackProgressStore.getEpisodeProgress(item.episodeKey).status !== "completed",
+    );
+    if (!episode) return null;
+    return {
+      episode,
+      source: getSourceForEpisode(episode),
+      collectionId: snapshot.collectionId,
+    };
+  }
+
   function stepPlayer(offset, { playbackIntent = true } = {}) {
     if (offset <= 0) {
       const episode = playerState.step(offset);
-      if (!episode) return;
+      if (!episode) return false;
       void audioController.loadSelected({ playbackIntent });
-      return;
+      return true;
     }
 
     const playerSnapshot = playerState.getState();
     const fromEpisode = playerSnapshot.selectedEpisode;
-    if (!fromEpisode) return;
+    if (!fromEpisode) return false;
 
-    const nextEpisode = playerState.getNextPlayableEpisode(
-      fromEpisode.episodeKey,
-      (episode) => playbackProgressStore.getEpisodeProgress(episode.episodeKey).status !== "completed",
-    );
-    if (!nextEpisode) return;
+    const candidate = getNextPlaybackCandidate(fromEpisode.episodeKey);
+    if (!candidate) return false;
 
     playerState.loadEpisode({
-      episode: nextEpisode,
+      episode: candidate.episode,
       collectionId: playerSnapshot.collectionId,
       queue: playerSnapshot.queue,
       isExpanded: playerSnapshot.isExpanded,
     });
     void audioController.loadSelected({ playbackIntent });
+    return true;
   }
 
   function handleEnded() {
-    stepPlayer(1, { playbackIntent: true });
+    return stepPlayer(1, { playbackIntent: true });
   }
 
-  const audioController = createAudioController({
+  function handleContinuationStarted(candidate) {
+    if (!candidate?.episode) return;
+    playerState.beginContinuation({
+      episode: candidate.episode,
+      collectionId: candidate.collectionId,
+    });
+  }
+
+  audioController = createAudioController({
     playerState,
     playbackProgressStore,
     onEnded: handleEnded,
+    onContinuationStarted: handleContinuationStarted,
+    resolveNextCandidate: getNextPlaybackCandidate,
+    getContextVersion: () => ({
+      queueVersion: playerState.getState().queueVersion,
+      resolverVersion: sourceResolverVersion,
+      completionVersion: playbackProgressStore.getCompletionVersion(),
+    }),
   });
+  createMediaSessionController({ playerState, audioController });
   createPlayerView({
     dom,
     playerState,
@@ -187,7 +218,6 @@ async function init() {
       refreshQueueProgress = fn;
     },
   });
-  createMediaSessionController({ playerState, audioController });
 
   const episodeDetails = createEpisodeDetails({
     dom,
@@ -242,6 +272,8 @@ async function init() {
   });
 
   async function refreshPrivateSources() {
+    sourceResolverVersion += 1;
+    audioController.notifyContextChanged("private-source-map-changed");
     playerState.refreshSource();
     await audioController.loadSelected({ playbackIntent: false });
     episodeList?.renderVisibleRows();

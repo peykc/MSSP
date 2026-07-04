@@ -8,7 +8,7 @@
     "export:sources:r2": "node scripts/exportPublicSources.js --r2-only",
     "export:sources:rss": "node scripts/exportPublicSources.js --rss-only",
     "export:all": "npm run export:data && npm run export:sources",
-    "test": "node --test tests/*.test.js",
+    "test": "node --test tests/*.test.js && node --experimental-default-type=module --test tests/*.test.mjs",
     "start": "node server.js"
   },
   "dependencies": {

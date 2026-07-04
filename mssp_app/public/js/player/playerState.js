@@ -21,6 +21,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     selectedEpisode: null,
     collectionId: null,
     queue: [],
+    queueVersion: 0,
     isExpanded: false,
     fullPlayerMode: "player",
     playbackStatus: PLAYBACK_STATUSES.IDLE,
@@ -70,6 +71,7 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     state.selectedEpisode = episode;
     state.collectionId = collectionId;
     state.queue = sortQueue(queue);
+    state.queueVersion += 1;
     state.isExpanded = Boolean(isExpanded);
     state.fullPlayerMode = normalizeFullPlayerMode(fullPlayerMode);
     state.source = source;
@@ -80,6 +82,22 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     state.duration = 0;
     state.playbackError = "";
     persist();
+    notify();
+  }
+
+  function beginContinuation({ episode, collectionId = state.collectionId }) {
+    const source = getPublicSourceForEpisode(episode);
+    state.selectedEpisode = episode;
+    state.collectionId = collectionId;
+    state.source = source;
+    state.sourceStatus = getSourceStatus(episode, source);
+    state.playbackStatus = source
+      ? PLAYBACK_STATUSES.BUFFERING_PLAYBACK
+      : PLAYBACK_STATUSES.UNAVAILABLE;
+    state.playbackRequested = Boolean(source);
+    state.currentTime = 0;
+    state.duration = 0;
+    state.playbackError = "";
     notify();
   }
 
@@ -98,7 +116,12 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
 
   function setQueue(queue) {
     state.queue = sortQueue(queue);
+    state.queueVersion += 1;
     notify();
+  }
+
+  function persistCurrentState() {
+    persist();
   }
 
   function setPlaybackStatus(playbackStatus) {
@@ -239,11 +262,13 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
   }
 
   return {
+    beginContinuation,
     getNextPlayableEpisode,
     getQueuePosition,
     getUpNextWindow,
     getState,
     loadEpisode,
+    persistCurrentState,
     refreshSource,
     restore,
     setExpanded,

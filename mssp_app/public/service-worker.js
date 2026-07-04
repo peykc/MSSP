@@ -1,5 +1,5 @@
 // Bump this to replace cached shell assets. Unregister the worker or clear site data to recover a bad test worker.
-const CACHE_VERSION = "mssp-v254";
+const CACHE_VERSION = "mssp-v255";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DATA_CACHE = `${CACHE_VERSION}-data`;
@@ -26,7 +26,7 @@ const SHELL_PATHS = [
   "./css/patreon-rss.css",
   "./css/transcript.css?v=scroll-hydrate-d",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=private-patreon-rss",
+  "./js/main.js?v=standby-deck-v1",
   "./js/patreonRssModal.js",
   "./js/archiveStats.js",
   "./js/calendarModal.js",
