@@ -740,6 +740,8 @@ body.calendar-open .full-player {
   gap: 22px;
   padding: clamp(18px, 3vw, 30px);
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   background: var(--bg);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;

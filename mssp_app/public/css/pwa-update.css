@@ -1,74 +1,121 @@
-:root {
-  --pwa-update-bar-inset: clamp(18px, 3vw, 40px);
-  --pwa-update-bar-height: 52px;
-  --pwa-update-bar-radius: 16px;
-  --pwa-update-bar-stack: calc(var(--pwa-update-bar-inset) + var(--pwa-update-bar-height) + 10px);
-}
-
-.pwa-update-bar {
+.pull-refresh {
+  --pull-progress: 0;
+  --pull-arm-duration: 700ms;
   position: fixed;
-  top: max(var(--pwa-update-bar-inset), env(safe-area-inset-top, 0px));
-  right: var(--pwa-update-bar-inset);
-  left: var(--pwa-update-bar-inset);
-  z-index: 150;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-height: var(--pwa-update-bar-height);
-  padding: 10px 14px 10px 16px;
-  border: 0;
-  border-radius: var(--pwa-update-bar-radius);
-  background: #fff;
-  box-shadow:
-    0 10px 36px rgba(0, 0, 0, 0.28),
-    0 2px 8px rgba(0, 0, 0, 0.12);
+  top: calc(env(safe-area-inset-top, 0px) + 14px);
+  left: 50%;
+  z-index: 160;
+  width: 34px;
+  height: 34px;
+  color: rgba(248, 242, 236, 0.82);
+  opacity: var(--pull-progress);
+  pointer-events: none;
+  transform: translateX(-50%) scale(calc(0.72 + var(--pull-progress) * 0.28));
+  transform-origin: center;
 }
 
-.pwa-update-bar[hidden],
-body.player-expanded .pwa-update-bar {
+.pull-refresh[hidden] {
   display: none;
 }
 
-.pwa-update-bar__text {
-  margin: 0;
-  font-size: 0.9rem;
-  font-weight: 600;
-  color: #171514;
+.pull-refresh__spinner {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-.pwa-update-bar__refresh {
-  flex-shrink: 0;
-  padding: 8px 16px;
-  border: 1.5px solid #171514;
-  border-radius: var(--pwa-update-bar-radius);
-  background: #fff;
-  color: #171514;
-  font-size: 0.84rem;
-  font-weight: 700;
-  cursor: pointer;
+.pull-refresh__spinner line {
+  stroke: currentColor;
+  stroke-width: 3.4;
+  stroke-linecap: round;
 }
 
-.pwa-update-bar__refresh:hover:not(:disabled) {
-  background: rgba(23, 21, 20, 0.06);
+.pull-refresh__spinner line:nth-child(1) { opacity: var(--spoke-1, 0); }
+.pull-refresh__spinner line:nth-child(2) { opacity: var(--spoke-2, 0); }
+.pull-refresh__spinner line:nth-child(3) { opacity: var(--spoke-3, 0); }
+.pull-refresh__spinner line:nth-child(4) { opacity: var(--spoke-4, 0); }
+.pull-refresh__spinner line:nth-child(5) { opacity: var(--spoke-5, 0); }
+.pull-refresh__spinner line:nth-child(6) { opacity: var(--spoke-6, 0); }
+.pull-refresh__spinner line:nth-child(7) { opacity: var(--spoke-7, 0); }
+.pull-refresh__spinner line:nth-child(8) { opacity: var(--spoke-8, 0); }
+
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(1) { opacity: 1; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(2) { opacity: 0.88; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(3) { opacity: 0.76; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(4) { opacity: 0.64; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(5) { opacity: 0.52; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(6) { opacity: 0.40; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(7) { opacity: 0.28; }
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(8) { opacity: 0.16; }
+
+.pull-refresh:is(.is-arming, .is-cycling, .is-ready, .is-refreshing, .is-error) {
+  --pull-progress: 1;
 }
 
-.pwa-update-bar__refresh:disabled {
-  opacity: 0.65;
-  cursor: default;
+.pull-refresh.is-arming .pull-refresh__spinner {
+  animation: pull-refresh-arm var(--pull-arm-duration) cubic-bezier(0.45, 0, 0.55, 1) forwards;
 }
 
-body.pwa-update-visible:not(.player-expanded) .app {
-  height: calc((100dvh - var(--pwa-update-bar-stack)) / var(--page-scale));
-  margin-top: var(--pwa-update-bar-stack);
+.pull-refresh:is(.is-ready, .is-refreshing) .pull-refresh__spinner {
+  transform: rotate(-180deg);
 }
 
-body.pwa-update-visible:not(.player-expanded) .library {
-  top: var(--pwa-update-bar-stack);
-  height: calc(100dvh - var(--pwa-update-bar-stack));
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line {
+  animation: pull-refresh-spoke 1050ms linear infinite;
 }
 
-body.pwa-update-visible:not(.player-expanded) .stats-view {
-  top: var(--pwa-update-bar-stack);
-  height: calc(100dvh - var(--pwa-update-bar-stack));
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(2) { animation-delay: -131.25ms; }
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(3) { animation-delay: -262.5ms; }
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(4) { animation-delay: -393.75ms; }
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(5) { animation-delay: -525ms; }
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(6) { animation-delay: -656.25ms; }
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(7) { animation-delay: -787.5ms; }
+.pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line:nth-child(8) { animation-delay: -918.75ms; }
+
+.pull-refresh.is-error {
+  color: #e49a8d;
+}
+
+#pullRefreshLabel {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (pointer: coarse) {
+  body.pwa-pull-enabled:not(.library-open, .stats-open, .calendar-open, .patreon-rss-open, .player-expanded) #app {
+    overscroll-behavior-y: none;
+  }
+}
+
+@keyframes pull-refresh-arm {
+  to { transform: rotate(-180deg); }
+}
+
+@keyframes pull-refresh-spoke {
+  0%, 100% { opacity: 1; }
+  12.5% { opacity: 0.88; }
+  25% { opacity: 0.76; }
+  37.5% { opacity: 0.64; }
+  50% { opacity: 0.52; }
+  62.5% { opacity: 0.40; }
+  75% { opacity: 0.28; }
+  87.5% { opacity: 0.16; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pull-refresh {
+    --pull-arm-duration: 1.5s;
+  }
+
+  .pull-refresh:is(.is-cycling, .is-ready, .is-refreshing) .pull-refresh__spinner line {
+    animation-duration: 1.6s;
+  }
 }

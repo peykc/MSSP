@@ -30,18 +30,7 @@ body {
   color: var(--text);
 }
 
-body::before {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  content: "";
-  background:
-    linear-gradient(125deg, rgba(73, 47, 42, 0.86), rgba(28, 28, 34, 0.92) 48%, rgba(78, 42, 24, 0.78)),
-    radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.09), transparent 32%);
-}
-
 button,
 input {
   font: inherit;
 }
-

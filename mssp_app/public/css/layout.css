@@ -1,16 +1,30 @@
 .app {
+  --pull-offset: 0px;
   position: relative;
   width: calc(100vw / var(--page-scale));
   height: calc(100vh / var(--page-scale));
   height: calc(100dvh / var(--page-scale));
   padding: clamp(18px, 3vw, 40px);
   overflow-x: hidden;
-  transform: scale(var(--page-scale));
+  transform: translateY(var(--pull-offset)) scale(var(--page-scale));
   transform-origin: top left;
+}
+
+.pwa-pull-enabled .app {
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.pwa-pull-enabled .app.is-pull-dragging {
+  transition: none;
 }
 
 .app:has(> .launch:not(.is-covered)) {
   overflow-y: auto;
+}
+
+body:is(.calendar-open, .patreon-rss-open, .player-expanded) #app {
+  overflow: hidden;
+  overscroll-behavior: none;
 }
 
 body.library-open .app,

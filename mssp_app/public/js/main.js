@@ -17,7 +17,7 @@ import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
-import { registerServiceWorker, initPwaUpdates } from "./pwa.js";
+import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createPatreonRssSources } from "./sources/patreonRssSources.js";
@@ -33,8 +33,10 @@ function getApiClient() {
 }
 
 async function init() {
-  void registerServiceWorker().then((registration) => {
-    if (registration) initPwaUpdates(registration);
+  const serviceWorkerRegistration = registerServiceWorker();
+  initLaunchPullToRefresh({
+    scroller: dom.app,
+    launchView: dom.launchView,
   });
   const apiClient = getApiClient();
   const state = createAppState();
@@ -60,6 +62,13 @@ async function init() {
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
+  void serviceWorkerRegistration.then((registration) => {
+    if (!registration) return;
+    initPwaUpdates(registration, {
+      getPlaybackState: () => playerState.getState(),
+      subscribePlayback: (listener) => playerState.subscribe(listener),
+    });
+  });
   let episodeList;
   let patreonRssModal;
   let archiveEpisodes = [];

@@ -17,6 +17,8 @@
   width: min(100%, 600px);
   max-height: calc(100dvh - clamp(24px, 6vw, 64px));
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: clamp(18px, 3vw, 30px);
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
