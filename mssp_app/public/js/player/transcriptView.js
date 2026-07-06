@@ -12,6 +12,7 @@ const ESTIMATE_HEIGHT_MARGIN = 1.2;
 const WIDTH_EPSILON = 2;
 const PASSAGE_MARGIN = 28;
 const SPEAKER_CHANGE_EXTRA = 0;
+const DEFAULT_TRANSCRIPT_BASE_URL = "https://transcripts.pkcollection.net/mssp";
 
 const AVAILABILITY = Object.freeze({
   IDLE: "idle",
@@ -117,6 +118,15 @@ export function createTranscriptView({
     return requestId !== loadToken || episodeKey !== selectedEpisodeKey;
   }
 
+  function getTranscriptBaseUrl() {
+    const override = typeof window !== "undefined" ? window.MSSP_TRANSCRIPT_BASE_URL : "";
+    return String(override || DEFAULT_TRANSCRIPT_BASE_URL).replace(/\/+$/, "");
+  }
+
+  function getTranscriptUrl(episodeKey) {
+    return `${getTranscriptBaseUrl()}/${encodeURIComponent(episodeKey)}.json`;
+  }
+
   function setSelectedEpisode(episode) {
     const episodeKey = episode?.episodeKey || "";
     if (episodeKey === selectedEpisodeKey) return;
@@ -156,7 +166,7 @@ export function createTranscriptView({
     }
 
     try {
-      const response = await fetch(`./data/transcripts/${encodeURIComponent(episodeKey)}.json`);
+      const response = await fetch(getTranscriptUrl(episodeKey));
       if (isStale(requestId, episodeKey)) return;
       if (!response.ok) {
         setUnavailable(response.status === 404 ? "Transcript unavailable." : "Could not load transcript.");

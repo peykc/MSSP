@@ -1,6 +1,6 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-l";
+import { createTranscriptView } from "./transcriptView.js?v=r2-transcripts-a";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=scroll-hydrate-g";
 import { formatPlayerDate } from "../utils.js";
 import { formatCommunityCount, formatListeningSignal } from "../community/communitySignals.js";
