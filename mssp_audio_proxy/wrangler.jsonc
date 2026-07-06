@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "mssp-audio-proxy",
+  "main": "src/index.js",
+  "compatibility_date": "2026-07-06",
+  // workers.dev serves /healthz smoke tests only: the Cache API is a no-op there,
+  // so audio must be reached through the custom domain below.
+  "workers_dev": true,
+  "routes": [
+    {
+      "pattern": "nt-audio.pkcollection.net",
+      "custom_domain": true
+    }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}
