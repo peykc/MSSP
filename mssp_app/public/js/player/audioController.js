@@ -38,6 +38,7 @@ export function createAudioController({
   let playbackCommandToken = 0;
   let pendingPlayToken = null;
   let restoredLoadToken = null;
+  let fallbackTriedToken = null;
   let standbyGeneration = 0;
   let playbackSettingsVersion = 0;
   let pendingHandoff = null;
@@ -696,6 +697,7 @@ export function createAudioController({
   }
 
   function handleError() {
+    if (attemptUpstreamFallback()) return;
     pendingPlayToken = null;
     playbackIntent = false;
     pendingHandoff = null;
@@ -704,6 +706,33 @@ export function createAudioController({
     playerState.setPlaybackRequested(false);
     playerState.setPlaybackStatus(PLAYBACK_STATUSES.ERROR);
     playerState.setPlaybackError("Unable to play audio. Tap Play to retry.");
+  }
+
+  // An audio-proxy outage should degrade to direct Megaphone playback instead of
+  // dead air: retry exactly once per load with the original enclosure URL. The
+  // guard compares against loadToken, so every fresh load gets its own attempt.
+  function attemptUpstreamFallback() {
+    const source = playerState.getState().source;
+    if (source?.sourceType !== "public_rss_audio" || !source.upstreamUrl) return false;
+    if (fallbackTriedToken === loadToken) return false;
+
+    const shouldPlay = playbackIntent;
+    pendingHandoff = null;
+    invalidateLoad();
+    fallbackTriedToken = loadToken;
+    const token = loadToken;
+    recordDiagnostic("proxy-upstream-fallback", {
+      episodeKey: loadedEpisodeKey,
+      upstreamUrl: source.upstreamUrl,
+    });
+    setPlaybackIntent(shouldPlay);
+    audio.src = source.upstreamUrl;
+    bindLoadEvents(token, audio.src, audio);
+    playerState.setPlaybackError("");
+    playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING_SOURCE);
+    audio.load();
+    if (shouldPlay) void beginPlaybackWhenReady(token);
+    return true;
   }
 
   function markBuffering() {
