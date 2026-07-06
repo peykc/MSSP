@@ -69,8 +69,18 @@ async function serveAudio(request, target, origin) {
   }
 
   const cacheable = new Response(upstream.body, upstream);
-  cacheable.headers.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
+  // Strip Megaphone's DAI slot metadata (x-megaphone-payload*), its blanket
+  // ACAO (*) so this worker's per-origin CORS policy stays authoritative, and
+  // legacy caching headers that would fight the Cache-Control set below.
+  for (const name of [...cacheable.headers.keys()]) {
+    if (name.startsWith("x-megaphone") || name.startsWith("access-control-")) {
+      cacheable.headers.delete(name);
+    }
+  }
   cacheable.headers.delete("Set-Cookie");
+  cacheable.headers.delete("Expires");
+  cacheable.headers.delete("Pragma");
+  cacheable.headers.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
   cacheable.headers.set("Accept-Ranges", "bytes");
 
   // Awaited on purpose: iOS Safari opens media with "Range: bytes=0-" and needs a

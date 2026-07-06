@@ -272,6 +272,30 @@ test("only ever fetches the hard-coded Megaphone host", async () => {
   });
 });
 
+test("strips Megaphone tracking and CORS headers from cached responses", async () => {
+  const upstream = () => new Response(makeAudioBytes().slice(), {
+    status: 200,
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Access-Control-Allow-Origin": "*",
+      "X-Megaphone-Payload": "dai-slot-metadata",
+      "X-Megaphone-Payload-2": "dai-slot-metadata",
+      Expires: "Mon, 06 Jul 2026 00:00:00 GMT",
+      Pragma: "no-cache",
+    },
+  });
+
+  await withProxyMocks(async () => {
+    const response = await worker.fetch(new Request(`${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-Megaphone-Payload"), null);
+    assert.equal(response.headers.get("X-Megaphone-Payload-2"), null);
+    assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
+    assert.equal(response.headers.get("Expires"), null);
+    assert.equal(response.headers.get("Pragma"), null);
+  }, { upstream });
+});
+
 test("does not fetch upstream at all for invalid requests", async () => {
   await withProxyMocks(async ({ fetchCalls }) => {
     for (const path of [
