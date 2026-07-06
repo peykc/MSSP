@@ -43,18 +43,8 @@ async function init() {
   const favoritesStore = createFavoritesStore();
   const calendarModal = createCalendarModal({ dom });
   const statsPageView = createStatsPageView({ dom });
-  const sealedStoneModal = createSealedStoneModal({ dom });
-  const fullCalendarModal = createFullCalendarModal({
-    dom,
-    onOpenCancelled: () => {
-      fullCalendarModal.close({
-        onClosed: () => {
-          statsPageView.open(null);
-          sealedStoneModal.open();
-        },
-      });
-    },
-  });
+  createSealedStoneModal({ dom });
+  const fullCalendarModal = createFullCalendarModal({ dom });
   const archiveStatsView = createArchiveStatsView({ dom, state });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
@@ -277,7 +267,6 @@ async function init() {
     fullCalendarModal,
     onOpenCollection: libraryView.openCollection,
     onOpenFavorites: libraryView.openFavorites,
-    onOpenStats: statsPageView.open,
   });
 
   async function refreshPrivateSources() {

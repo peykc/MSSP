@@ -1,4 +1,4 @@
-const RELEASE_ID = "v283";
+const RELEASE_ID = "v286";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -70,6 +70,7 @@ const SHELL_PATHS = [
   "./assets/brand/mssp-mark.png",
   "./assets/stone.svg",
   "./assets/icons/archive.svg",
+  "./assets/icons/hand-from-ground.svg",
   "./assets/icons/hero-cross.svg",
   "./assets/fonts/spectral-italic-400-latin.woff2",
   "./assets/fonts/spectral-normal-400-latin.woff2",

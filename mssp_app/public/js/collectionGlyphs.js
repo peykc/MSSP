@@ -20,12 +20,13 @@ const COLLECTION_GLYPH_MARKUP = {
     </g>
   </g>`,
   new: `<g transform="rotate(-25 18 10)"><path fill="currentColor" d="M21 6 A 5.5 5.5 0 1 0 21 14 A 4 4 0 1 1 21 6 Z"></path></g>`,
+  cancelled: `<image href="./assets/icons/hand-from-ground.svg" x="6" y="0" width="24" height="20" preserveAspectRatio="xMidYMid meet"></image>`,
 };
 
-export function renderCollectionGlyphSvg(kind, className = "") {
+export function renderCollectionGlyphSvg(kind, className = "", viewBox = "0 0 36 20") {
   const markup = COLLECTION_GLYPH_MARKUP[kind] || COLLECTION_GLYPH_MARKUP.old;
   const classAttr = className ? ` class="${className}"` : "";
-  return `<svg${classAttr} viewBox="0 0 36 20" aria-hidden="true" focusable="false">${markup}</svg>`;
+  return `<svg${classAttr} viewBox="${viewBox}" aria-hidden="true" focusable="false">${markup}</svg>`;
 }
 
 export function renderCollectionCardGlyph(kind) {

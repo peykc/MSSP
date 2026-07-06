@@ -304,7 +304,10 @@ body.player-dragging .full-player__collapse {
 
 .full-player__hero {
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  contain: size;
   width: 100%;
+  height: 100%;
   min-width: 0;
   min-height: 0;
   justify-items: center;
@@ -429,7 +432,7 @@ body.player-dragging .full-player__collapse {
 .full-player__cover {
   display: block;
   width: auto;
-  height: auto;
+  height: 100%;
   max-width: min(360px, 100%, 52vh);
   max-height: min(100%, 52vh, 360px);
   min-width: 0;
@@ -1004,12 +1007,16 @@ body.player-expanded {
   }
 
   .full-player .full-player__hero {
+    grid-template-rows: none;
+    contain: none;
+    height: auto;
     align-content: center;
     justify-items: end;
   }
 
   .full-player .full-player__cover {
     width: min(100%, 430px, 36vw);
+    height: auto;
     max-width: none;
     max-height: min(430px, 36vw, 78dvh);
     justify-self: end;

@@ -1,8 +1,13 @@
 import { formatCount, formatDateRange } from "./utils.js";
-import { renderCollectionCardGlyph } from "./collectionGlyphs.js";
+import { renderCollectionCardGlyph, renderCollectionGlyphSvg } from "./collectionGlyphs.js";
 
 const COLLECTION_ORDER = ["old", "paytch", "new"];
 const COLLECTION_NUMERALS = { old: "I", paytch: "II", new: "III" };
+const COLLECTION_GLYPH_VIEWBOXES = {
+  old: "7 2 17 16",
+  paytch: "8 1 20 18",
+  new: "12 2 17 16",
+};
 
 export function createCollectionsView({
   dom,
@@ -12,11 +17,11 @@ export function createCollectionsView({
   fullCalendarModal,
   onOpenCollection,
   onOpenFavorites,
-  onOpenStats,
 }) {
   function renderCollections() {
     dom.launchHero.innerHTML = "";
     dom.exploreGrid.innerHTML = "";
+    dom.hoursSummary.innerHTML = "";
     dom.collectionGrid.innerHTML = "";
 
     renderHero();
@@ -147,10 +152,82 @@ export function createCollectionsView({
   }
 
   function renderExplore() {
+    const durationByCollection = Object.fromEntries(COLLECTION_ORDER.map((id) => [id, 0]));
+    let totalDurationSeconds = 0;
+    for (const episode of state.archiveEpisodes) {
+      const duration = Number(episode.durationSeconds) || 0;
+      totalDurationSeconds += duration;
+      if (episode.collectionKind in durationByCollection) {
+        durationByCollection[episode.collectionKind] += duration;
+      }
+    }
+    const totalHours = Math.round(totalDurationSeconds / 3600).toLocaleString();
+    const widthDenominator = Math.max(totalDurationSeconds, 1);
+    const hourSegments = COLLECTION_ORDER.map((id) => {
+      const collection = state.collections.find((item) => item.id === id);
+      const seconds = durationByCollection[id];
+      return {
+        id,
+        name: collection?.name || id,
+        accent: collection?.accent || "#f8f2ec",
+        hours: Math.round(seconds / 3600).toLocaleString(),
+        width: `${((seconds / widthDenominator) * 100).toFixed(2)}%`,
+      };
+    });
+    const graphLabel = hourSegments
+      .map((segment) => `${segment.name}: ${segment.hours} hours`)
+      .join(", ");
+
     dom.exploreGrid.innerHTML = `
       <button class="explore-button" type="button" data-explore-action="calendar" ${state.archiveEpisodes.length ? "" : "disabled"}>Calendar</button>
       <button class="explore-button" type="button" data-explore-action="heatmap" ${state.archiveEpisodes.length ? "" : "disabled"}>Heatmap</button>
-      <button class="explore-button" type="button" data-explore-action="stats">Stats</button>
+    `;
+
+    dom.hoursSummary.innerHTML = `
+      <section class="explore-total" aria-label="Archive total length">
+        <div class="collection-hero__book-rule explore-total__rule" aria-hidden="true">
+          <span class="collection-card__seal-arm">
+            <span class="collection-card__seal-line"></span>
+            <span class="collection-card__seal-tip"></span>
+          </span>
+          <svg class="explore-total__hourglass" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M5 2.5h14M5 21.5h14M7 2.5v3.672a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2.5M17 21.5v-3.672a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V21.5" stroke="currentColor" stroke-width="1.35" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <span class="collection-card__seal-arm">
+            <span class="collection-card__seal-tip"></span>
+            <span class="collection-card__seal-line"></span>
+          </span>
+        </div>
+        <div class="collection-hero__total">
+          <strong>${totalHours}</strong><span>total hours</span>
+        </div>
+        <div class="collection-hero__proportion explore-total__proportion" role="img" aria-label="${graphLabel}">
+          ${hourSegments.map((segment) => `
+            <span
+              class="explore-total__segment"
+              data-section="${segment.id}"
+              style="--segment-width: ${segment.width}; --accent: ${segment.accent}"
+            ></span>
+          `).join("")}
+        </div>
+        <div class="collection-hero__legend explore-total__legend" aria-label="Hours by collection">
+          ${hourSegments.map((segment) => `
+            <div
+              data-section="${segment.id}"
+              style="--segment-width: ${segment.width}; --accent: ${segment.accent}"
+            >
+              <span class="explore-total__legend-core">
+                ${renderCollectionGlyphSvg(
+                  segment.id,
+                  "explore-total__glyph",
+                  COLLECTION_GLYPH_VIEWBOXES[segment.id],
+                )}
+                <strong>${segment.hours}</strong>
+              </span>
+            </div>
+          `).join("")}
+        </div>
+      </section>
     `;
 
     dom.exploreGrid.querySelector('[data-explore-action="calendar"]').addEventListener("click", (event) => {
@@ -158,9 +235,6 @@ export function createCollectionsView({
     });
     dom.exploreGrid.querySelector('[data-explore-action="heatmap"]').addEventListener("click", (event) => {
       calendarModal.open(state.archiveEpisodes, event.currentTarget);
-    });
-    dom.exploreGrid.querySelector('[data-explore-action="stats"]').addEventListener("click", (event) => {
-      onOpenStats(event.currentTarget);
     });
   }
 

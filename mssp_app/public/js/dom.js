@@ -30,6 +30,7 @@ export const dom = {
   patreonRssSubmit: getRequiredElement("patreonRssSubmit"),
   collectionGrid: getRequiredElement("collectionGrid"),
   exploreGrid: getRequiredElement("exploreGrid"),
+  hoursSummary: getRequiredElement("hoursSummary"),
   launchHero: getRequiredElement("launchHero"),
   launchView: getRequiredElement("launchView"),
   statsView: getRequiredElement("statsView"),

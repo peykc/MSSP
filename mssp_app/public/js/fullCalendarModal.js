@@ -15,56 +15,11 @@ const COLLECTION_META = {
 const COLLECTION_ORDER = ["old", "paytch", "new"];
 
 const CANCELLED_DATE = "2019-09-16";
+const CANCELLED_ACCENT = "#a98bd4";
 const MONTH_GAP = 28;
 const MONTH_OVERSCAN = 2;
 const MONTHS_PADDING_TOP = 14;
 const PROBE_ROW_COUNTS = [4, 5, 6];
-
-const SEVEN_SEGMENTS = ["a", "b", "c", "d", "e", "f", "g"];
-const SEGMENT_MAP = {
-  "0": "abcdef",
-  "1": "bc",
-  "2": "abged",
-  "3": "abgcd",
-  "4": "fgbc",
-  "5": "afgcd",
-  "6": "afgedc",
-  "7": "abc",
-  "8": "abcdefg",
-  "9": "abcdfg",
-  P: "abefg",
-};
-
-function renderSevenSegmentFromActive(active) {
-  const segments = SEVEN_SEGMENTS.map(
-    (segment) => `<span class="seg seg--${segment}${active.includes(segment) ? " is-on" : ""}"></span>`,
-  ).join("");
-  return `<span class="seg-digit" aria-hidden="true">${segments}</span>`;
-}
-
-function renderSevenSegmentDigit(char) {
-  return renderSevenSegmentFromActive(SEGMENT_MAP[char] || "");
-}
-
-function renderSegmentColon() {
-  return '<span class="seg-colon" aria-hidden="true"><i></i><i></i></span>';
-}
-
-function renderCancelledTimeM() {
-  return `<span class="fc-tip__time-m">${renderSevenSegmentFromActive("abcef")}${renderSevenSegmentFromActive("abc")}</span>`;
-}
-
-function renderCancelledTimeDisplay() {
-  return [
-    renderSevenSegmentDigit("2"),
-    renderSegmentColon(),
-    renderSevenSegmentDigit("1"),
-    renderSevenSegmentDigit("5"),
-    '<span class="fc-tip__time-gap" aria-hidden="true"></span>',
-    renderSevenSegmentDigit("P"),
-    renderCancelledTimeM(),
-  ].join("");
-}
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -86,7 +41,7 @@ function dateOrdinal(dateKey) {
   return parts.year * 12 + parts.month;
 }
 
-export function createFullCalendarModal({ dom, onOpenCancelled }) {
+export function createFullCalendarModal({ dom }) {
   let restoreFocusTo = null;
   let isOpen = false;
   let pinnedCell = null;
@@ -580,9 +535,9 @@ export function createFullCalendarModal({ dom, onOpenCancelled }) {
 
       if (dateKey === CANCELLED_DATE) {
         cells.push(`
-          <button type="button" class="cal-cell cal-cell--event cal-cell--cancelled${spotlightClass}" data-date="${dateKey}" data-cancelled="true" aria-label="September 16, 2019: the day he got cancelled. Open the sealed stone.">
+          <button type="button" class="cal-cell cal-cell--event cal-cell--release cal-cell--single cal-cell--cancelled${spotlightClass}" data-date="${dateKey}" data-cancelled="true" style="--cell-accent: ${CANCELLED_ACCENT}" aria-label="September 16, 2019: cancelled">
             <span class="cal-cell__num">${day}</span>
-            <span class="cal-cell__cancel-mark" aria-hidden="true">!</span>
+            ${renderCalCellGlyph("cancelled", "cal-cell__glyph--center", CANCELLED_ACCENT)}
           </button>
         `);
       } else if (dayEpisodes && dayEpisodes.length) {
@@ -825,13 +780,6 @@ export function createFullCalendarModal({ dom, onOpenCancelled }) {
     dom.fullCalendarMonths.addEventListener("click", (event) => {
       const cell = event.target.closest(".cal-cell--event");
       if (!cell) return;
-      if (cell.dataset.cancelled) {
-        pinnedCell = null;
-        hoverCell = null;
-        hideTooltip();
-        onOpenCancelled?.(cell);
-        return;
-      }
       if (pinnedCell === cell) {
         pinnedCell = null;
         hideTooltip();
@@ -883,16 +831,8 @@ export function createFullCalendarModal({ dom, onOpenCancelled }) {
     activeTooltipDate = cell.dataset.date || CANCELLED_DATE;
     tooltip.classList.add("full-calendar-tooltip--cancelled");
     tooltip.innerHTML = `
-      <div class="fc-tip__hazard">Cancelled</div>
-      <div class="fc-tip__cancel">
-        <strong>September 16, 2019</strong>
-        <div class="fc-tip__time-block">
-          <div class="fc-tip__time-display" role="img" aria-label="2:15 PM Eastern Time">
-            ${renderCancelledTimeDisplay()}
-          </div>
-          <span class="fc-tip__time-sub">Eastern Time</span>
-        </div>
-      </div>
+      <div class="fc-tip__title">September 16, 2019</div>
+      <span class="fc-tip__cancel-label">“CANCELLED”</span>
     `;
     tooltip.hidden = false;
     positionTooltip(cell);
