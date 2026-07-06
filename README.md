@@ -6,6 +6,17 @@
 
 ###### A fan-made chronological index preserving the release history of MSSP. Public episodes stream from public sources. PAYTCH playback requires your own private RSS feed. No paid audio is hosted or redistributed.
 
+## Playback Sources
+
+The public player source map is intentionally split by collection:
+
+- `MSSPOT` / The Old Testament uses an archival R2 mirror.
+- `MSSP` / The New Testament uses the official public Megaphone RSS feed.
+- Three New Testament visual/livestream episodes (Ep 179, Ep 182, and Ep 322) use archival R2 audio fallbacks and are reported as `r2OverrideEpisodes`.
+- `PAYTCH` episodes are not included in the public source export; playback requires a future private Patreon RSS connection.
+
+Run `npm run export:sources` from `mssp_app` to rebuild `sources.public.json` and audit coverage in `source-match-report.json`.
+
 ## <img width="20" height="20" alt="favicon-32x32" src="https://github.com/user-attachments/assets/44be4d9f-5236-4a2c-9b83-a68f76b3d635" /> The Holy Trinity
 
 The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by release/listening order across... 
