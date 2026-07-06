@@ -254,8 +254,31 @@
 }
 
 .episode-row__main {
+  display: grid;
+  gap: 3px;
   min-width: 0;
   overflow: hidden;
+}
+
+.episode-row__signals {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.68rem;
+  font-weight: 650;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.episode-row__signal--listeners {
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.episode-row__signal[hidden] {
+  display: none;
 }
 
 .episode-row__line,
@@ -361,4 +384,3 @@
   font-size: 0.94rem;
   font-weight: 650;
 }
-

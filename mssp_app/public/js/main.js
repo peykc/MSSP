@@ -3,6 +3,9 @@ import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
+import { getCommunityClientId } from "./community/communityIdentity.js";
+import { createCommunityPresence } from "./community/communityPresence.js";
+import { createCommunitySignals } from "./community/communitySignals.js";
 import { dom } from "./dom.js";
 import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
@@ -41,6 +44,11 @@ async function init() {
   const apiClient = getApiClient();
   const state = createAppState();
   const favoritesStore = createFavoritesStore();
+  const communitySignals = createCommunitySignals({
+    apiBase: "https://msspsignal.pkcollection.net",
+    getClientId: getCommunityClientId,
+  });
+  communitySignals.start();
   const calendarModal = createCalendarModal({ dom });
   const statsPageView = createStatsPageView({ dom });
   createSealedStoneModal({ dom });
@@ -52,6 +60,8 @@ async function init() {
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
+  const communityPresence = createCommunityPresence({ playerState, communitySignals });
+  communityPresence.start();
   void serviceWorkerRegistration.then((registration) => {
     if (!registration) return;
     initPwaUpdates(registration, {
@@ -75,6 +85,13 @@ async function init() {
     },
   });
   const queueCache = new Map();
+
+  function toggleFavorite(episode) {
+    const previousFavorite = favoritesStore.has(episode);
+    const favorite = favoritesStore.toggle(episode);
+    communitySignals.setFavorite(episode.episodeKey, { previousFavorite, favorite });
+    return favorite;
+  }
 
   async function requestSelect(episode, options) {
     await loadEpisodeForPlayer(episode, {
@@ -208,6 +225,8 @@ async function init() {
     playerState,
     audioController,
     favoritesStore,
+    communitySignals,
+    onFavoriteToggle: toggleFavorite,
     playbackProgressStore,
     getSourceStatusForEpisode,
     onSelectRequest: requestSelect,
@@ -221,6 +240,9 @@ async function init() {
   const episodeDetails = createEpisodeDetails({
     dom,
     state,
+    favoritesStore,
+    communitySignals,
+    onFavoriteToggle: toggleFavorite,
   });
 
   let coverFilters;
@@ -234,6 +256,8 @@ async function init() {
     getSourceStatusForEpisode,
     playbackProgressStore,
     favoritesStore,
+    communitySignals,
+    onFavoriteToggle: toggleFavorite,
   });
 
   coverFilters = createCoverFilters({
@@ -305,9 +329,11 @@ async function init() {
     state.collections = data.collections;
     if (archiveResult.value) {
       archiveEpisodes = archiveResult.value.episodes || [];
+      communitySignals.setKnownEpisodeKeys(archiveEpisodes.map((episode) => episode.episodeKey));
       favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
       archiveStatsView.setEpisodes(archiveEpisodes);
     } else {
+      communitySignals.setKnownEpisodeKeys([]);
       console.error("[MSSP] Could not load archive statistics.", archiveResult.error);
       archiveStatsView.renderError();
     }

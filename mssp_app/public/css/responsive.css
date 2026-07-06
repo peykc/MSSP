@@ -187,7 +187,7 @@
 
 @media (max-width: 560px) {
   :root {
-    --row: 72px;
+    --row: 84px;
   }
 
   .hero-details .full-player__title {
@@ -293,6 +293,11 @@
     font-size: 0.68rem;
   }
 
+  .episode-row__signals {
+    gap: 7px;
+    font-size: 0.66rem;
+  }
+
   .episode-row.is-selected .episode-row__title {
     overflow: hidden;
   }
@@ -322,7 +327,7 @@
   .full-player__compact .episode-row--no-play,
   .full-player__queue-list .episode-row--no-play {
     grid-template-columns: 44px minmax(0, 1fr) auto;
-    height: var(--row);
+    height: 72px;
     align-items: center;
     border: 0;
     border-bottom: 1px solid var(--line);

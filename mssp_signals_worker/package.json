@@ -1,0 +1,20 @@
+{
+  "name": "mssp-signals-worker",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "catalog:generate": "node scripts/generateCatalog.mjs",
+    "catalog:check": "node scripts/generateCatalog.mjs --check",
+    "db:migrate:local": "wrangler d1 migrations apply mssp-signals-db --local",
+    "db:migrate:remote": "wrangler d1 migrations apply mssp-signals-db --remote",
+    "db:seed:local": "wrangler d1 execute mssp-signals-db --local --file=seed/episode-catalog.sql",
+    "db:seed:remote": "wrangler d1 execute mssp-signals-db --remote --file=seed/episode-catalog.sql",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "npm run catalog:check && node --test"
+  },
+  "devDependencies": {
+    "wrangler": "^4.103.0"
+  }
+}

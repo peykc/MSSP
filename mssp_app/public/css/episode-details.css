@@ -89,6 +89,10 @@
   margin-top: 4px;
 }
 
+.hero-details__stats:has(.hero-details__stat--listeners[hidden]) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .hero-details__stat {
   display: flex;
   align-items: center;
@@ -96,6 +100,29 @@
   min-width: 0;
   padding: 0;
   text-align: left;
+}
+
+button.hero-details__stat {
+  width: 100%;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+}
+
+button.hero-details__stat:focus-visible {
+  border-radius: 6px;
+  outline: 1px solid rgba(255, 255, 255, 0.42);
+  outline-offset: 2px;
+}
+
+.hero-details__stat--favorite[aria-pressed="true"] .hero-details__stat-icon svg path {
+  fill: currentColor;
+}
+
+.hero-details__stat[hidden] {
+  display: none;
 }
 
 .hero-details__stat-icon {

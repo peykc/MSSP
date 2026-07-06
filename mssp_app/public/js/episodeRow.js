@@ -1,5 +1,6 @@
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { formatEpisodeLabel, formatTimeRemaining } from "./utils.js";
+import { formatCommunityCount, formatListeningSignal } from "./community/communitySignals.js";
 
 export const COMPLETED_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -39,9 +40,15 @@ function buildShareText(episode) {
   return `${label} — ${title}`;
 }
 
-export function getEpisodeRowHTML({ includePlay = true } = {}) {
+export function getEpisodeRowHTML({ includePlay = true, includeSignals = false } = {}) {
   const playButton = includePlay
     ? `<button class="episode-row__play" type="button"></button>`
+    : "";
+  const signals = includeSignals
+    ? `<span class="episode-row__signals" aria-label="Community activity">
+        <span class="episode-row__signal episode-row__signal--stars" data-signal="stars">★ —</span>
+        <span class="episode-row__signal episode-row__signal--listeners" data-signal="listeners" hidden></span>
+      </span>`
     : "";
 
   return `
@@ -65,6 +72,7 @@ export function getEpisodeRowHTML({ includePlay = true } = {}) {
               <span class="episode-row__title-text"></span>
             </span>
           </span>
+          ${signals}
         </span>
       </button>
     </div>
@@ -193,6 +201,20 @@ export function updateEpisodeRowFavorite(row, episode, favoritesStore) {
   );
 }
 
+export function updateEpisodeRowSignals(row, episode, communitySignals) {
+  const starsElement = row.querySelector('[data-signal="stars"]');
+  const listenersElement = row.querySelector('[data-signal="listeners"]');
+  if (!starsElement || !listenersElement) return;
+  const signals = communitySignals?.getEpisodeSignals(episode.episodeKey) || {
+    stars: null,
+    listeners: null,
+  };
+  starsElement.textContent = `★ ${formatCommunityCount(signals.stars, { compact: true })}`;
+  const listeningLabel = formatListeningSignal(signals.listeners, { compact: true });
+  listenersElement.hidden = !listeningLabel;
+  listenersElement.textContent = listeningLabel;
+}
+
 export function updateEpisodeRowMenuItems(row, episode, playbackProgressStore) {
   const menuRoot = row.querySelector(".episode-row__menu");
   if (!menuRoot) return;
@@ -205,9 +227,11 @@ export function updateEpisodeRowMenuItems(row, episode, playbackProgressStore) {
 export function refreshEpisodeRow(row, episode, {
   playbackProgressStore,
   favoritesStore,
+  communitySignals,
   getSourceStatusForEpisode,
   isSelected = false,
   includePlay = true,
+  includeSignals = false,
 } = {}) {
   populateEpisodeRow(row, episode);
   if (includePlay) {
@@ -215,6 +239,7 @@ export function refreshEpisodeRow(row, episode, {
   }
   updateEpisodeRowProgress(row, episode, playbackProgressStore);
   updateEpisodeRowFavorite(row, episode, favoritesStore);
+  if (includeSignals) updateEpisodeRowSignals(row, episode, communitySignals);
   updateEpisodeRowMenuItems(row, episode, playbackProgressStore);
   row.classList.toggle("is-selected", isSelected);
   updateEpisodeRowMarquee(row, isSelected);
@@ -404,6 +429,7 @@ export function bindEpisodeRow(row, episode, {
   marqueeAlways = false,
   playbackProgressStore,
   favoritesStore,
+  onFavoriteToggle,
   getSourceStatusForEpisode,
   menuManager,
   onSelect,
@@ -440,7 +466,8 @@ export function bindEpisodeRow(row, episode, {
   favoriteButton?.addEventListener("click", (event) => {
     event.stopPropagation();
     menuManager?.closeEpisodeMenu();
-    favoritesStore?.toggle(episode);
+    if (onFavoriteToggle) onFavoriteToggle(episode);
+    else favoritesStore?.toggle(episode);
     updateEpisodeRowFavorite(row, episode, favoritesStore);
   });
 
@@ -499,10 +526,10 @@ export function bindEpisodeRow(row, episode, {
 }
 
 export function createEpisodeRow(episode, options = {}) {
-  const { includePlay = true } = options;
+  const { includePlay = true, includeSignals = false } = options;
   const row = document.createElement("div");
   row.className = "episode-row";
-  row.innerHTML = getEpisodeRowHTML({ includePlay });
+  row.innerHTML = getEpisodeRowHTML({ includePlay, includeSignals });
   bindEpisodeRow(row, episode, options);
   refreshEpisodeRow(row, episode, options);
   return row;

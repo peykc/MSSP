@@ -3,6 +3,7 @@ import { SOURCE_STATUSES } from "./sourceStatus.js";
 import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-l";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=scroll-hydrate-g";
 import { formatPlayerDate } from "../utils.js";
+import { formatCommunityCount, formatListeningSignal } from "../community/communitySignals.js";
 import {
   createEpisodeRow,
   createEpisodeRowMenuManager,
@@ -57,6 +58,8 @@ export function createPlayerView({
   playerState,
   audioController,
   favoritesStore,
+  communitySignals,
+  onFavoriteToggle,
   playbackProgressStore,
   getSourceStatusForEpisode = () => ({ id: SOURCE_STATUSES.MISSING, label: "Source unavailable" }),
   onSelectRequest = () => {},
@@ -164,6 +167,7 @@ export function createPlayerView({
     marqueeAlways: true,
     playbackProgressStore,
     favoritesStore,
+    onFavoriteToggle,
     getSourceStatusForEpisode,
     menuManager: queueMenuManager,
     onMarkListened: handleQueueMarkListened,
@@ -270,11 +274,14 @@ export function createPlayerView({
     document.body.classList.toggle("has-player", hasEpisode);
 
     if (!hasEpisode) {
+      communitySignals?.setTrackedEpisodeKeys("player", []);
       void transcriptView.setSelectedEpisode(null);
       maybeResetBurstOnContextChange(state, null);
       setExpandedUi(false);
       return;
     }
+
+    communitySignals?.setTrackedEpisodeKeys("player", [episode.episodeKey]);
 
     transcriptView.setSelectedEpisode(episode);
 
@@ -305,6 +312,7 @@ export function createPlayerView({
     fullPlayerTitleText.textContent = episode.title || "Untitled episode";
     dom.fullPlayerMeta.textContent = `${episode.type || "MSSP"} · ${accessLabel}`;
     renderFavorite();
+    renderCommunitySignals();
     dom.fullPlayer.classList.toggle("is-playback-active", ACTIVE_PLAYBACK_STATUSES.has(state.playbackStatus));
 
     const showStatusPanel = !playable || Boolean(state.playbackError);
@@ -436,6 +444,23 @@ export function createPlayerView({
     dom.fullPlayerFavorite.setAttribute(
       "aria-label",
       isFavorite ? "Remove from favorites" : "Add to favorites"
+    );
+  }
+
+  function renderCommunitySignals() {
+    const episode = playerState.getState().selectedEpisode;
+    const signals = episode
+      ? communitySignals?.getEpisodeSignals(episode.episodeKey)
+      : { stars: null, listeners: null };
+    dom.fullPlayerStars.textContent = `★ ${formatCommunityCount(signals?.stars)}`;
+    const listeningLabel = formatListeningSignal(signals?.listeners);
+    dom.fullPlayerListeners.hidden = !listeningLabel;
+    dom.fullPlayerListeners.textContent = listeningLabel;
+    dom.fullPlayerSignals.setAttribute(
+      "aria-label",
+      listeningLabel
+        ? `${formatCommunityCount(signals?.stars)} total stars, ${listeningLabel.replace(/^●\s*/, "")}`
+        : `${formatCommunityCount(signals?.stars)} total stars`,
     );
   }
 
@@ -1177,7 +1202,7 @@ export function createPlayerView({
   dom.playerTimeline.addEventListener("blur", cancelScrub);
   dom.fullPlayerFavorite.addEventListener("click", () => {
     const episode = playerState.getState().selectedEpisode;
-    if (episode) favoritesStore.toggle(episode);
+    if (episode) onFavoriteToggle?.(episode);
   });
   document.addEventListener("keydown", trapFocus);
   window.addEventListener("resize", () => {
@@ -1200,6 +1225,11 @@ export function createPlayerView({
       return;
     }
     refreshCompactFavorite();
+  });
+  communitySignals?.subscribe((changedKeys) => {
+    const episodeKey = playerState.getState().selectedEpisode?.episodeKey;
+    if (!episodeKey || (changedKeys.size && !changedKeys.has(episodeKey))) return;
+    renderCommunitySignals();
   });
 
   return {

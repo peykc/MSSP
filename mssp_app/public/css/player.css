@@ -482,7 +482,8 @@ body.player-dragging .full-player__collapse {
 
 .full-player__eyebrow,
 .full-player__title,
-.full-player__meta {
+.full-player__meta,
+.full-player__signals {
   margin: 0;
 }
 
@@ -491,6 +492,25 @@ body.player-dragging .full-player__collapse {
   color: var(--muted);
   font-size: 0.72rem;
   line-height: 1.3;
+}
+
+.full-player__signals {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 1rem;
+  color: rgba(255, 255, 255, 0.66);
+  font-size: 0.76rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+
+.full-player__signals span:last-child {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.full-player__signals span[hidden] {
+  display: none;
 }
 
 .full-player__title {

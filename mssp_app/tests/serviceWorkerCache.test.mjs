@@ -194,3 +194,9 @@ test("missing metadata recovers the newest complete generation", async () => {
   assert.equal(response.ok, true);
   assert.equal((await readState(cacheStorage)).active.id, expected.id);
 });
+
+test("cross-origin community API requests bypass the service worker", async () => {
+  const runtime = createRuntime();
+  const response = runtime.fetch(new Request("https://msspsignal.pkcollection.net/v1/stars/counts?episode=test"));
+  assert.equal(response, undefined);
+});

@@ -1,4 +1,5 @@
 import { formatEpisodeDuration, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
+import { formatCommunityCount, formatListeningSignal } from "./community/communitySignals.js";
 
 const STAR_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -22,18 +23,17 @@ const DURATION_ICON = `
   </svg>
 `;
 
-function getPlaceholderGlobalStats(episode) {
-  const seed = Number(episode?.id) || 0;
-  return {
-    starCount: 240 + (seed * 53) % 3200,
-    listenerCount: 2 + (seed * 17) % 67,
-  };
-}
-
-export function createEpisodeDetails({ dom, state }) {
+export function createEpisodeDetails({
+  dom,
+  state,
+  favoritesStore,
+  communitySignals,
+  onFavoriteToggle,
+}) {
   function renderDetails() {
     const episode = state.visibleEpisodes.find((item) => item.id === state.selectedEpisodeId);
     if (!episode) {
+      communitySignals?.setTrackedEpisodeKeys("details", []);
       dom.heroCover.src = state.activeCollection.coverUrl;
       dom.heroCover.alt = `${state.activeCollection.name} cover`;
       dom.heroDetails.innerHTML = "<span>No episodes match this view.</span>";
@@ -44,8 +44,9 @@ export function createEpisodeDetails({ dom, state }) {
     dom.heroCover.alt = `${episode.title || "Selected episode"} cover`;
     const episodeLabel = formatEpisodeLabel(episode);
     const accessLabel = episode.paytch ? "PAYTCH" : "Public";
-    const { starCount, listenerCount } = getPlaceholderGlobalStats(episode);
     const durationLabel = formatEpisodeDuration(episode.durationSeconds);
+    const isFavorite = favoritesStore?.has(episode) ?? false;
+    communitySignals?.setTrackedEpisodeKeys("details", [episode.episodeKey]);
 
     dom.heroDetails.innerHTML = `
       <div class="hero-details__copy full-player__copy">
@@ -59,24 +60,67 @@ export function createEpisodeDetails({ dom, state }) {
         <p class="full-player__meta">${episode.type || "MSSP"} · ${accessLabel}</p>
       </div>
       <div class="hero-details__divider" aria-hidden="true"></div>
-      <div class="hero-details__stats" data-placeholder-stats="true" aria-label="Community stats preview">
+      <div class="hero-details__stats" aria-label="Episode and community activity">
         <div class="hero-details__stat hero-details__stat--duration" aria-label="Episode length ${durationLabel}">
           <span class="hero-details__stat-icon">${DURATION_ICON}</span>
           <span class="hero-details__stat-value">${durationLabel}</span>
         </div>
-        <div class="hero-details__stat" aria-label="${starCount.toLocaleString()} total stars">
+        <button
+          class="hero-details__stat hero-details__stat--favorite"
+          type="button"
+          data-community-signal="stars"
+          aria-pressed="${String(isFavorite)}"
+          aria-label="${isFavorite ? "Remove from favorites" : "Add to favorites"}"
+        >
           <span class="hero-details__stat-icon">${STAR_ICON}</span>
-          <span class="hero-details__stat-value">${starCount.toLocaleString()}</span>
-        </div>
-        <div class="hero-details__stat hero-details__stat--listeners" aria-label="${listenerCount.toLocaleString()} listening now">
+          <span class="hero-details__stat-value">—</span>
+        </button>
+        <div class="hero-details__stat hero-details__stat--listeners" data-community-signal="listeners" hidden>
           <span class="hero-details__stat-icon">${LISTENERS_ICON}</span>
-          <span class="hero-details__stat-value">${listenerCount.toLocaleString()}</span>
+          <span class="hero-details__stat-value"></span>
         </div>
       </div>
     `;
+    dom.heroDetails.querySelector('[data-community-signal="stars"]')?.addEventListener("click", () => {
+      onFavoriteToggle?.(episode);
+    });
+    updateCommunityStats(episode);
     requestAnimationFrame(updateHeroCoverSize);
     requestAnimationFrame(updateHeroTitleMarquee);
   }
+
+  function updateCommunityStats(episode) {
+    if (!episode || dom.heroDetails.querySelector('[data-community-signal="stars"]') === null) return;
+    const signals = communitySignals?.getEpisodeSignals(episode.episodeKey) || {
+      stars: null,
+      listeners: null,
+    };
+    const starButton = dom.heroDetails.querySelector('[data-community-signal="stars"]');
+    const starValue = starButton?.querySelector(".hero-details__stat-value");
+    const isFavorite = favoritesStore?.has(episode) ?? false;
+    if (starValue) starValue.textContent = formatCommunityCount(signals.stars);
+    starButton?.setAttribute("aria-pressed", String(isFavorite));
+    starButton?.setAttribute(
+      "aria-label",
+      `${isFavorite ? "Remove from favorites" : "Add to favorites"}, ${formatCommunityCount(signals.stars)} total stars`,
+    );
+
+    const listenerStat = dom.heroDetails.querySelector('[data-community-signal="listeners"]');
+    const listeningLabel = formatListeningSignal(signals.listeners);
+    if (listenerStat) {
+      listenerStat.hidden = !listeningLabel;
+      listenerStat.setAttribute("aria-label", listeningLabel);
+      const value = listenerStat.querySelector(".hero-details__stat-value");
+      if (value) value.textContent = listeningLabel.replace(/^●\s*/, "");
+    }
+  }
+
+  communitySignals?.subscribe((changedKeys) => {
+    const episode = state.visibleEpisodes.find((item) => item.id === state.selectedEpisodeId);
+    if (!episode || (changedKeys.size && !changedKeys.has(episode.episodeKey))) return;
+    updateCommunityStats(episode);
+    requestAnimationFrame(updateHeroCoverSize);
+  });
 
   function updateHeroCoverSize() {
     if (!dom.heroPanel || !dom.heroCover) return;

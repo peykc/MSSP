@@ -4,6 +4,7 @@ import {
   refreshEpisodeRow,
   updateEpisodeRowMarquee,
   updateEpisodeRowPlayButton,
+  updateEpisodeRowSignals,
 } from "./episodeRow.js";
 
 const OVERSCAN = 8;
@@ -24,6 +25,8 @@ export function createEpisodeList({
   getSourceStatusForEpisode,
   playbackProgressStore,
   favoritesStore,
+  communitySignals,
+  onFavoriteToggle,
 }) {
   const rowCache = new Map();
   const menuManager = createEpisodeRowMenuManager({ scrollRoot: dom.episodeList });
@@ -36,6 +39,7 @@ export function createEpisodeList({
     closeEpisodeMenu();
     rowCache.clear();
     dom.listItems.innerHTML = "";
+    communitySignals?.setTrackedEpisodeKeys("archive", []);
   }
 
   function applyEpisodeFilters({ resetSelection = false, preserveScroll = false } = {}) {
@@ -75,11 +79,13 @@ export function createEpisodeList({
     const start = Math.max(0, Math.floor(scrollTop / getRowHeight()) - OVERSCAN);
     const end = Math.min(state.visibleEpisodes.length, Math.ceil((scrollTop + viewportHeight) / getRowHeight()) + OVERSCAN);
     const visibleKeys = new Set();
+    const visibleEpisodeKeys = [];
 
     for (let index = start; index < end; index += 1) {
       const episode = state.visibleEpisodes[index];
       const key = episode.id;
       visibleKeys.add(key);
+      visibleEpisodeKeys.push(episode.episodeKey);
       const row = getMemoizedRow(episode);
       row.style.transform = `translateY(${index * getRowHeight()}px)`;
       const isSelected = episode.id === state.selectedEpisodeId;
@@ -87,13 +93,16 @@ export function createEpisodeList({
       refreshEpisodeRow(row, episode, {
         playbackProgressStore,
         favoritesStore,
+        communitySignals,
         getSourceStatusForEpisode,
         isSelected,
         includePlay: true,
+        includeSignals: true,
       });
       updateEpisodeRowMarquee(row, isSelected);
       if (row.parentElement !== dom.listItems) dom.listItems.append(row);
     }
+    communitySignals?.setTrackedEpisodeKeys("archive", visibleEpisodeKeys);
 
     for (const child of [...dom.listItems.children]) {
       const key = Number(child.dataset.id);
@@ -115,8 +124,11 @@ export function createEpisodeList({
       includePlay: true,
       playbackProgressStore,
       favoritesStore,
+      communitySignals,
+      includeSignals: true,
       getSourceStatusForEpisode,
       menuManager,
+      onFavoriteToggle,
       onSelect: () => {
         closeEpisodeMenu();
         state.selectedEpisodeId = episode.id;
@@ -131,6 +143,15 @@ export function createEpisodeList({
     rowCache.set(episode.id, row);
     return row;
   }
+
+  communitySignals?.subscribe((changedKeys) => {
+    for (const row of dom.listItems.children) {
+      const episodeKey = row.dataset.episodeKey;
+      if (changedKeys.size && !changedKeys.has(episodeKey)) continue;
+      const episode = state.visibleEpisodes.find((item) => item.episodeKey === episodeKey);
+      if (episode) updateEpisodeRowSignals(row, episode, communitySignals);
+    }
+  });
 
   return {
     applyEpisodeFilters,

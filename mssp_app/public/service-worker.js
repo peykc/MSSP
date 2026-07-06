@@ -1,4 +1,4 @@
-const RELEASE_ID = "v286";
+const RELEASE_ID = "v287";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -29,7 +29,10 @@ const SHELL_PATHS = [
   "./css/patreon-rss.css",
   "./css/transcript.css?v=scroll-hydrate-d",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=ios-pull-refresh-v1",
+  "./js/main.js?v=community-signals-v1",
+  "./js/community/communityIdentity.js",
+  "./js/community/communityPresence.js",
+  "./js/community/communitySignals.js",
   "./js/patreonRssModal.js",
   "./js/archiveStats.js",
   "./js/calendarModal.js",
