@@ -40,7 +40,71 @@ export default {
 };
 
 async function serveAudio(request, target, origin) {
-  return textResponse("Not implemented", 501, origin);
+  const cache = caches.default;
+  // The Cache API only stores GET entries, so HEAD requests match (and populate)
+  // the GET-keyed object and are stripped to headers at response time.
+  const matchRequest = request.method === "HEAD"
+    ? new Request(target.canonicalUrl)
+    : request;
+
+  const hit = await cache.match(matchRequest);
+  if (hit) return finalizeAudio(hit, request.method, origin);
+
+  // Always fetch the FULL file: forwarding the client's Range header upstream
+  // would re-introduce per-request DAI stitching, the exact bug this proxy kills.
+  // redirect:"follow" covers Megaphone's CDN hop (traffic.megaphone.fm 302s to
+  // the media host).
+  let upstream;
+  try {
+    upstream = await fetch(target.upstreamUrl, { redirect: "follow" });
+  } catch {
+    return textResponse("Upstream fetch failed", 502, origin);
+  }
+
+  // Require exactly 200 (not just ok): an unprompted upstream 206 would make
+  // cache.put reject silently, so fail loud instead.
+  const contentType = (upstream.headers.get("Content-Type") || "").toLowerCase();
+  if (upstream.status !== 200 || !contentType.includes("audio")) {
+    return textResponse("Upstream returned an unexpected response", 502, origin);
+  }
+
+  const cacheable = new Response(upstream.body, upstream);
+  cacheable.headers.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
+  cacheable.headers.delete("Set-Cookie");
+  cacheable.headers.set("Accept-Ranges", "bytes");
+
+  // Awaited on purpose: iOS Safari opens media with "Range: bytes=0-" and needs a
+  // real 206, which cache.match can only produce once the full object is stored.
+  // The first listener of an uncached episode waits out the edge->Megaphone
+  // transfer; every later request at that PoP is a cache hit.
+  try {
+    await cache.put(new Request(target.canonicalUrl), cacheable.clone());
+  } catch {
+    // Object rejected by the cache (e.g. too large): degrade to streaming the
+    // upstream body as a plain 200.
+    return finalizeAudio(cacheable, request.method, origin);
+  }
+
+  const served = await cache.match(matchRequest);
+  return finalizeAudio(served ?? cacheable, request.method, origin);
+}
+
+// Copies the (immutable) cached/upstream response so headers can be decorated
+// per-request. CORS is intentionally not stored in the cache entry.
+function finalizeAudio(response, method, origin) {
+  const headers = new Headers(response.headers);
+  const cors = corsHeaders(origin);
+  for (const [name, value] of cors.entries()) headers.set(name, value);
+  if (!headers.has("Accept-Ranges")) headers.set("Accept-Ranges", "bytes");
+  // The edge cache entry keeps its long TTL; browsers should revalidate through
+  // the edge instead of long-caching stitched media themselves.
+  headers.set("Cache-Control", "no-store");
+
+  return new Response(method === "HEAD" ? null : response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
 }
 
 // Validates /nt/{GLT id}.mp3 with an optional numeric ?updated= param. The upstream
