@@ -50,16 +50,36 @@ function makeAudioBytes(length = 1000) {
   return bytes;
 }
 
+// Mirrors workerd's FixedLengthStream contract: identity pipe that errors when
+// the byte count does not match the declared length.
+class MockFixedLengthStream extends TransformStream {
+  constructor(expected) {
+    let seen = 0;
+    super({
+      transform(chunk, controller) {
+        seen += chunk.byteLength;
+        if (seen > expected) throw new Error(`FixedLengthStream overflow: ${seen} > ${expected}`);
+        controller.enqueue(chunk);
+      },
+      flush() {
+        if (seen !== expected) throw new Error(`FixedLengthStream underflow: ${seen} !== ${expected}`);
+      },
+    });
+  }
+}
+
 // Installs a mock edge cache plus a mock Megaphone upstream, runs the callback,
 // and restores globals. The mock records every upstream fetch (URL + init).
 async function withProxyMocks(run, { upstream } = {}) {
   const originalFetch = globalThis.fetch;
   const originalCaches = globalThis.caches;
+  const originalFixedLength = globalThis.FixedLengthStream;
   const cache = new MockEdgeCache();
   const fetchCalls = [];
   const upstreamBytes = makeAudioBytes();
 
   globalThis.caches = { default: cache };
+  globalThis.FixedLengthStream = MockFixedLengthStream;
   globalThis.fetch = async (url, init) => {
     fetchCalls.push({ url: String(url), init });
     if (upstream) return upstream();
@@ -74,6 +94,7 @@ async function withProxyMocks(run, { upstream } = {}) {
   } finally {
     globalThis.fetch = originalFetch;
     globalThis.caches = originalCaches;
+    globalThis.FixedLengthStream = originalFixedLength;
   }
 }
 

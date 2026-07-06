@@ -13,9 +13,10 @@ const NT_PATH_PATTERN = /^\/nt\/(GLT[A-Za-z0-9]+)\.mp3$/;
 const EDGE_TTL_SECONDS = 86400;
 
 // Internal cache-key version. Bump to invalidate every previously cached episode
-// (e.g. when the transformation applied to upstream audio changes). v2: promo
-// slots are excised before caching.
-const CACHE_KEY_VERSION = 2;
+// (e.g. when the transformation applied to upstream audio changes). v3: promo
+// slots are excised before caching, with FixedLengthStream so the cached object
+// keeps a Content-Length (required for 206 range serving).
+const CACHE_KEY_VERSION = 3;
 
 export default {
   async fetch(request) {
@@ -82,9 +83,17 @@ async function serveAudio(request, target, origin) {
   const contentLength = Number(upstream.headers.get("Content-Length"));
   const promoRanges = parsePromoRanges(upstream.headers.get("x-megaphone-payload-2"), contentLength);
   const removedBytes = promoRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
-  const body = promoRanges.length
-    ? upstream.body.pipeThrough(createPromoStripper(promoRanges))
-    : upstream.body;
+  let body = upstream.body;
+  if (promoRanges.length) {
+    body = body.pipeThrough(createPromoStripper(promoRanges));
+    // A bare TransformStream body has unknown length, so the runtime drops
+    // Content-Length and the cached object loses 206 range support. Piping
+    // through FixedLengthStream declares the exact stripped size (and fails
+    // loudly on a byte-count mismatch instead of caching a corrupt object).
+    if (typeof FixedLengthStream === "function") {
+      body = body.pipeThrough(new FixedLengthStream(contentLength - removedBytes));
+    }
+  }
 
   const cacheable = new Response(body, upstream);
   // Strip Megaphone's DAI slot metadata (x-megaphone-payload*), its blanket
