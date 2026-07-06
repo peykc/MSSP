@@ -12,6 +12,11 @@ const NT_PATH_PATTERN = /^\/nt\/(GLT[A-Za-z0-9]+)\.mp3$/;
 // roughly daily fetches per PoP upstream.
 const EDGE_TTL_SECONDS = 86400;
 
+// Internal cache-key version. Bump to invalidate every previously cached episode
+// (e.g. when the transformation applied to upstream audio changes). v2: promo
+// slots are excised before caching.
+const CACHE_KEY_VERSION = 2;
+
 export default {
   async fetch(request) {
     const url = new URL(request.url);
@@ -42,10 +47,11 @@ export default {
 async function serveAudio(request, target, origin) {
   const cache = caches.default;
   // The Cache API only stores GET entries, so HEAD requests match (and populate)
-  // the GET-keyed object and are stripped to headers at response time.
+  // the GET-keyed object and are stripped to headers at response time. GET
+  // requests keep their own headers so cache.match can honor Range with a 206.
   const matchRequest = request.method === "HEAD"
-    ? new Request(target.canonicalUrl)
-    : request;
+    ? new Request(target.cacheKeyUrl)
+    : new Request(target.cacheKeyUrl, { headers: request.headers });
 
   const hit = await cache.match(matchRequest);
   if (hit) return finalizeAudio(hit, request.method, origin);
@@ -68,7 +74,19 @@ async function serveAudio(request, target, origin) {
     return textResponse("Upstream returned an unexpected response", 502, origin);
   }
 
-  const cacheable = new Response(upstream.body, upstream);
+  // Megaphone's x-megaphone-payload-2 header is a cut list: it declares the byte
+  // range of every ad slot it stitched into this response. Excise the filled
+  // slots while streaming so the cached file is the clean, promo-free edition
+  // whose timeline matches the canonical episode. Fails open: if the header is
+  // missing or unparseable, the audio is cached as received.
+  const contentLength = Number(upstream.headers.get("Content-Length"));
+  const promoRanges = parsePromoRanges(upstream.headers.get("x-megaphone-payload-2"), contentLength);
+  const removedBytes = promoRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
+  const body = promoRanges.length
+    ? upstream.body.pipeThrough(createPromoStripper(promoRanges))
+    : upstream.body;
+
+  const cacheable = new Response(body, upstream);
   // Strip Megaphone's DAI slot metadata (x-megaphone-payload*), its blanket
   // ACAO (*) so this worker's per-origin CORS policy stays authoritative, and
   // legacy caching headers that would fight the Cache-Control set below.
@@ -82,13 +100,17 @@ async function serveAudio(request, target, origin) {
   cacheable.headers.delete("Pragma");
   cacheable.headers.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
   cacheable.headers.set("Accept-Ranges", "bytes");
+  if (removedBytes > 0) {
+    cacheable.headers.set("Content-Length", String(contentLength - removedBytes));
+    cacheable.headers.set("X-MSSP-Promos-Removed", `${promoRanges.length} slot(s), ${removedBytes} bytes`);
+  }
 
   // Awaited on purpose: iOS Safari opens media with "Range: bytes=0-" and needs a
   // real 206, which cache.match can only produce once the full object is stored.
   // The first listener of an uncached episode waits out the edge->Megaphone
   // transfer; every later request at that PoP is a cache hit.
   try {
-    await cache.put(new Request(target.canonicalUrl), cacheable.clone());
+    await cache.put(new Request(target.cacheKeyUrl), cacheable.clone());
   } catch {
     // Object rejected by the cache (e.g. too large): degrade to streaming the
     // upstream body as a plain 200.
@@ -97,6 +119,63 @@ async function serveAudio(request, target, origin) {
 
   const served = await cache.match(matchRequest);
   return finalizeAudio(served ?? cacheable, request.method, origin);
+}
+
+// Parses Megaphone's x-megaphone-payload-2 header into byte ranges to remove,
+// each [start, endExclusive). Header grammar (validated against live responses):
+// comma-separated slots before an "@", fields "#"-separated per slot:
+//   <adId>#<lastByteInclusive>#<type>#<index>#<firstByte>#<creativeId>#...
+// Unfilled slots have empty adId/creativeId and degenerate offsets. Anything
+// that fails validation yields [] so the caller falls back to unmodified audio.
+export function parsePromoRanges(payloadHeader, contentLength) {
+  if (!payloadHeader || !Number.isInteger(contentLength) || contentLength <= 0) return [];
+
+  const ranges = [];
+  for (const slot of payloadHeader.split("@")[0].split(",")) {
+    const fields = slot.split("#");
+    if (fields.length < 6) continue;
+    const [adId, lastByteRaw, , , firstByteRaw, creativeId] = fields;
+    if (!adId || !creativeId) continue; // unfilled slot
+
+    const firstByte = Number(firstByteRaw);
+    const lastByte = Number(lastByteRaw);
+    if (!Number.isInteger(firstByte) || !Number.isInteger(lastByte)) return [];
+    if (firstByte < 0 || lastByte < firstByte || lastByte + 1 > contentLength) return [];
+    ranges.push([firstByte, lastByte + 1]);
+  }
+
+  ranges.sort((left, right) => left[0] - right[0]);
+  for (let i = 1; i < ranges.length; i += 1) {
+    if (ranges[i][0] < ranges[i - 1][1]) return []; // overlapping slots: distrust the header
+  }
+  return ranges;
+}
+
+// TransformStream that drops the given absolute byte ranges ([start, endExclusive),
+// sorted, non-overlapping) from a stream, emitting everything else untouched.
+export function createPromoStripper(ranges) {
+  let position = 0;
+  let rangeIndex = 0;
+
+  return new TransformStream({
+    transform(chunk, controller) {
+      let offset = 0;
+      while (offset < chunk.byteLength && rangeIndex < ranges.length) {
+        const absolute = position + offset;
+        const [start, end] = ranges[rangeIndex];
+        if (absolute < start) {
+          const emitEnd = Math.min(chunk.byteLength, offset + (start - absolute));
+          controller.enqueue(chunk.subarray(offset, emitEnd));
+          offset = emitEnd;
+        } else {
+          offset += Math.min(chunk.byteLength - offset, end - absolute);
+          if (position + offset >= end) rangeIndex += 1;
+        }
+      }
+      if (offset < chunk.byteLength) controller.enqueue(chunk.subarray(offset));
+      position += chunk.byteLength;
+    },
+  });
 }
 
 // Copies the (immutable) cached/upstream response so headers can be decorated
@@ -136,7 +215,9 @@ function parseNtTarget(url) {
   const suffix = updated !== null ? `?updated=${updated}` : "";
   return {
     id,
-    canonicalUrl: `${url.origin}/nt/${id}.mp3${suffix}`,
+    // Internal cache key only (never routed): carries the transform version so
+    // bumping CACHE_KEY_VERSION orphans previously cached entries.
+    cacheKeyUrl: `${url.origin}/nt/${id}.mp3?cv=${CACHE_KEY_VERSION}${updated !== null ? `&updated=${updated}` : ""}`,
     upstreamUrl: `${UPSTREAM_BASE}${id}.mp3${suffix}`,
   };
 }

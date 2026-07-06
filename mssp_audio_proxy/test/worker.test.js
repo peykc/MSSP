@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker from "../src/index.js";
+import worker, { createPromoStripper, parsePromoRanges } from "../src/index.js";
 
 const PROXY_ORIGIN = "https://nt-audio.pkcollection.net";
 const PAGES_ORIGIN = "https://peykc.github.io";
@@ -293,6 +293,102 @@ test("strips Megaphone tracking and CORS headers from cached responses", async (
     assert.equal(response.headers.get("Access-Control-Allow-Origin"), null);
     assert.equal(response.headers.get("Expires"), null);
     assert.equal(response.headers.get("Pragma"), null);
+  }, { upstream });
+});
+
+test("parsePromoRanges reads filled slots from a real payload header", () => {
+  // Verbatim shape observed live on Ep 300: one filled mid slot, two unfilled posts.
+  const header = "c8554eda-339c-11f1-84e6-6fa59eb67bb5#48515557#mid#1#48090495#cceba82e-75d5-11f1-9b4a-57f3df5be8db#true#true,"
+    + "#98918927#post#1#98918928###,#98918927#post#2#98918928###@f6a5d09e-de88-11ef-bcee-17e9364c1bf9#128000#90391";
+  assert.deepEqual(parsePromoRanges(header, 98918928), [[48090495, 48515558]]);
+});
+
+test("parsePromoRanges fails open on anything suspicious", () => {
+  const filled = (start, end) => `ad-id#${end}#mid#1#${start}#creative-id#true#true`;
+
+  assert.deepEqual(parsePromoRanges(null, 1000), []);
+  assert.deepEqual(parsePromoRanges("garbage", 1000), []);
+  assert.deepEqual(parsePromoRanges(filled(100, 199), NaN), []);
+  // unfilled slots only
+  assert.deepEqual(parsePromoRanges("#999#post#1#1000###@tail", 1000), []);
+  // non-numeric offsets
+  assert.deepEqual(parsePromoRanges("ad-id#abc#mid#1#100#creative-id#true#true", 1000), []);
+  // range past the end of the file
+  assert.deepEqual(parsePromoRanges(filled(900, 1000), 1000), []);
+  // inverted range
+  assert.deepEqual(parsePromoRanges(filled(500, 400), 1000), []);
+  // overlapping filled slots
+  assert.deepEqual(parsePromoRanges(`${filled(100, 300)},${filled(200, 400)}`, 1000), []);
+  // a valid slot still parses when accompanied by unfilled ones
+  assert.deepEqual(parsePromoRanges(`${filled(100, 199)},#999#post#1#1000###@tail#128000#1`, 1000), [[100, 200]]);
+});
+
+test("createPromoStripper drops ranges regardless of chunk boundaries", async () => {
+  const source = Uint8Array.from({ length: 100 }, (_, i) => i);
+  const ranges = [[0, 5], [30, 45], [95, 100]];
+  const expected = Uint8Array.from([...source].filter((_, i) => !ranges.some(([s, e]) => i >= s && i < e)));
+
+  for (const chunkSize of [1, 7, 32, 100]) {
+    const chunks = [];
+    for (let i = 0; i < source.length; i += chunkSize) chunks.push(source.slice(i, i + chunkSize));
+    const stream = new ReadableStream({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(chunk);
+        controller.close();
+      },
+    }).pipeThrough(createPromoStripper(ranges));
+    const output = new Uint8Array(await new Response(stream).arrayBuffer());
+    assert.deepEqual(output, expected, `chunkSize=${chunkSize}`);
+  }
+});
+
+test("excises filled promo slots from upstream audio before caching", async () => {
+  const bytes = makeAudioBytes(1000);
+  const header = "ad-id#199#mid#1#100#creative-id#true#true,#999#post#1#1000###@episode-id#128000#90391";
+  const upstream = () => new Response(bytes.slice(), {
+    status: 200,
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": "1000",
+      "X-Megaphone-Payload-2": header,
+    },
+  });
+  const expected = Uint8Array.from([...bytes.slice(0, 100), ...bytes.slice(200)]);
+
+  await withProxyMocks(async ({ fetchCalls }) => {
+    const url = `${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`;
+
+    const first = await worker.fetch(new Request(url));
+    assert.equal(first.status, 200);
+    assert.equal(first.headers.get("Content-Length"), "900");
+    assert.equal(first.headers.get("X-MSSP-Promos-Removed"), "1 slot(s), 100 bytes");
+    assert.equal(first.headers.get("X-Megaphone-Payload-2"), null);
+    assert.deepEqual(new Uint8Array(await first.arrayBuffer()), expected);
+
+    // The cached copy is already stripped: the second request is a cache hit
+    // with the same clean bytes.
+    const second = await worker.fetch(new Request(url));
+    assert.deepEqual(new Uint8Array(await second.arrayBuffer()), expected);
+    assert.equal(fetchCalls.length, 1);
+  }, { upstream });
+});
+
+test("caches audio unmodified when the payload header is unusable", async () => {
+  const bytes = makeAudioBytes(1000);
+  const upstream = () => new Response(bytes.slice(), {
+    status: 200,
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": "1000",
+      "X-Megaphone-Payload-2": "not#a#real#header",
+    },
+  });
+
+  await withProxyMocks(async () => {
+    const response = await worker.fetch(new Request(`${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-MSSP-Promos-Removed"), null);
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes);
   }, { upstream });
 });
 
