@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-06-16T15:27:29.882Z",
+  "generatedAt": "2026-07-06T22:29:33.988Z",
   "schemaVersion": 1,
   "sourceBaseUrl": "https://mssp.pkcollection.net",
   "sources": {
@@ -1189,7 +1189,8 @@
     },
     "2020-06-10 MSSP Ep. 300 - Emergency Teenis": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7394383255.mp3?updated=1738626247",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7394383255.mp3?updated=1738626247",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7394383255.mp3?updated=1738626247",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1201,7 +1202,8 @@
     },
     "2020-06-18 MSSP Ep. 301 - Fat Sparta": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4429325342.mp3?updated=1738625824",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4429325342.mp3?updated=1738625824",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4429325342.mp3?updated=1738625824",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1213,7 +1215,8 @@
     },
     "2020-07-01 MSSP Ep. 303 - Stuck at the track": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2957396818.mp3?updated=1738625764",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2957396818.mp3?updated=1738625764",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2957396818.mp3?updated=1738625764",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1225,7 +1228,8 @@
     },
     "2020-08-05 MSSP Ep. 308 - Love in Australia": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1787248350.mp3?updated=1738626537",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1787248350.mp3?updated=1738626537",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1787248350.mp3?updated=1738626537",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1237,7 +1241,8 @@
     },
     "2020-08-12 MSSP Ep. 309 - Homosapiens": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8923496990.mp3?updated=1738625791",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8923496990.mp3?updated=1738625791",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8923496990.mp3?updated=1738625791",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1249,7 +1254,8 @@
     },
     "2020-08-18 MSSP Ep. 310 - RIP Cleveland": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5216507199.mp3?updated=1738625776",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5216507199.mp3?updated=1738625776",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5216507199.mp3?updated=1738625776",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1261,7 +1267,8 @@
     },
     "2020-09-02 MSSP Ep. 312 - Fat Attack": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9466292592.mp3?updated=1738626337",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9466292592.mp3?updated=1738626337",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9466292592.mp3?updated=1738626337",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1273,7 +1280,8 @@
     },
     "2020-09-09 MSSP Ep. 313 - Return of the Stoner Dads": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7358714474.mp3?updated=1738625795",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7358714474.mp3?updated=1738625795",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7358714474.mp3?updated=1738625795",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1285,7 +1293,8 @@
     },
     "2020-09-11 MSSP Ep. 314 - Sam and Shane's Secret Doug-cast": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4651751538.mp3?updated=1738625824",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4651751538.mp3?updated=1738625824",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4651751538.mp3?updated=1738625824",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1297,7 +1306,8 @@
     },
     "2020-09-23 MSSP Ep. 316 - Johnny Hollywood": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3348437803.mp3?updated=1738625766",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3348437803.mp3?updated=1738625766",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3348437803.mp3?updated=1738625766",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1309,7 +1319,8 @@
     },
     "2020-09-30 MSSP Ep. 317 - Barndog": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9190508919.mp3?updated=1738625872",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9190508919.mp3?updated=1738625872",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9190508919.mp3?updated=1738625872",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1321,7 +1332,8 @@
     },
     "2020-10-07 MSSP Ep. 318 - Nate is Paranoid": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9180828792.mp3?updated=1738625782",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9180828792.mp3?updated=1738625782",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9180828792.mp3?updated=1738625782",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1333,7 +1345,8 @@
     },
     "2020-10-14 MSSP Ep. 319 - CBDhab": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1624543715.mp3?updated=1738625803",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1624543715.mp3?updated=1738625803",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1624543715.mp3?updated=1738625803",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1345,7 +1358,8 @@
     },
     "2020-10-20 MSSP Ep. 320 - Horse Tail": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7170546359.mp3?updated=1738625774",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7170546359.mp3?updated=1738625774",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7170546359.mp3?updated=1738625774",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1357,7 +1371,8 @@
     },
     "2020-10-28 MSSP Ep. 321 - Shrek 1": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9315578259.mp3?updated=1738625783",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9315578259.mp3?updated=1738625783",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9315578259.mp3?updated=1738625783",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1369,7 +1384,8 @@
     },
     "2020-11-10 MSSP Ep. 323 - 40 More Days": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2125595078.mp3?updated=1738625789",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2125595078.mp3?updated=1738625789",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2125595078.mp3?updated=1738625789",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1381,7 +1397,8 @@
     },
     "2020-11-19 MSSP Ep. 324 - DRENCHED": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8021433213.mp3?updated=1738625779",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8021433213.mp3?updated=1738625779",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8021433213.mp3?updated=1738625779",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1393,7 +1410,8 @@
     },
     "2020-11-25 MSSP Ep. 325 - Defending our Democracy": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1298602411.mp3?updated=1738625772",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1298602411.mp3?updated=1738625772",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1298602411.mp3?updated=1738625772",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1405,7 +1423,8 @@
     },
     "2020-12-09 MSSP Ep. 327 - Hetero Male Adoption": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1046358911.mp3?updated=1738626336",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1046358911.mp3?updated=1738626336",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1046358911.mp3?updated=1738626336",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1417,7 +1436,8 @@
     },
     "2020-12-15 MSSP Ep. 328 - Undercover Homeless": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2196391447.mp3?updated=1738625779",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2196391447.mp3?updated=1738625779",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2196391447.mp3?updated=1738625779",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1429,7 +1449,8 @@
     },
     "2020-12-23 MSSP Ep. 329 - God Rules": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4924963865.mp3?updated=1738626341",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4924963865.mp3?updated=1738626341",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4924963865.mp3?updated=1738626341",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1441,7 +1462,8 @@
     },
     "2020-12-30 MSSP Ep. 330 - The Wedge": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5838467648.mp3?updated=1738625811",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5838467648.mp3?updated=1738625811",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5838467648.mp3?updated=1738625811",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1453,7 +1475,8 @@
     },
     "2021-01-14 MSSP Ep. 331 - Stolen Valor": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7300097211.mp3?updated=1738625898",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7300097211.mp3?updated=1738625898",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7300097211.mp3?updated=1738625898",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1465,7 +1488,8 @@
     },
     "2021-02-04 MSSP Ep. 333 - The Book of Matt": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9499822930.mp3?updated=1738625793",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9499822930.mp3?updated=1738625793",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9499822930.mp3?updated=1738625793",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1477,7 +1501,8 @@
     },
     "2021-02-10 MSSP Ep. 334 - The Myth of Women Sleeping": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3044457918.mp3?updated=1738625807",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3044457918.mp3?updated=1738625807",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3044457918.mp3?updated=1738625807",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1489,7 +1514,8 @@
     },
     "2021-02-18 MSSP Ep. 335 - Strip Club DJ": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9451275401.mp3?updated=1738625819",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9451275401.mp3?updated=1738625819",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9451275401.mp3?updated=1738625819",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1501,7 +1527,8 @@
     },
     "2021-02-24 MSSP Ep. 336 - The Outsider Renegade Born in the USA Podcast": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2057606536.mp3?updated=1740614149",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2057606536.mp3?updated=1740614149",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2057606536.mp3?updated=1740614149",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1513,7 +1540,8 @@
     },
     "2021-03-03 MSSP Ep. 337 - The Invisible Man": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2021740216.mp3?updated=1740613896",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2021740216.mp3?updated=1740613896",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2021740216.mp3?updated=1740613896",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1525,7 +1553,8 @@
     },
     "2021-03-10 MSSP Ep. 338 - George Washington's House": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2510369720.mp3?updated=1740614023",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2510369720.mp3?updated=1740614023",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2510369720.mp3?updated=1740614023",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1537,7 +1566,8 @@
     },
     "2021-03-17 MSSP Ep. 339 - The Pennsylvania Nutcracker": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1922195778.mp3?updated=1740614188",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1922195778.mp3?updated=1740614188",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1922195778.mp3?updated=1740614188",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1549,7 +1579,8 @@
     },
     "2021-03-24 MSSP Ep. 340 - Endangered Broski's": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2981534440.mp3?updated=1740614384",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2981534440.mp3?updated=1740614384",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2981534440.mp3?updated=1740614384",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1561,7 +1592,8 @@
     },
     "2021-04-02 MSSP Ep. 341 - Juice WRLD": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1739411831.mp3?updated=1740614864",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1739411831.mp3?updated=1740614864",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1739411831.mp3?updated=1740614864",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1573,7 +1605,8 @@
     },
     "2021-04-09 MSSP Ep. 342 - The King Returns": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1453739418.mp3?updated=1740614813",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1453739418.mp3?updated=1740614813",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1453739418.mp3?updated=1740614813",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1585,7 +1618,8 @@
     },
     "2021-04-15 MSSP Ep. 343 - The Death of Shane Gillis": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1280375122.mp3?updated=1740615052",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1280375122.mp3?updated=1740615052",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1280375122.mp3?updated=1740615052",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1597,7 +1631,8 @@
     },
     "2021-04-22 MSSP Ep. 344 - Lemaire Wants to Cuddle": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5559600385.mp3?updated=1740615327",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5559600385.mp3?updated=1740615327",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5559600385.mp3?updated=1740615327",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1609,7 +1644,8 @@
     },
     "2021-04-27 MSSP Ep. 345 - We was Spermz": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4605131803.mp3?updated=1740616584",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4605131803.mp3?updated=1740616584",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4605131803.mp3?updated=1740616584",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1621,7 +1657,8 @@
     },
     "2021-05-06 MSSP Ep. 346 - Operation W.O.K.E.": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3885134006.mp3?updated=1740616711",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3885134006.mp3?updated=1740616711",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3885134006.mp3?updated=1740616711",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1633,7 +1670,8 @@
     },
     "2021-05-14 MSSP Ep. 347 - Swapping Pics": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7593885517.mp3?updated=1740615956",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7593885517.mp3?updated=1740615956",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7593885517.mp3?updated=1740615956",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1645,7 +1683,8 @@
     },
     "2021-05-20 MSSP Ep. 348 - Dragula Returns": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6677063890.mp3?updated=1740616408",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6677063890.mp3?updated=1740616408",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6677063890.mp3?updated=1740616408",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1657,7 +1696,8 @@
     },
     "2021-06-01 MSSP Ep. 349 - LIVE from Magooby's (feat. Billy and Spud)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6151485104.mp3?updated=1740617181",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6151485104.mp3?updated=1740617181",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6151485104.mp3?updated=1740617181",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1669,7 +1709,8 @@
     },
     "2021-06-03 MSSP Ep. 350 - Champagne and Mushrooms (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9269215050.mp3?updated=1740616938",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9269215050.mp3?updated=1740616938",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9269215050.mp3?updated=1740616938",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1681,7 +1722,8 @@
     },
     "2021-06-10 MSSP Ep. 351 - Whorphanage (Feat. Mark Normand)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3204593268.mp3?updated=1740617002",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3204593268.mp3?updated=1740617002",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3204593268.mp3?updated=1740617002",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1693,7 +1735,8 @@
     },
     "2021-06-16 MSSP Ep. 352 - What's his name？ (feat. Joe Derosa)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9801146730.mp3?updated=1740616769",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9801146730.mp3?updated=1740616769",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9801146730.mp3?updated=1740616769",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1705,7 +1748,8 @@
     },
     "2021-06-24 MSSP Ep. 353 - Nap Time": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8908561161.mp3?updated=1740617472",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8908561161.mp3?updated=1740617472",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8908561161.mp3?updated=1740617472",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1717,7 +1761,8 @@
     },
     "2021-06-30 MSSP Ep. 354 - The Industry (feat. Brian Six & Ryan Shaner)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5763744242.mp3?updated=1740617597",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5763744242.mp3?updated=1740617597",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5763744242.mp3?updated=1740617597",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1729,7 +1774,8 @@
     },
     "2021-07-22 MSSP Ep. 355 - What do you Mean by That？ (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9339202783.mp3?updated=1740617710",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9339202783.mp3?updated=1740617710",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9339202783.mp3?updated=1740617710",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1741,7 +1787,8 @@
     },
     "2021-07-29 MSSP Ep. 356 - Fire Tornado (feat. Sam Tallent)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6135657433.mp3?updated=1740617971",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6135657433.mp3?updated=1740617971",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6135657433.mp3?updated=1740617971",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1753,7 +1800,8 @@
     },
     "2021-08-04 MSSP Ep. 357 - DaBaby (feat. Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2410800657.mp3?updated=1740617900",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2410800657.mp3?updated=1740617900",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2410800657.mp3?updated=1740617900",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1765,7 +1813,8 @@
     },
     "2021-08-12 MSSP Ep. 358 - Fauci Ouchie (feat. Mike Recine & Sean McCarthy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7546611314.mp3?updated=1740618130",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7546611314.mp3?updated=1740618130",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7546611314.mp3?updated=1740618130",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1777,7 +1826,8 @@
     },
     "2021-08-22 MSSP Ep. 359 - Cinnamon (feat. Nate Marshall & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5753919563.mp3?updated=1740762540",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5753919563.mp3?updated=1740762540",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5753919563.mp3?updated=1740762540",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1789,7 +1839,8 @@
     },
     "2021-08-26 MSSP Ep. 360 - The Perfect One": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2285302061.mp3?updated=1740618247",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2285302061.mp3?updated=1740618247",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2285302061.mp3?updated=1740618247",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1801,7 +1852,8 @@
     },
     "2021-09-04 MSSP Ep. 361 - Beach ViBeZ": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1719131944.mp3?updated=1740762857",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1719131944.mp3?updated=1740762857",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1719131944.mp3?updated=1740762857",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1813,7 +1865,8 @@
     },
     "2021-09-08 MSSP Ep. 362 - McCusker Fambly Podcast": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8617641447.mp3?updated=1740618898",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8617641447.mp3?updated=1740618898",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8617641447.mp3?updated=1740618898",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1825,7 +1878,8 @@
     },
     "2021-09-15 MSSP Ep. 363 - Australia Does Not Exist (feat. Sidney Gantt & Tim Butterly)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1909084081.mp3?updated=1740619240",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1909084081.mp3?updated=1740619240",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1909084081.mp3?updated=1740619240",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1837,7 +1891,8 @@
     },
     "2021-09-22 MSSP Ep. 364 - Storming the Snackital (feat. Mike Rainey & Jon DelCollo)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2431569250.mp3?updated=1740619234",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2431569250.mp3?updated=1740619234",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2431569250.mp3?updated=1740619234",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1849,7 +1904,8 @@
     },
     "2021-09-30 MSSP Ep. 365 - Weed Guy (feat. Brian Six, Lemaire Lee, and Ryan Shaner)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8757948754.mp3?updated=1740619324",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8757948754.mp3?updated=1740619324",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8757948754.mp3?updated=1740619324",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1861,7 +1917,8 @@
     },
     "2021-10-08 MSSP Ep. 366 - He's Back": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4807200808.mp3?updated=1740619747",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4807200808.mp3?updated=1740619747",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4807200808.mp3?updated=1740619747",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1873,7 +1930,8 @@
     },
     "2021-10-13 MSSP Ep. 367 - Anti-Football (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1077487022.mp3?updated=1740619717",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1077487022.mp3?updated=1740619717",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1077487022.mp3?updated=1740619717",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1885,7 +1943,8 @@
     },
     "2021-10-20 MSSP Ep. 368 - Island BoiZ (feat. Mike Rainey & Tim Butterly)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2261458701.mp3?updated=1740619999",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2261458701.mp3?updated=1740619999",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2261458701.mp3?updated=1740619999",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1897,7 +1956,8 @@
     },
     "2021-10-28 MSSP Ep. 369 - Honeymoon": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1564340535.mp3?updated=1740619822",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1564340535.mp3?updated=1740619822",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1564340535.mp3?updated=1740619822",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1909,7 +1969,8 @@
     },
     "2021-11-11 MSSP Ep. 370 - Gladiator": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6964998223.mp3?updated=1740619906",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6964998223.mp3?updated=1740619906",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6964998223.mp3?updated=1740619906",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1921,7 +1982,8 @@
     },
     "2021-11-17 MSSP Ep. 371 - ... UGH": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4133309579.mp3?updated=1740620038",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4133309579.mp3?updated=1740620038",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4133309579.mp3?updated=1740620038",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1933,7 +1995,8 @@
     },
     "2021-11-29 MSSP Ep. 372 - Matt and Shane's Copyright Safe Podcast": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7678369735.mp3?updated=1740620247",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7678369735.mp3?updated=1740620247",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7678369735.mp3?updated=1740620247",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1945,7 +2008,8 @@
     },
     "2021-12-07 MSSP Ep. 373 - Strictly Business (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8282068748.mp3?updated=1740620339",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8282068748.mp3?updated=1740620339",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8282068748.mp3?updated=1740620339",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1957,7 +2021,8 @@
     },
     "2021-12-14 MSSP Ep. 374 - Willard Smith": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5739451144.mp3?updated=1740620283",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5739451144.mp3?updated=1740620283",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5739451144.mp3?updated=1740620283",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1969,7 +2034,8 @@
     },
     "2021-12-30 MSSP Ep. 376 - The Sponge (feat. Chris O'Connor & Tommy Pope)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8231777708.mp3?updated=1740620502",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8231777708.mp3?updated=1740620502",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8231777708.mp3?updated=1740620502",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1981,7 +2047,8 @@
     },
     "2022-01-05 MSSP Ep. 377 - The Plague": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3040531643.mp3?updated=1740676664",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3040531643.mp3?updated=1740676664",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3040531643.mp3?updated=1740676664",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -1993,7 +2060,8 @@
     },
     "2022-01-13 MSSP Ep. 378 - Jeep Ka Ping (feat. Tim Butterly & Sidney Gantt)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2167576832.mp3?updated=1740676938",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2167576832.mp3?updated=1740676938",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2167576832.mp3?updated=1740676938",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2005,7 +2073,8 @@
     },
     "2022-01-18 MSSP Ep. 379 - Hogs Gone Wild (feat. Tommy Pope)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2043247158.mp3?updated=1740677598",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2043247158.mp3?updated=1740677598",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2043247158.mp3?updated=1740677598",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2017,7 +2086,8 @@
     },
     "2022-01-26 MSSP Ep. 380 - Lobster Man (feat. Francis Ellis)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8291535933.mp3?updated=1740677687",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8291535933.mp3?updated=1740677687",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8291535933.mp3?updated=1740677687",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2029,7 +2099,8 @@
     },
     "2022-02-01 MSSP Ep. 381 - Pakistan In The Bag": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1284876897.mp3?updated=1740677458",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1284876897.mp3?updated=1740677458",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1284876897.mp3?updated=1740677458",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2041,7 +2112,8 @@
     },
     "2022-02-09 MSSP Ep. 382 - The Easter Ham (feat. Brian Six)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3234312449.mp3?updated=1740677773",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3234312449.mp3?updated=1740677773",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3234312449.mp3?updated=1740677773",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2053,7 +2125,8 @@
     },
     "2022-02-16 MSSP Ep. 383 - The Lone Pieman": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9860374715.mp3?updated=1740677732",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9860374715.mp3?updated=1740677732",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9860374715.mp3?updated=1740677732",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2065,7 +2138,8 @@
     },
     "2022-02-23 MSSP Ep. 384 - Justin From Canada": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9677801679.mp3?updated=1740679266",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9677801679.mp3?updated=1740679266",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9677801679.mp3?updated=1740679266",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2077,7 +2151,8 @@
     },
     "2022-03-02 MSSP Ep. 385 - Master Chief Ferrari Truck (feat. LeMaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3402756131.mp3?updated=1740679030",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3402756131.mp3?updated=1740679030",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3402756131.mp3?updated=1740679030",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2089,7 +2164,8 @@
     },
     "2022-03-08 MSSP Ep. 386 - Cursed Is The Man (feat. Mike Rainey, Jon Delcollo, & Charles Blyzniuk)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7498175307.mp3?updated=1740679344",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7498175307.mp3?updated=1740679344",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7498175307.mp3?updated=1740679344",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2101,7 +2177,8 @@
     },
     "2022-03-16 MSSP Ep. 387 - Promise Me (feat. Ryan Long)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9191549069.mp3?updated=1740679381",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9191549069.mp3?updated=1740679381",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9191549069.mp3?updated=1740679381",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2113,7 +2190,8 @@
     },
     "2022-03-23 MSSP Ep. 388 - The Spirit Of Lesbos (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2500035387.mp3?updated=1740679538",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2500035387.mp3?updated=1740679538",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2500035387.mp3?updated=1740679538",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2125,7 +2203,8 @@
     },
     "2022-03-30 MSSP Ep. 389 - The Franklin Scandal (feat. Nick Bryant)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6028150171.mp3?updated=1740679987",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6028150171.mp3?updated=1740679987",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6028150171.mp3?updated=1740679987",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2137,7 +2216,8 @@
     },
     "2022-04-05 MSSP Ep. 390 - Spider-Man Jump": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3903373739.mp3?updated=1740680017",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3903373739.mp3?updated=1740680017",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3903373739.mp3?updated=1740680017",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2149,7 +2229,8 @@
     },
     "2022-04-12 MSSP Ep. 391 - Supa Gremlin": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2678233636.mp3?updated=1740679776",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2678233636.mp3?updated=1740679776",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2678233636.mp3?updated=1740679776",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2161,7 +2242,8 @@
     },
     "2022-04-27 MSSP Ep. 393 - The Presidents (feat. Louis C.K.)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9769909753.mp3?updated=1740680788",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9769909753.mp3?updated=1740680788",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9769909753.mp3?updated=1740680788",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2173,7 +2255,8 @@
     },
     "2022-05-11 MSSP Ep. 394 - McCusker Fambly Fuckjob (feat. Swim, Spud, & Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8384885806.mp3?updated=1740680860",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8384885806.mp3?updated=1740680860",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8384885806.mp3?updated=1740680860",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2185,7 +2268,8 @@
     },
     "2022-05-23 MSSP Ep. 395 - Partied Out (feat. Burke)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1692532316.mp3?updated=1740681143",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1692532316.mp3?updated=1740681143",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1692532316.mp3?updated=1740681143",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2197,7 +2281,8 @@
     },
     "2022-05-27 MSSP Ep. 396 - ProtoSpace (feat. SWIM)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5470724642.mp3?updated=1740681227",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5470724642.mp3?updated=1740681227",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5470724642.mp3?updated=1740681227",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2209,7 +2294,8 @@
     },
     "2022-06-06 MSSP Ep. 397 - The Heart of Straightness": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5874003828.mp3?updated=1740681182",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5874003828.mp3?updated=1740681182",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5874003828.mp3?updated=1740681182",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2221,7 +2307,8 @@
     },
     "2022-06-15 MSSP Ep. 398 - The Enantiodromia of Vietnam (feat. Colin Quinn)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5855550495.mp3?updated=1740681686",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5855550495.mp3?updated=1740681686",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5855550495.mp3?updated=1740681686",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2233,7 +2320,8 @@
     },
     "2022-06-22 MSSP Ep. 399 - Urkel's Dong (feat. LeMaire Lee & David James)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9108710127.mp3?updated=1740681584",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9108710127.mp3?updated=1740681584",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9108710127.mp3?updated=1740681584",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2245,7 +2333,8 @@
     },
     "2022-06-29 MSSP Ep. 400 - Partying With Girls": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9250437898.mp3?updated=1740681851",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9250437898.mp3?updated=1740681851",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9250437898.mp3?updated=1740681851",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2257,7 +2346,8 @@
     },
     "2022-07-06 MSSP Ep. 401 - Home Of The Free": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1783641363.mp3?updated=1740681771",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1783641363.mp3?updated=1740681771",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1783641363.mp3?updated=1740681771",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2269,7 +2359,8 @@
     },
     "2022-07-13 MSSP Ep. 402 - Cat Ass Fever": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3180547034.mp3?updated=1740681867",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3180547034.mp3?updated=1740681867",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3180547034.mp3?updated=1740681867",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2281,7 +2372,8 @@
     },
     "2022-07-20 MSSP Ep. 403 - Reverse Soccer Karate (feat. Nick Mullen & Adam Friedland)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8333733213.mp3?updated=1740682422",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8333733213.mp3?updated=1740682422",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8333733213.mp3?updated=1740682422",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2293,7 +2385,8 @@
     },
     "2022-07-27 MSSP Ep. 404 - Gut Busted": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7224084612.mp3?updated=1740682194",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7224084612.mp3?updated=1740682194",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7224084612.mp3?updated=1740682194",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2305,7 +2398,8 @@
     },
     "2022-08-19 MSSP Ep. 405 - Free Manti (feat. WARMODE)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4041049125.mp3?updated=1740682717",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4041049125.mp3?updated=1740682717",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4041049125.mp3?updated=1740682717",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2317,7 +2411,8 @@
     },
     "2022-08-25 MSSP Ep. 406 - Sneak Attack (feat. Stuff Island)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6758787843.mp3?updated=1740682415",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6758787843.mp3?updated=1740682415",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6758787843.mp3?updated=1740682415",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2329,7 +2424,8 @@
     },
     "2022-09-01 MSSP Ep. 407 - SUDs (feat. SWIM & Dru Montana)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5268835541.mp3?updated=1740682621",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5268835541.mp3?updated=1740682621",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5268835541.mp3?updated=1740682621",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2341,7 +2437,8 @@
     },
     "2022-09-07 MSSP Ep. 408 - Boy Shit": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5148888548.mp3?updated=1740683684",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5148888548.mp3?updated=1740683684",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5148888548.mp3?updated=1740683684",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2353,7 +2450,8 @@
     },
     "2022-09-17 MSSP Ep. 409 - Everything is Sweet": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1816424093.mp3?updated=1740683742",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1816424093.mp3?updated=1740683742",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1816424093.mp3?updated=1740683742",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2365,7 +2463,8 @@
     },
     "2022-09-22 MSSP Ep. 410 - Sensual Delight": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9958264770.mp3?updated=1740684027",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9958264770.mp3?updated=1740684027",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9958264770.mp3?updated=1740684027",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2377,7 +2476,8 @@
     },
     "2022-09-29 MSSP Ep. 411 - KIA Boyz (feat. Danny Brown & LeMaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6391596505.mp3?updated=1740684202",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6391596505.mp3?updated=1740684202",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6391596505.mp3?updated=1740684202",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2389,7 +2489,8 @@
     },
     "2022-10-05 MSSP Ep. 412 - Rookie of the Year (feat. Rone)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7351731954.mp3?updated=1740684439",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7351731954.mp3?updated=1740684439",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7351731954.mp3?updated=1740684439",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2401,7 +2502,8 @@
     },
     "2022-10-12 MSSP Ep. 413 - King Of The Games (feat. Lil Sasquatch)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7073759578.mp3?updated=1740684735",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7073759578.mp3?updated=1740684735",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7073759578.mp3?updated=1740684735",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2413,7 +2515,8 @@
     },
     "2022-10-19 MSSP Ep. 414 - The Winter of '87": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6613523241.mp3?updated=1740684752",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6613523241.mp3?updated=1740684752",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6613523241.mp3?updated=1740684752",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2425,7 +2528,8 @@
     },
     "2022-10-26 MSSP Ep. 415 - Simps and Pimps (feat. Ari Shaffir & James McCann)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2657781302.mp3?updated=1740684873",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2657781302.mp3?updated=1740684873",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2657781302.mp3?updated=1740684873",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2437,7 +2541,8 @@
     },
     "2022-11-02 MSSP Ep. 416 - 2 Fly To Die": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3073356290.mp3?updated=1740685046",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3073356290.mp3?updated=1740685046",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3073356290.mp3?updated=1740685046",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2449,7 +2554,8 @@
     },
     "2022-11-11 MSSP Ep. 417 - Orc King (feat. Adam Eget)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5703910436.mp3?updated=1740685249",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5703910436.mp3?updated=1740685249",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5703910436.mp3?updated=1740685249",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2461,7 +2567,8 @@
     },
     "2022-11-16 MSSP Ep. 418 - Street Jokin'": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8034992440.mp3?updated=1740685347",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8034992440.mp3?updated=1740685347",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8034992440.mp3?updated=1740685347",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2473,7 +2580,8 @@
     },
     "2022-11-24 MSSP Ep. 419 - Simposium (feat. WARMODE)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4603053356.mp3?updated=1740685532",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4603053356.mp3?updated=1740685532",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4603053356.mp3?updated=1740685532",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2485,7 +2593,8 @@
     },
     "2022-11-30 MSSP Ep. 420 - The Future of Streaming is Now": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3080981617.mp3?updated=1740685739",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3080981617.mp3?updated=1740685739",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3080981617.mp3?updated=1740685739",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2497,7 +2606,8 @@
     },
     "2022-12-08 MSSP Ep. 421 - Birthday Party (feat. Tim Butterly & Mike Rainey)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4703087844.mp3?updated=1740686430",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4703087844.mp3?updated=1740686430",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4703087844.mp3?updated=1740686430",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2509,7 +2619,8 @@
     },
     "2022-12-23 MSSP Ep. 422 - The Professional (feat. Billy McCusker)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8390593577.mp3?updated=1740686759",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8390593577.mp3?updated=1740686759",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8390593577.mp3?updated=1740686759",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2521,7 +2632,8 @@
     },
     "2022-12-28 MSSP Ep. 423 - Young Slime League": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6913525878.mp3?updated=1740686717",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6913525878.mp3?updated=1740686717",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6913525878.mp3?updated=1740686717",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2533,7 +2645,8 @@
     },
     "2023-01-05 MSSP Ep. 424 - Tick and Slug (feat. Robert Kelly)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9150301974.mp3?updated=1740686934",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9150301974.mp3?updated=1740686934",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9150301974.mp3?updated=1740686934",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2545,7 +2658,8 @@
     },
     "2023-01-12 MSSP Ep. 425 - Traumatizing Rizz (feat. WARMODE & Rone)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1930501856.mp3?updated=1740687061",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1930501856.mp3?updated=1740687061",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1930501856.mp3?updated=1740687061",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2557,7 +2671,8 @@
     },
     "2023-01-18 MSSP Ep. 426 - Blessed": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2350237687.mp3?updated=1740687166",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2350237687.mp3?updated=1740687166",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2350237687.mp3?updated=1740687166",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2569,7 +2684,8 @@
     },
     "2023-01-27 MSSP Ep. 427 - Mentalizm (feat. Oz Pearlman, Lemaire Lee, & Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1879488895.mp3?updated=1740687226",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1879488895.mp3?updated=1740687226",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1879488895.mp3?updated=1740687226",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2581,7 +2697,8 @@
     },
     "2023-02-01 MSSP Ep. 428 - 2 Coffee Shane ： Business Genius": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9657803241.mp3?updated=1740687515",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9657803241.mp3?updated=1740687515",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9657803241.mp3?updated=1740687515",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2593,7 +2710,8 @@
     },
     "2023-02-08 MSSP Ep. 429 - The YouKnowWho's & YouKnowWhat's (feat. Rob Crews, Naim Ali, and Dru Montana)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1056421306.mp3?updated=1740688575",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1056421306.mp3?updated=1740688575",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1056421306.mp3?updated=1740688575",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2605,7 +2723,8 @@
     },
     "2023-02-17 MSSP Ep. 430 - The Stupor Bowl (Feat. Dan Soder & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1686200811.mp3?updated=1740688021",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1686200811.mp3?updated=1740688021",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1686200811.mp3?updated=1740688021",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2617,7 +2736,8 @@
     },
     "2023-02-26 MSSP Ep. 431 - Kroonin' Wit My Daddy (feat. Joe Derosa)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8413497402.mp3?updated=1740687740",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8413497402.mp3?updated=1740687740",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8413497402.mp3?updated=1740687740",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2629,7 +2749,8 @@
     },
     "2023-03-01 MSSP Ep. 432 - Dong Lemón (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5904034505.mp3?updated=1740688094",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5904034505.mp3?updated=1740688094",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5904034505.mp3?updated=1740688094",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2641,7 +2762,8 @@
     },
     "2023-03-08 MSSP Ep. 433 - PUMP (feat. Francis Ellis)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8260332385.mp3?updated=1740763133",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8260332385.mp3?updated=1740763133",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8260332385.mp3?updated=1740763133",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2653,7 +2775,8 @@
     },
     "2023-03-15 MSSP Ep. 434 - Razzle Dazzle (feat. Bert Kreischer)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5489947569.mp3?updated=1740688844",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5489947569.mp3?updated=1740688844",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5489947569.mp3?updated=1740688844",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2665,7 +2788,8 @@
     },
     "2023-03-23 MSSP Ep. 435 - Cedar Fever": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7573808952.mp3?updated=1740688969",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7573808952.mp3?updated=1740688969",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7573808952.mp3?updated=1740688969",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2677,7 +2801,8 @@
     },
     "2023-03-29 MSSP Ep. 436 - Ample Men (feat. Sam Tallent)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1456862515.mp3?updated=1740689201",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1456862515.mp3?updated=1740689201",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1456862515.mp3?updated=1740689201",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2689,7 +2814,8 @@
     },
     "2023-04-05 MSSP Ep. 437 - We Got Guys": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9236719846.mp3?updated=1740689291",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9236719846.mp3?updated=1740689291",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9236719846.mp3?updated=1740689291",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2701,7 +2827,8 @@
     },
     "2023-04-14 MSSP Ep. 438 - Full Zordon": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7208246447.mp3?updated=1740689644",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7208246447.mp3?updated=1740689644",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7208246447.mp3?updated=1740689644",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2713,7 +2840,8 @@
     },
     "2023-04-19 MSSP Ep. 439 - Poky Puppy (feat. Mark Normand)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5277420140.mp3?updated=1740689808",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5277420140.mp3?updated=1740689808",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5277420140.mp3?updated=1740689808",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2725,7 +2853,8 @@
     },
     "2023-04-26 MSSP Ep. 440 - A Very Interesting Molecule": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8961174855.mp3?updated=1740689841",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8961174855.mp3?updated=1740689841",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8961174855.mp3?updated=1740689841",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2737,7 +2866,8 @@
     },
     "2023-05-03 MSSP Ep. 441 - B.L.A.D.E.Z. (feat. Chris O'Connor & Tommy Pope)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4854764700.mp3?updated=1740689972",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4854764700.mp3?updated=1740689972",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4854764700.mp3?updated=1740689972",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2749,7 +2879,8 @@
     },
     "2023-05-10 MSSP Ep. 442 - The Devil's Day": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4958430363.mp3?updated=1740690198",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4958430363.mp3?updated=1740690198",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4958430363.mp3?updated=1740690198",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2761,7 +2892,8 @@
     },
     "2023-05-17 MSSP Ep. 443 - The Disgusting Brothers": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4346932328.mp3?updated=1740694130",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4346932328.mp3?updated=1740694130",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4346932328.mp3?updated=1740694130",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2773,7 +2905,8 @@
     },
     "2023-05-21 MSSP Ep. 444 - The Draven (feat. Danny McBride)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6482032518.mp3?updated=1740693940",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6482032518.mp3?updated=1740693940",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6482032518.mp3?updated=1740693940",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2785,7 +2918,8 @@
     },
     "2023-05-24 MSSP Ep. 445 - Skrimps (feat. Will Compton)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9233331123.mp3?updated=1740693906",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9233331123.mp3?updated=1740693906",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9233331123.mp3?updated=1740693906",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2797,7 +2931,8 @@
     },
     "2023-05-31 MSSP Ep. 446 - Butts (feat. Anthony Moore)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1681508869.mp3?updated=1740693724",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1681508869.mp3?updated=1740693724",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1681508869.mp3?updated=1740693724",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2809,7 +2944,8 @@
     },
     "2023-06-07 MSSP Ep. 447 - Brewski Tumble": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8321898898.mp3?updated=1740693419",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8321898898.mp3?updated=1740693419",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8321898898.mp3?updated=1740693419",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2821,7 +2957,8 @@
     },
     "2023-06-14 MSSP Ep. 448 - Complic8ed (feat. Kevin Iso)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4951604425.mp3?updated=1740521866",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4951604425.mp3?updated=1740521866",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4951604425.mp3?updated=1740521866",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2833,7 +2970,8 @@
     },
     "2023-06-21 MSSP Ep. 449 - 2 Cool 4 Home School (feat. Lil Sasquatch)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8050904312.mp3?updated=1740521847",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8050904312.mp3?updated=1740521847",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8050904312.mp3?updated=1740521847",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2845,7 +2983,8 @@
     },
     "2023-06-29 MSSP Ep. 450 - Muscle Mommies (feat. Nate Marshall & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2397578311.mp3?updated=1740521614",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2397578311.mp3?updated=1740521614",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2397578311.mp3?updated=1740521614",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2857,7 +2996,8 @@
     },
     "2023-07-06 MSSP Ep. 451 - Damn Things Fine (feat. Tom Segura)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3237713887.mp3?updated=1740521391",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3237713887.mp3?updated=1740521391",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3237713887.mp3?updated=1740521391",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2869,7 +3009,8 @@
     },
     "2023-07-13 MSSP Ep. 452 - Heinie Burp Culture": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7928716218.mp3?updated=1740521297",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7928716218.mp3?updated=1740521297",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7928716218.mp3?updated=1740521297",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2881,7 +3022,8 @@
     },
     "2023-07-26 MSSP Ep. 453 - Tough Guy Heaven": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9859483689.mp3?updated=1740520967",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9859483689.mp3?updated=1740520967",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9859483689.mp3?updated=1740520967",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2893,7 +3035,8 @@
     },
     "2023-08-02 MSSP Ep. 454 - Sedona (feat. Dan Soder & Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3653697308.mp3?updated=1740520865",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3653697308.mp3?updated=1740520865",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3653697308.mp3?updated=1740520865",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2905,7 +3048,8 @@
     },
     "2023-08-09 MSSP Ep. 455 - Heebie Jeebies": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3954870099.mp3?updated=1740520606",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3954870099.mp3?updated=1740520606",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3954870099.mp3?updated=1740520606",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2917,7 +3061,8 @@
     },
     "2023-08-16 MSSP Ep. 456 - Red Power God (tier 2)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5545546673.mp3?updated=1740520691",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5545546673.mp3?updated=1740520691",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5545546673.mp3?updated=1740520691",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2929,7 +3074,8 @@
     },
     "2023-08-26 MSSP Ep. 457 - Honey Dipz (feat. Tim Butterly & Naim Ali)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3228771189.mp3?updated=1740520451",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3228771189.mp3?updated=1740520451",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3228771189.mp3?updated=1740520451",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2941,7 +3087,8 @@
     },
     "2023-09-07 MSSP Ep. 458 - Sparkle and Play (feat. Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4672785317.mp3?updated=1740520220",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4672785317.mp3?updated=1740520220",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4672785317.mp3?updated=1740520220",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2953,7 +3100,8 @@
     },
     "2023-09-14 MSSP Ep. 459 - Wett Spesh (feat. Colum Tyrrell)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5818020360.mp3?updated=1740519905",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5818020360.mp3?updated=1740519905",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5818020360.mp3?updated=1740519905",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2965,7 +3113,8 @@
     },
     "2023-09-19 MSSP Ep. 460 - Snack Pack (feat. Rich Vos)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9479949610.mp3?updated=1740519639",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9479949610.mp3?updated=1740519639",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9479949610.mp3?updated=1740519639",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2977,7 +3126,8 @@
     },
     "2023-10-06 MSSP Ep. 462 - Protect Our Dawg Parks (feat. Mark Normand & Ari Shaffir)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6327452051.mp3?updated=1740519358",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6327452051.mp3?updated=1740519358",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6327452051.mp3?updated=1740519358",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -2989,7 +3139,8 @@
     },
     "2023-10-11 MSSP Ep. 463 - Cedar Point (feat. Tony Hinchcliffe)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2266383105.mp3?updated=1740519175",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2266383105.mp3?updated=1740519175",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2266383105.mp3?updated=1740519175",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3001,7 +3152,8 @@
     },
     "2023-10-19 MSSP Ep. 464 - Not A Fireside Chat": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2316640136.mp3?updated=1740518696",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2316640136.mp3?updated=1740518696",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2316640136.mp3?updated=1740518696",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3013,7 +3165,8 @@
     },
     "2023-10-26 MSSP Ep. 465 - The Prestigious Award": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1123883106.mp3?updated=1740518684",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1123883106.mp3?updated=1740518684",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1123883106.mp3?updated=1740518684",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3025,7 +3178,8 @@
     },
     "2023-11-02 MSSP Ep. 466 - Daddy's D": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5393181141.mp3?updated=1740518331",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5393181141.mp3?updated=1740518331",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5393181141.mp3?updated=1740518331",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3037,7 +3191,8 @@
     },
     "2023-11-17 MSSP Ep. 468 - Real Deal": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5791310477.mp3?updated=1740517991",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5791310477.mp3?updated=1740517991",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5791310477.mp3?updated=1740517991",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3049,7 +3204,8 @@
     },
     "2023-11-22 MSSP Ep. 469 - Joesthetics (feat. WARMODE)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3863040967.mp3?updated=1740517945",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3863040967.mp3?updated=1740517945",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3863040967.mp3?updated=1740517945",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3061,7 +3217,8 @@
     },
     "2023-11-29 MSSP Ep. 470 - The Montauk Monster (feat. Tim Dillon)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1849830317.mp3?updated=1740517586",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1849830317.mp3?updated=1740517586",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1849830317.mp3?updated=1740517586",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3073,7 +3230,8 @@
     },
     "2023-12-07 MSSP Ep. 471 - Introspective Bad Ass (feat. Tommy Pope)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6910690099.mp3?updated=1740517300",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6910690099.mp3?updated=1740517300",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6910690099.mp3?updated=1740517300",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3085,7 +3243,8 @@
     },
     "2023-12-13 MSSP Ep. 472 - Howard and Sam's Secret Podcast (feat. Howie Mandel & Sam Tallent)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9154395206.mp3?updated=1740517383",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9154395206.mp3?updated=1740517383",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9154395206.mp3?updated=1740517383",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3097,7 +3256,8 @@
     },
     "2023-12-22 MSSP Ep. 473 - Sister's Hot Dog (feat. Duncan Trussell)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7557909818.mp3?updated=1740514558",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7557909818.mp3?updated=1740514558",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7557909818.mp3?updated=1740514558",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3109,7 +3269,8 @@
     },
     "2023-12-31 MSSP Ep. 474 - Lemaire's Long Haul (feat. Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8980296782.mp3?updated=1740516734",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8980296782.mp3?updated=1740516734",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8980296782.mp3?updated=1740516734",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3121,7 +3282,8 @@
     },
     "2024-01-04 MSSP Ep. 475 - Jucy Snooze (feat. James Donald Forbes McCann)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1489273616.mp3?updated=1740536594",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1489273616.mp3?updated=1740536594",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1489273616.mp3?updated=1740536594",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3133,7 +3295,8 @@
     },
     "2024-01-09 MSSP Ep. 476 - Blonkies (feat. Theo Von)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8089608196.mp3?updated=1740536263",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8089608196.mp3?updated=1740536263",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8089608196.mp3?updated=1740536263",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3145,7 +3308,8 @@
     },
     "2024-01-17 MSSP Ep. 477 - Father God (feat. Cole Beasley)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8906921903.mp3?updated=1740535626",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8906921903.mp3?updated=1740535626",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8906921903.mp3?updated=1740535626",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3157,7 +3321,8 @@
     },
     "2024-01-24 MSSP Ep. 478 - Gone Boy (feat. Jon DelCollo)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1498331549.mp3?updated=1740535018",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1498331549.mp3?updated=1740535018",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1498331549.mp3?updated=1740535018",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3169,7 +3334,8 @@
     },
     "2024-01-31 MSSP Ep. 479 - Red Team Vs. Black Team (feat. Lemaire Lee, Nate Marshall, & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5911019078.mp3?updated=1740534424",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5911019078.mp3?updated=1740534424",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5911019078.mp3?updated=1740534424",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3181,7 +3347,8 @@
     },
     "2024-02-07 MSSP Ep. 480 - R.I.P. Tybalt (feat. Luis J. Gomez)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4525841060.mp3?updated=1740533940",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4525841060.mp3?updated=1740533940",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4525841060.mp3?updated=1740533940",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3193,7 +3360,8 @@
     },
     "2024-02-16 MSSP Ep. 481 - Kingdom Of The Planet Of The Apes": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2376718147.mp3?updated=1740533492",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2376718147.mp3?updated=1740533492",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2376718147.mp3?updated=1740533492",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3205,7 +3373,8 @@
     },
     "2024-02-21 MSSP Ep. 482 - Creamed Out (feat. Lemaire Lee & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1992711130.mp3?updated=1740532569",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1992711130.mp3?updated=1740532569",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1992711130.mp3?updated=1740532569",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3217,7 +3386,8 @@
     },
     "2024-02-29 MSSP Ep. 483 - The Inteligencia (feat. Casey Rocket, Lemaire Lee, & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4250348228.mp3?updated=1740531016",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4250348228.mp3?updated=1740531016",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4250348228.mp3?updated=1740531016",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3229,7 +3399,8 @@
     },
     "2024-03-05 MSSP Ep. 484 - Bad Boyz 4 Lyfe (feat. Dan Soder)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8497795161.mp3?updated=1740529284",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8497795161.mp3?updated=1740529284",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8497795161.mp3?updated=1740529284",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3241,7 +3412,8 @@
     },
     "2024-03-13 MSSP Ep. 485 - Twenty Second Blast (feat. Simon Rex)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8651952255.mp3?updated=1740528909",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8651952255.mp3?updated=1740528909",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8651952255.mp3?updated=1740528909",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3253,7 +3425,8 @@
     },
     "2024-03-25 MSSP Ep. 486 - Seven Parrots (feat. Dave Attell, Ian Fidance, & Tommy Pope)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4139130423.mp3?updated=1740528526",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4139130423.mp3?updated=1740528526",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4139130423.mp3?updated=1740528526",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3265,7 +3438,8 @@
     },
     "2024-03-28 MSSP Ep. 487 - Sus Patrol": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1355347426.mp3?updated=1740527587",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1355347426.mp3?updated=1740527587",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1355347426.mp3?updated=1740527587",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3277,7 +3451,8 @@
     },
     "2024-04-04 MSSP Ep. 488 - The Spirit of Pearl Jam (feat. Andrew Callaghan)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4826819438.mp3?updated=1740527240",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4826819438.mp3?updated=1740527240",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4826819438.mp3?updated=1740527240",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3289,7 +3464,8 @@
     },
     "2024-04-11 MSSP Ep. 489 - The Council": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9491301494.mp3?updated=1740527014",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9491301494.mp3?updated=1740527014",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9491301494.mp3?updated=1740527014",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3301,7 +3477,8 @@
     },
     "2024-04-17 MSSP Ep. 490 - The Truth About Watergate (feat. Nick Bryant)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2653978275.mp3?updated=1740527245",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2653978275.mp3?updated=1740527245",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2653978275.mp3?updated=1740527245",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3313,7 +3490,8 @@
     },
     "2024-04-25 MSSP Ep. 491 - Who Piped Carl Winslow ？ (feat. James Mccann, Lemaire Lee, & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7561977001.mp3?updated=1740525312",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7561977001.mp3?updated=1740525312",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7561977001.mp3?updated=1740525312",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3325,7 +3503,8 @@
     },
     "2024-05-02 MSSP Ep. 492 - Dog Breed Info": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8324415932.mp3?updated=1740524706",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8324415932.mp3?updated=1740524706",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8324415932.mp3?updated=1740524706",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3337,7 +3516,8 @@
     },
     "2024-05-10 MSSP Ep. 493 - Free to Tuck": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3647771076.mp3?updated=1740519402",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3647771076.mp3?updated=1740519402",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3647771076.mp3?updated=1740519402",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3349,7 +3529,8 @@
     },
     "2024-05-14 MSSP Ep. 494 - RFK (feat. Robert F. Kennedy Jr.)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1762364928.mp3?updated=1740518907",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1762364928.mp3?updated=1740518907",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1762364928.mp3?updated=1740518907",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3361,7 +3542,8 @@
     },
     "2024-05-23 MSSP Ep. 495 - Pod-Cast Away": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8998824659.mp3?updated=1740518458",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8998824659.mp3?updated=1740518458",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8998824659.mp3?updated=1740518458",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3373,7 +3555,8 @@
     },
     "2024-05-29 MSSP Ep. 496 - Fast Shooters (feat. Sam Tallent)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9328902503.mp3?updated=1740517256",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9328902503.mp3?updated=1740517256",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9328902503.mp3?updated=1740517256",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3385,7 +3568,8 @@
     },
     "2024-06-04 MSSP Ep. 497 - Jam The Brakes (feat. Sal Vulcano & Luis J. Gomez)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5955194389.mp3?updated=1740514875",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5955194389.mp3?updated=1740514875",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5955194389.mp3?updated=1740514875",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3397,7 +3581,8 @@
     },
     "2024-06-10 MSSP Ep. 498 - Dedicated Lovers (feat. Adam22)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3169631040.mp3?updated=1740514498",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3169631040.mp3?updated=1740514498",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3169631040.mp3?updated=1740514498",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3409,7 +3594,8 @@
     },
     "2024-06-18 MSSP Ep. 499 - Revenge Body": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1159777102.mp3?updated=1740511643",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1159777102.mp3?updated=1740511643",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1159777102.mp3?updated=1740511643",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3421,7 +3607,8 @@
     },
     "2024-06-26 MSSP Ep. 500 - Inside Out (feat. David Jolly, Lemaire Lee & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3235530998.mp3?updated=1740471520",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3235530998.mp3?updated=1740471520",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3235530998.mp3?updated=1740471520",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3433,7 +3620,8 @@
     },
     "2024-07-03 MSSP Ep. 501 - Daddy Tuah": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6282240090.mp3?updated=1740449947",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6282240090.mp3?updated=1740449947",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6282240090.mp3?updated=1740449947",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3445,7 +3633,8 @@
     },
     "2024-07-09 MSSP Ep. 502 - Meeting the Wizard": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5117323511.mp3?updated=1740448874",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5117323511.mp3?updated=1740448874",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5117323511.mp3?updated=1740448874",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3457,7 +3646,8 @@
     },
     "2024-07-20 MSSP Ep. 503 - The Male Member (feat. Janus Bifrons)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5132450980.mp3?updated=1740445199",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5132450980.mp3?updated=1740445199",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5132450980.mp3?updated=1740445199",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3469,7 +3659,8 @@
     },
     "2024-07-23 MSSP Ep. 504 - Reggie and Steve (feat. Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3945904627.mp3?updated=1740444245",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3945904627.mp3?updated=1740444245",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3945904627.mp3?updated=1740444245",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3481,7 +3672,8 @@
     },
     "2024-08-02 MSSP Ep. 505 - Pepsi Country (feat. Billy & Spud)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4725461367.mp3?updated=1740470452",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4725461367.mp3?updated=1740470452",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4725461367.mp3?updated=1740470452",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3493,7 +3685,8 @@
     },
     "2024-08-05 MSSP Ep. 506 - King Marcus (feat. Marcus King)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4896274881.mp3?updated=1740470483",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4896274881.mp3?updated=1740470483",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4896274881.mp3?updated=1740470483",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3505,7 +3698,8 @@
     },
     "2024-08-09 MSSP Ep. 507 - Nakey Vacation (feat. Billy, Spud, & Charles Blyzniuk)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4293844880.mp3?updated=1740443996",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4293844880.mp3?updated=1740443996",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4293844880.mp3?updated=1740443996",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3517,7 +3711,8 @@
     },
     "2024-08-12 MSSP Ep. 508 - N.A. Beerz (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6319285794.mp3?updated=1740443497",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6319285794.mp3?updated=1740443497",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6319285794.mp3?updated=1740443497",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3529,7 +3724,8 @@
     },
     "2024-08-20 MSSP Ep. 509 - Butt Spazz (feat. SWIM, Billy, & Spud)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5547648959.mp3?updated=1740443024",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5547648959.mp3?updated=1740443024",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5547648959.mp3?updated=1740443024",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3541,7 +3737,8 @@
     },
     "2024-08-26 MSSP Ep. 510 - G.O.U.T.E.D. (feat. Lil Stinkers)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4528394447.mp3?updated=1740442280",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4528394447.mp3?updated=1740442280",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4528394447.mp3?updated=1740442280",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3553,7 +3750,8 @@
     },
     "2024-08-29 MSSP Ep. 511 - FitzDAWG (feat. Greg Fitzsimmons)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6563727375.mp3?updated=1740441455",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6563727375.mp3?updated=1740441455",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6563727375.mp3?updated=1740441455",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3565,7 +3763,8 @@
     },
     "2024-09-03 MSSP Ep. 512 - Crooked Smile (feat. Jared Klickstein)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2282387614.mp3?updated=1769024320",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2282387614.mp3?updated=1769024320",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2282387614.mp3?updated=1769024320",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3577,7 +3776,8 @@
     },
     "2024-09-04 MSSP Ep. 513 - 311 (feat. Nick Hexum & S.A. Martinez)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1895126048.mp3?updated=1740439119",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1895126048.mp3?updated=1740439119",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1895126048.mp3?updated=1740439119",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3589,7 +3789,8 @@
     },
     "2024-09-09 MSSP Ep. 514 - Back Together Yay (feat. WARMODE)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8852013888.mp3?updated=1740433551",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8852013888.mp3?updated=1740433551",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8852013888.mp3?updated=1740433551",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3601,7 +3802,8 @@
     },
     "2024-09-12 MSSP Ep. 515 - Lol @ The Unc (feat. Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8031928702.mp3?updated=1740433004",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8031928702.mp3?updated=1740433004",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8031928702.mp3?updated=1740433004",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3613,7 +3815,8 @@
     },
     "2024-09-17 MSSP Ep. 516 - Gloom Flower (feat. Sam Tallent, Lemaire Lee, & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6042418501.mp3?updated=1740432304",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6042418501.mp3?updated=1740432304",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6042418501.mp3?updated=1740432304",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3625,7 +3828,8 @@
     },
     "2024-09-19 MSSP Ep. 517 - Confessions of a Black Conservative (feat. Glenn Loury)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7884372252.mp3?updated=1740762742",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7884372252.mp3?updated=1740762742",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7884372252.mp3?updated=1740762742",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3637,7 +3841,8 @@
     },
     "2024-09-22 MSSP Ep. 518 - Daddy's Home (feat. Steve Gerben & Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1854388086.mp3?updated=1740762705",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1854388086.mp3?updated=1740762705",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1854388086.mp3?updated=1740762705",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3649,7 +3854,8 @@
     },
     "2024-09-26 MSSP Ep. 519 - Percs and Caicos (feat. Nate Marshall & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3639384263.mp3?updated=1740430047",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3639384263.mp3?updated=1740430047",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3639384263.mp3?updated=1740430047",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3661,7 +3867,8 @@
     },
     "2024-10-04 MSSP Ep. 520 - Thailand Rickshaw (feat. Ari Matti)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1051297987.mp3?updated=1740429689",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1051297987.mp3?updated=1740429689",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1051297987.mp3?updated=1740429689",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3673,7 +3880,8 @@
     },
     "2024-10-10 MSSP Ep. 521 - Time Under Tension (feat. Chris Distefano)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8186084629.mp3?updated=1740429789",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8186084629.mp3?updated=1740429789",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8186084629.mp3?updated=1740429789",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3685,7 +3893,8 @@
     },
     "2024-10-15 MSSP Ep. 522 - Rock N' Roll Synagogue (feat. Steve Gerben & Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1525155265.mp3?updated=1740429531",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1525155265.mp3?updated=1740429531",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1525155265.mp3?updated=1740429531",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3697,7 +3906,8 @@
     },
     "2024-10-23 MSSP Ep. 523 - Shirtless Workers (feat. Ralph Barbosa)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5473763098.mp3?updated=1740429413",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5473763098.mp3?updated=1740429413",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5473763098.mp3?updated=1740429413",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3709,7 +3919,8 @@
     },
     "2024-10-24 MSSP Ep. 524 - Tricker Treat (feat. Steve Gerben & Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4608979735.mp3?updated=1740428896",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4608979735.mp3?updated=1740428896",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4608979735.mp3?updated=1740428896",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3721,7 +3932,8 @@
     },
     "2024-10-28 MSSP Ep. 525 - Spirit Gym (feat. Paul Chek)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9058778660.mp3?updated=1740428477",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9058778660.mp3?updated=1740428477",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9058778660.mp3?updated=1740428477",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3733,7 +3945,8 @@
     },
     "2024-11-01 MSSP Ep. 526 - Reunited (feat. Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5751801540.mp3?updated=1740426485",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5751801540.mp3?updated=1740426485",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5751801540.mp3?updated=1740426485",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3745,7 +3958,8 @@
     },
     "2024-11-08 MSSP Ep. 527 - The Pillow (feat. Stavros Halkias, Steve Gerben, & Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8228017214.mp3?updated=1740426509",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8228017214.mp3?updated=1740426509",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8228017214.mp3?updated=1740426509",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3757,7 +3971,8 @@
     },
     "2024-11-12 MSSP Ep. 528 - Magic Burrito (feat. Nate Jackson)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2669671284.mp3?updated=1740425995",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2669671284.mp3?updated=1740425995",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2669671284.mp3?updated=1740425995",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3769,7 +3984,8 @@
     },
     "2024-11-19 MSSP Ep. 529 - Weed & Gambling (feat. Saagar Enjeti)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4425213031.mp3?updated=1740426529",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4425213031.mp3?updated=1740426529",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4425213031.mp3?updated=1740426529",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3781,7 +3997,8 @@
     },
     "2024-11-22 MSSP Ep. 530 - Novak's House (feat. Brandon Novak)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6975567252.mp3?updated=1740425505",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6975567252.mp3?updated=1740425505",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6975567252.mp3?updated=1740425505",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3793,7 +4010,8 @@
     },
     "2024-11-23 MSSP Ep. 531 - Bluesky (feat. Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5265010837.mp3?updated=1740424873",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5265010837.mp3?updated=1740424873",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5265010837.mp3?updated=1740424873",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3805,7 +4023,8 @@
     },
     "2024-11-25 MSSP Ep. 532 - Dark Queen & Cuck King (feat. Adrienne Iapalucci)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2057285976.mp3?updated=1740424573",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2057285976.mp3?updated=1740424573",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2057285976.mp3?updated=1740424573",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3817,7 +4036,8 @@
     },
     "2024-12-03 MSSP Ep. 533 - Log Cabin (feat. Jeff Dye & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1401550476.mp3?updated=1740423999",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1401550476.mp3?updated=1740423999",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1401550476.mp3?updated=1740423999",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3829,7 +4049,8 @@
     },
     "2024-12-05 MSSP Ep. 534 - Outlive (feat. Peter Attia)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8681181553.mp3?updated=1740422629",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8681181553.mp3?updated=1740422629",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8681181553.mp3?updated=1740422629",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3841,7 +4062,8 @@
     },
     "2024-12-09 MSSP Ep. 535 - Soft Girls (feat. Sam Morril)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9478044194.mp3?updated=1740422324",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9478044194.mp3?updated=1740422324",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9478044194.mp3?updated=1740422324",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3853,7 +4075,8 @@
     },
     "2024-12-17 MSSP Ep. 536 - The Program (feat. James Fox)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6628629806.mp3?updated=1740189984",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6628629806.mp3?updated=1740189984",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6628629806.mp3?updated=1740189984",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3865,7 +4088,8 @@
     },
     "2024-12-19 MSSP Ep. 537 - Talkin' Mess (feat. Tim Butterly & Sidney Gantt)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4179494748.mp3?updated=1740188777",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4179494748.mp3?updated=1740188777",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4179494748.mp3?updated=1740188777",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3877,7 +4101,8 @@
     },
     "2024-12-23 MSSP Ep. 538 - LSD Supermax (feat. Joel Blaeser)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3677401289.mp3?updated=1740186850",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3677401289.mp3?updated=1740186850",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3677401289.mp3?updated=1740186850",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3889,7 +4114,8 @@
     },
     "2025-01-02 MSSP Ep. 539 - History Hyenas of the Future (feat. Chris Distefano & Yannis Pappas)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8620373026.mp3?updated=1740182263",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8620373026.mp3?updated=1740182263",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8620373026.mp3?updated=1740182263",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3901,7 +4127,8 @@
     },
     "2025-01-08 MSSP Ep. 540 - Cosmic Balance": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6826519582.mp3?updated=1740181584",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6826519582.mp3?updated=1740181584",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6826519582.mp3?updated=1740181584",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3913,7 +4140,8 @@
     },
     "2025-01-15 MSSP Ep. 541 - NP-Ari (feat. Ari Shaffir)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1028708616.mp3?updated=1740180762",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1028708616.mp3?updated=1740180762",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1028708616.mp3?updated=1740180762",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3925,7 +4153,8 @@
     },
     "2025-01-23 MSSP Ep. 542 - Indulgences (feat. Druski)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2452472225.mp3?updated=1740180204",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2452472225.mp3?updated=1740180204",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2452472225.mp3?updated=1740180204",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3937,7 +4166,8 @@
     },
     "2025-01-30 MSSP Ep. 543 - Spyder's Web": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4068853730.mp3?updated=1740696009",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4068853730.mp3?updated=1740696009",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4068853730.mp3?updated=1740696009",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3949,7 +4179,8 @@
     },
     "2025-02-06 MSSP Ep. 544 - Autophagy (feat. Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7479975376.mp3?updated=1740696578",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7479975376.mp3?updated=1740696578",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7479975376.mp3?updated=1740696578",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3961,7 +4192,8 @@
     },
     "2025-02-13 MSSP Ep. 545 - Thunder Fish": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1511977882.mp3?updated=1740696602",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1511977882.mp3?updated=1740696602",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1511977882.mp3?updated=1740696602",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3973,7 +4205,8 @@
     },
     "2025-02-15 MSSP Ep. 546 - Maxo Kream (feat. Maxo Kream)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5515548269.mp3?updated=1740696326",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5515548269.mp3?updated=1740696326",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5515548269.mp3?updated=1740696326",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3985,7 +4218,8 @@
     },
     "2025-02-20 MSSP Ep. 547 - The Bourguignon Shuffle (feat. James McCann)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7675360892.mp3?updated=1742934227",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7675360892.mp3?updated=1742934227",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7675360892.mp3?updated=1742934227",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -3997,7 +4231,8 @@
     },
     "2025-02-26 MSSP Ep. 548 - Bowl of Meat (feat. Kevin Ryan & H. Foley)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1839751425.mp3?updated=1742934237",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1839751425.mp3?updated=1742934237",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1839751425.mp3?updated=1742934237",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4009,7 +4244,8 @@
     },
     "2025-03-07 MSSP Ep. 549 - White Elmo (feat. Big Jay Oakerson)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9878327649.mp3?updated=1781192110",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9878327649.mp3?updated=1781192110",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9878327649.mp3?updated=1781192110",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4021,7 +4257,8 @@
     },
     "2025-03-13 MSSP Ep. 550 - Blazer Tag": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2403151004.mp3?updated=1742934213",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2403151004.mp3?updated=1742934213",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2403151004.mp3?updated=1742934213",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4033,7 +4270,8 @@
     },
     "2025-03-18 MSSP Ep. 551 - BullDoggin' (feat. Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4300554744.mp3?updated=1742934138",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4300554744.mp3?updated=1742934138",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4300554744.mp3?updated=1742934138",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4045,7 +4283,8 @@
     },
     "2025-03-27 MSSP Ep. 552 - The Biggest Pig (feat. Luis J. Gomez)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6625684311.mp3?updated=1743094396",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6625684311.mp3?updated=1743094396",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6625684311.mp3?updated=1743094396",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4057,7 +4296,8 @@
     },
     "2025-04-04 MSSP Ep. 553 - Homies to Homeless (feat. Lemaire Lee & Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3390347003.mp3?updated=1743801153",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3390347003.mp3?updated=1743801153",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3390347003.mp3?updated=1743801153",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4069,7 +4309,8 @@
     },
     "2025-04-09 MSSP Ep. 554 - Shane's Steak and Beanz": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2613127036.mp3?updated=1744224685",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2613127036.mp3?updated=1744224685",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2613127036.mp3?updated=1744224685",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4081,7 +4322,8 @@
     },
     "2025-04-16 MSSP Ep. 555 - Roundball Rock (feat. Steve Gerben)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1783289941.mp3?updated=1744784732",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1783289941.mp3?updated=1744784732",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1783289941.mp3?updated=1744784732",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4093,7 +4335,8 @@
     },
     "2025-04-24 MSSP Ep. 556 - Spud Sucker": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8220842320.mp3?updated=1745481821",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8220842320.mp3?updated=1745481821",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8220842320.mp3?updated=1745481821",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4105,7 +4348,8 @@
     },
     "2025-05-01 MSSP Ep. 557 - Blob Farm (feat. Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6712146228.mp3?updated=1745964767",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6712146228.mp3?updated=1745964767",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6712146228.mp3?updated=1745964767",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4117,7 +4361,8 @@
     },
     "2025-05-08 MSSP Ep. 558 - Ay Caramba": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2910189064.mp3?updated=1746717419",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2910189064.mp3?updated=1746717419",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2910189064.mp3?updated=1746717419",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4129,7 +4374,8 @@
     },
     "2025-05-13 MSSP Ep. 559 - Zoom Jam (feat. Nate Marshall & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8767305815.mp3?updated=1747164163",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8767305815.mp3?updated=1747164163",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8767305815.mp3?updated=1747164163",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4141,7 +4387,8 @@
     },
     "2025-05-22 MSSP Ep. 560 - Big Boy Toys": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1720397256.mp3?updated=1747884818",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1720397256.mp3?updated=1747884818",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1720397256.mp3?updated=1747884818",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4153,7 +4400,8 @@
     },
     "2025-05-29 MSSP Ep. 561 - Beautiful Things": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8204787942.mp3?updated=1748532156",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8204787942.mp3?updated=1748532156",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8204787942.mp3?updated=1748532156",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4165,7 +4413,8 @@
     },
     "2025-06-04 MSSP Ep. 562 - Goonicide (feat. Billy, Charles Blyzniuk, & Jon Delcollo)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5711026034.mp3?updated=1749062257",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5711026034.mp3?updated=1749062257",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5711026034.mp3?updated=1749062257",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4177,7 +4426,8 @@
     },
     "2025-06-12 MSSP Ep. 563 - No Nut Clarity (feat. Chris O'Connor & Dave Temple)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6250930241.mp3?updated=1749714689",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6250930241.mp3?updated=1749714689",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6250930241.mp3?updated=1749714689",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4189,7 +4439,8 @@
     },
     "2025-06-18 MSSP Ep. 564 - Cuddle Puddle (feat. James McCann, Tim Butterly, & Egan Robinson)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1555777750.mp3?updated=1751305813",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1555777750.mp3?updated=1751305813",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1555777750.mp3?updated=1751305813",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4201,7 +4452,8 @@
     },
     "2025-06-30 MSSP Ep. 565 - The Entertainer (feat. Steve Crawford)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2543492502.mp3?updated=1751305869",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2543492502.mp3?updated=1751305869",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2543492502.mp3?updated=1751305869",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4213,7 +4465,8 @@
     },
     "2025-07-02 MSSP Ep. 566 - Destroying The Ark": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5734875088.mp3?updated=1751477662",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5734875088.mp3?updated=1751477662",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5734875088.mp3?updated=1751477662",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4225,7 +4478,8 @@
     },
     "2025-07-11 MSSP Ep. 567 - Say Cheese": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8260328319.mp3?updated=1752208428",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8260328319.mp3?updated=1752208428",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8260328319.mp3?updated=1752208428",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4237,7 +4491,8 @@
     },
     "2025-07-21 MSSP Ep. 568 - Hollywood Night Cast": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5041684211.mp3?updated=1753936484",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5041684211.mp3?updated=1753936484",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5041684211.mp3?updated=1753936484",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4249,7 +4504,8 @@
     },
     "2025-07-24 MSSP Ep. 569 - A Derosa Garden (feat. Joe Derosa)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5761176262.mp3?updated=1753924952",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5761176262.mp3?updated=1753924952",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5761176262.mp3?updated=1753924952",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4261,7 +4517,8 @@
     },
     "2025-08-01 MSSP Ep. 570 - The Alabama Slamma": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7071096567.mp3?updated=1753995721",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7071096567.mp3?updated=1753995721",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7071096567.mp3?updated=1753995721",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4273,7 +4530,8 @@
     },
     "2025-08-06 MSSP Ep. 571 - Daddy's Dots": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7916646810.mp3?updated=1754508400",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7916646810.mp3?updated=1754508400",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7916646810.mp3?updated=1754508400",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4285,7 +4543,8 @@
     },
     "2025-08-14 MSSP Ep. 572 - Gabriel (feat. Gabe Davis)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3763033335.mp3?updated=1755202344",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3763033335.mp3?updated=1755202344",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3763033335.mp3?updated=1755202344",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4297,7 +4556,8 @@
     },
     "2025-08-21 MSSP Ep. 573 - Angry Jets": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4338994899.mp3?updated=1755819827",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4338994899.mp3?updated=1755819827",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4338994899.mp3?updated=1755819827",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4309,7 +4569,8 @@
     },
     "2025-08-28 MSSP Ep. 574 - War of the Butt Wipes (feat. James McCann)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9471281450.mp3?updated=1756366667",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9471281450.mp3?updated=1756366667",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9471281450.mp3?updated=1756366667",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4321,7 +4582,8 @@
     },
     "2025-09-04 MSSP Ep. 575 - Black Seed Fart Max (feat. Nate Marshall & Egan Robinson)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7994047602.mp3?updated=1757003139",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7994047602.mp3?updated=1757003139",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7994047602.mp3?updated=1757003139",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4333,7 +4595,8 @@
     },
     "2025-09-10 MSSP Ep. 576 - Crack Mobile (feat. Joe List & Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2180424811.mp3?updated=1757470508",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2180424811.mp3?updated=1757470508",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2180424811.mp3?updated=1757470508",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4345,7 +4608,8 @@
     },
     "2025-09-19 MSSP Ep. 577 - Bags On You (feat. Adam Eget)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3461994824.mp3?updated=1758269393",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3461994824.mp3?updated=1758269393",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3461994824.mp3?updated=1758269393",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4357,7 +4621,8 @@
     },
     "2025-09-25 MSSP Ep. 578 - Post-Negativity (feat. Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4598496020.mp3?updated=1758817045",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4598496020.mp3?updated=1758817045",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4598496020.mp3?updated=1758817045",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4369,7 +4634,8 @@
     },
     "2025-10-01 MSSP Ep. 579 - Crumb & The Hutt (feat. Joe Derosa & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1172822280.mp3?updated=1759297996",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1172822280.mp3?updated=1759297996",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1172822280.mp3?updated=1759297996",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4381,7 +4647,8 @@
     },
     "2025-10-11 MSSP Ep. 580 - Skrilla (The 67 God)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4527468487.mp3?updated=1760148082",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4527468487.mp3?updated=1760148082",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4527468487.mp3?updated=1760148082",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4393,7 +4660,8 @@
     },
     "2025-10-15 MSSP Ep. 581 - Teenis Fly Trap (feat. Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3755824192.mp3?updated=1760498640",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3755824192.mp3?updated=1760498640",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3755824192.mp3?updated=1760498640",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4405,7 +4673,8 @@
     },
     "2025-10-23 MSSP Ep. 582 - Very Interesting": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6465629763.mp3?updated=1761203197",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6465629763.mp3?updated=1761203197",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6465629763.mp3?updated=1761203197",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4417,7 +4686,8 @@
     },
     "2025-10-31 MSSP Ep. 583 - Ice Cream Dream (feat. James McCann)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8306623994.mp3?updated=1761878884",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8306623994.mp3?updated=1761878884",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8306623994.mp3?updated=1761878884",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4429,7 +4699,8 @@
     },
     "2025-11-04 MSSP Ep. 584 - The Buzz Man (feat. Marcus King)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3577749746.mp3?updated=1762240139",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3577749746.mp3?updated=1762240139",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3577749746.mp3?updated=1762240139",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4441,7 +4712,8 @@
     },
     "2025-11-13 MSSP Ep. 585 - Son of a Governor": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2181173688.mp3?updated=1763016303",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2181173688.mp3?updated=1763016303",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2181173688.mp3?updated=1763016303",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4453,7 +4725,8 @@
     },
     "2025-11-20 MSSP Ep. 586 - Shift Work (feat. Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2824163571.mp3?updated=1763617504",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2824163571.mp3?updated=1763617504",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2824163571.mp3?updated=1763617504",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4465,7 +4738,8 @@
     },
     "2025-11-26 MSSP Ep. 587 - PHIL (feat. Steve Gerben & Chris O'Connor)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5427414528.mp3?updated=1764194802",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5427414528.mp3?updated=1764194802",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5427414528.mp3?updated=1764194802",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4477,7 +4751,8 @@
     },
     "2025-12-04 MSSP Ep. 588 - Horse Life (feat. Lemaire Lee & Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2206548860.mp3?updated=1764834260",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2206548860.mp3?updated=1764834260",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2206548860.mp3?updated=1764834260",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4489,7 +4764,8 @@
     },
     "2025-12-12 MSSP Ep. 589 - Broke Mind Virus": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5287763230.mp3?updated=1765527496",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5287763230.mp3?updated=1765527496",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5287763230.mp3?updated=1765527496",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4501,7 +4777,8 @@
     },
     "2025-12-18 MSSP Ep. 590 - Wildcat": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6570002264.mp3?updated=1766043558",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6570002264.mp3?updated=1766043558",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6570002264.mp3?updated=1766043558",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4513,7 +4790,8 @@
     },
     "2025-12-23 MSSP Ep. 591 - M-A DOUBLE HOCKEY STICKS (Mall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3320084970.mp3?updated=1766463378",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3320084970.mp3?updated=1766463378",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3320084970.mp3?updated=1766463378",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4525,7 +4803,8 @@
     },
     "2025-12-31 MSSP Ep. 592 - 2025： A Year in Review": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1778127846.mp3?updated=1767157646",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1778127846.mp3?updated=1767157646",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1778127846.mp3?updated=1767157646",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4537,7 +4816,8 @@
     },
     "2026-01-08 MSSP Ep. 593 - Nollywood (feat. Ben Avery & Kevin Iso)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8545494662.mp3?updated=1769025815",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8545494662.mp3?updated=1769025815",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8545494662.mp3?updated=1769025815",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4549,7 +4829,8 @@
     },
     "2026-01-14 MSSP Ep. 594 - Gooniverse (feat. Steve Gerben & Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7269021065.mp3?updated=1768423327",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7269021065.mp3?updated=1768423327",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7269021065.mp3?updated=1768423327",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4561,7 +4842,8 @@
     },
     "2026-01-22 MSSP Ep. 595 - The Man Who Saves The World？ (feat. Gabe Polsky)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2618849804.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2618849804.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2618849804.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4573,7 +4855,8 @@
     },
     "2026-01-30 MSSP Ep. 596 - 4-Man Jamboree Slam (feat. Ian Fidance, Ehsan Ahmad, Tim Butterly)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1562112305.mp3?updated=1769733966",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1562112305.mp3?updated=1769733966",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1562112305.mp3?updated=1769733966",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4585,7 +4868,8 @@
     },
     "2026-02-05 MSSP Ep. 597 - Fart Goggles (feat. Luis J. Gomez & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9355679172.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9355679172.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9355679172.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4597,7 +4881,8 @@
     },
     "2026-02-12 MSSP Ep. 598 - Night Shadow (feat. Dan Soder, Chris O'Connor, Billy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7572991590.mp3?updated=1770869718",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7572991590.mp3?updated=1770869718",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7572991590.mp3?updated=1770869718",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4609,7 +4894,8 @@
     },
     "2026-02-20 MSSP Ep. 599 - Weed Wench (feat. Nate Marshall & Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7350474790.mp3?updated=1771612416",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7350474790.mp3?updated=1771612416",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7350474790.mp3?updated=1771612416",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4621,7 +4907,8 @@
     },
     "2026-02-26 MSSP Ep. 600 - Hedonic Treadmill (feat. Joe List & Steve Rannazzisi)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4656210115.mp3?updated=1772219097",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4656210115.mp3?updated=1772219097",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4656210115.mp3?updated=1772219097",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4633,7 +4920,8 @@
     },
     "2026-03-04 MSSP Ep. 601 - Gen Z Whiteboy (feat. Devan Costa & Conner McNutt)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9001324657.mp3?updated=1772587131",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9001324657.mp3?updated=1772587131",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9001324657.mp3?updated=1772587131",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4645,7 +4933,8 @@
     },
     "2026-03-06 MSSP Ep. 602 - Future Man (feat. Kevin Ashton)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1207842021.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1207842021.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1207842021.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4657,7 +4946,8 @@
     },
     "2026-03-12 MSSP Ep. 603 - GEY DOT COM (feat. Tim Butterly & Mike Rainey)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3002611261.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3002611261.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3002611261.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4669,7 +4959,8 @@
     },
     "2026-03-20 MSSP Ep. 604 - Tyler Gerben (feat. Steve Gerben, Dan Soder, Billy & Spud)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8927977992.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8927977992.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8927977992.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4681,7 +4972,8 @@
     },
     "2026-03-25 MSSP Ep. 605 - Arctic Cannibalism (feat. Buddy Levy)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7968233825.mp3?updated=1775185626",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7968233825.mp3?updated=1775185626",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7968233825.mp3?updated=1775185626",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4693,7 +4985,8 @@
     },
     "2026-04-03 MSSP Ep. 606 - Leadership": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2698753603.mp3?updated=1775196648",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2698753603.mp3?updated=1775196648",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2698753603.mp3?updated=1775196648",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4705,7 +4998,8 @@
     },
     "2026-04-07 MSSP Ep. 607 - All Guys Welcome (feat. Sam Tallent & Shawn Gardini)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3660958238.mp3?updated=1775538608",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3660958238.mp3?updated=1775538608",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3660958238.mp3?updated=1775538608",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4717,7 +5011,8 @@
     },
     "2026-04-13 MSSP Ep. 608 - WrestleMania (feat. Cody Rhodes)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1064728032.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1064728032.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1064728032.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4729,7 +5024,8 @@
     },
     "2026-04-15 MSSP Ep. 609 - Mega Heider (feat. Corey Heider & Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1051987482.mp3?updated=1776211686",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1051987482.mp3?updated=1776211686",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1051987482.mp3?updated=1776211686",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4741,7 +5037,8 @@
     },
     "2026-04-25 MSSP Ep. 610 - The Bewick's Wren (feat. James Mccann)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8962219894.mp3?updated=1777080908",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8962219894.mp3?updated=1777080908",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8962219894.mp3?updated=1777080908",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4753,7 +5050,8 @@
     },
     "2026-04-29 MSSP Ep. 611 - Goblin AKA Nick": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7863793982.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7863793982.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7863793982.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4765,7 +5063,8 @@
     },
     "2026-05-01 MSSP Ep. 612 - Night Gator (feat. Charles Blyzniuk)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8647431388.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8647431388.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8647431388.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4777,7 +5076,8 @@
     },
     "2026-05-07 MSSP Ep. 613 - Solar System Part 1 (feat. Nate Marshall)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7753612140.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7753612140.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7753612140.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4789,7 +5089,8 @@
     },
     "2026-05-15 MSSP Ep. 614 - iNasty": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8968416391.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8968416391.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8968416391.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4801,7 +5102,8 @@
     },
     "2026-05-20 MSSP Ep. 615 - Slim Goodie (feat. Sheryl Underwood)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7213714839.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7213714839.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7213714839.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4813,7 +5115,8 @@
     },
     "2026-05-27 MSSP Ep. 616 - The Four Heavens (feat. David Stuart)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3115620867.mp3",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3115620867.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3115620867.mp3",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4825,7 +5128,8 @@
     },
     "2020-07-07 MSSP Ep. 304 - Green Skins and Vampires": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9151188692.mp3?updated=1738625764",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9151188692.mp3?updated=1738625764",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9151188692.mp3?updated=1738625764",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4837,7 +5141,8 @@
     },
     "2020-07-14 MSSP Ep. 305 - Teenis Envy": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4682793292.mp3?updated=1738625754",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4682793292.mp3?updated=1738625754",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4682793292.mp3?updated=1738625754",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4849,7 +5154,8 @@
     },
     "2020-07-21 MSSP Ep. 306 - Spuddoula": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9460089005.mp3?updated=1738625761",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9460089005.mp3?updated=1738625761",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9460089005.mp3?updated=1738625761",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4861,7 +5167,8 @@
     },
     "2021-01-26 MSSP Ep. 332 - Diamond Heist": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6512926124.mp3?updated=1738625788",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6512926124.mp3?updated=1738625788",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6512926124.mp3?updated=1738625788",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4873,7 +5180,8 @@
     },
     "2021-12-25 MSSP Ep. 375 - Puss-Fluenza (feat. Lemaire Lee)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2251297861.mp3?updated=1740620495",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2251297861.mp3?updated=1740620495",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2251297861.mp3?updated=1740620495",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4885,7 +5193,8 @@
     },
     "2023-09-28 MSSP Ep. 461 - D.D.S.": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5278190083.mp3?updated=1740519275",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5278190083.mp3?updated=1740519275",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5278190083.mp3?updated=1740519275",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4897,7 +5206,8 @@
     },
     "2020-08-25 MSSP Ep. 311 - USA 2.0 PAYTCH": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1083895374.mp3?updated=1738625790",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1083895374.mp3?updated=1738625790",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1083895374.mp3?updated=1738625790",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4909,7 +5219,8 @@
     },
     "2020-12-02 MSSP Ep. 326 - Before and Afters": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2828247135.mp3?updated=1738625793",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2828247135.mp3?updated=1738625793",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2828247135.mp3?updated=1738625793",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4921,7 +5232,8 @@
     },
     "2023-11-09 MSSP Ep. 467 - El Podcast Secreto (feat. Marlon 'Chito' Vera & Luis J. Gomez)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2478537738.mp3?updated=1740518418",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2478537738.mp3?updated=1740518418",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2478537738.mp3?updated=1740518418",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4933,7 +5245,8 @@
     },
     "2020-07-30 MSSP Ep. 307 - Shatgazi vid": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5577353250.mp3?updated=1738625778",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5577353250.mp3?updated=1738625778",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5577353250.mp3?updated=1738625778",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4945,7 +5258,8 @@
     },
     "2022-04-21 MSSP Ep. 392 - Suss Al (feat. Lemaire Lee & Andy Malafarina)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2767205899.mp3?updated=1740679732",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2767205899.mp3?updated=1740679732",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2767205899.mp3?updated=1740679732",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4957,7 +5271,8 @@
     },
     "2019-09-24 MSSP Ep. 148 - Comedy Podcast": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9460968108.mp3?updated=1738625788",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9460968108.mp3?updated=1738625788",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9460968108.mp3?updated=1738625788",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4969,7 +5284,8 @@
     },
     "2019-10-03 MSSP Ep. 149 - Back 2 Basics": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1852973740.mp3?updated=1738625367",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1852973740.mp3?updated=1738625367",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1852973740.mp3?updated=1738625367",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4981,7 +5297,8 @@
     },
     "2019-10-09 MSSP Ep. 150 - Twizted Azz Jokerz": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9918794240.mp3?updated=1738626567",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9918794240.mp3?updated=1738626567",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9918794240.mp3?updated=1738626567",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -4993,7 +5310,8 @@
     },
     "2019-10-15 MSSP Ep. 151 - Torso in the Mail": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4086014727.mp3?updated=1738626534",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4086014727.mp3?updated=1738626534",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4086014727.mp3?updated=1738626534",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5005,7 +5323,8 @@
     },
     "2019-10-30 MSSP Ep. 152 - Bag Daddy Down": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8306433228.mp3?updated=1738625765",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8306433228.mp3?updated=1738625765",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8306433228.mp3?updated=1738625765",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5017,7 +5336,8 @@
     },
     "2019-11-08 MSSP Ep. 153 - Tommy Gear": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3577875813.mp3?updated=1738626474",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3577875813.mp3?updated=1738626474",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3577875813.mp3?updated=1738626474",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5029,7 +5349,8 @@
     },
     "2019-11-13 MSSP Ep. 154 - The Gerbiezburg Address": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2344995042.mp3?updated=1738626541",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2344995042.mp3?updated=1738626541",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2344995042.mp3?updated=1738626541",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5041,7 +5362,8 @@
     },
     "2019-11-21 MSSP Ep. 155 - The Party Prince": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6313003176.mp3?updated=1738626549",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6313003176.mp3?updated=1738626549",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6313003176.mp3?updated=1738626549",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5053,7 +5375,8 @@
     },
     "2019-11-26 MSSP Ep. 156 - How to be a Praya": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7325481828.mp3?updated=1738627019",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7325481828.mp3?updated=1738627019",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7325481828.mp3?updated=1738627019",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5065,7 +5388,8 @@
     },
     "2019-12-04 MSSP Ep. 157 - On Your Marks!": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3271890366.mp3?updated=1738626510",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3271890366.mp3?updated=1738626510",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3271890366.mp3?updated=1738626510",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5077,7 +5401,8 @@
     },
     "2019-12-10 MSSP Ep. 158 - Hot Viral Boyz": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3840441641.mp3?updated=1738626529",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3840441641.mp3?updated=1738626529",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3840441641.mp3?updated=1738626529",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5089,7 +5414,8 @@
     },
     "2019-12-18 MSSP Ep. 159 - Fart Talk": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3354025034.mp3?updated=1738626528",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3354025034.mp3?updated=1738626528",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3354025034.mp3?updated=1738626528",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5101,7 +5427,8 @@
     },
     "2019-12-24 MSSP Ep. 160 - How can we not talk about Santa-": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8154519082.mp3?updated=1738626541",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8154519082.mp3?updated=1738626541",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8154519082.mp3?updated=1738626541",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5113,7 +5440,8 @@
     },
     "2019-12-30 MSSP Ep. 161 - Stripper Party": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT7581813701.mp3?updated=1738626536",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7581813701.mp3?updated=1738626536",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7581813701.mp3?updated=1738626536",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5125,7 +5453,8 @@
     },
     "2020-01-05 MSSP Ep. 162 - The Tesseract": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9735473209.mp3?updated=1738626539",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9735473209.mp3?updated=1738626539",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9735473209.mp3?updated=1738626539",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5137,7 +5466,8 @@
     },
     "2020-01-14 MSSP Ep. 163 - Woodman's Oral Presentations": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1474158942.mp3?updated=1738626537",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1474158942.mp3?updated=1738626537",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1474158942.mp3?updated=1738626537",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5149,7 +5479,8 @@
     },
     "2020-01-20 MSSP Ep. 164 - Santa Maria": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1078099478.mp3?updated=1738626541",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1078099478.mp3?updated=1738626541",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1078099478.mp3?updated=1738626541",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5161,7 +5492,8 @@
     },
     "2020-01-29 MSSP Ep. 165 - The ALL NEW Chevy Ted Cruze": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9312625529.mp3?updated=1738626527",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9312625529.mp3?updated=1738626527",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9312625529.mp3?updated=1738626527",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5173,7 +5505,8 @@
     },
     "2020-02-04 MSSP Ep. 166 - The Scotty Defense": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT8989436623.mp3?updated=1738626984",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8989436623.mp3?updated=1738626984",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8989436623.mp3?updated=1738626984",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5185,7 +5518,8 @@
     },
     "2020-02-14 MSSP Ep. 167 - The Church of Sacred Dawgology": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9200130724.mp3?updated=1738626576",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9200130724.mp3?updated=1738626576",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9200130724.mp3?updated=1738626576",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5197,7 +5531,8 @@
     },
     "2020-02-23 MSSP Ep. 168 - Inner Core": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5847896066.mp3?updated=1738626971",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5847896066.mp3?updated=1738626971",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5847896066.mp3?updated=1738626971",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5209,7 +5544,8 @@
     },
     "2020-02-25 MSSP Ep. 169 - Spheres": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2729088070.mp3?updated=1738626525",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2729088070.mp3?updated=1738626525",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2729088070.mp3?updated=1738626525",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5221,7 +5557,8 @@
     },
     "2020-03-03 MSSP Ep. 170 - Incredible Acts Of Bravery": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5631562768.mp3?updated=1738626528",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5631562768.mp3?updated=1738626528",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5631562768.mp3?updated=1738626528",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5233,7 +5570,8 @@
     },
     "2020-03-10 MSSP Ep. 171 - Bull's Gone Wild- Spring Break Edition": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3777743382.mp3?updated=1738625801",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3777743382.mp3?updated=1738625801",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3777743382.mp3?updated=1738625801",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5245,7 +5583,8 @@
     },
     "2020-03-16 MSSP Ep. 172 - Geezer Face": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5835661223.mp3?updated=1738626599",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5835661223.mp3?updated=1738626599",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5835661223.mp3?updated=1738626599",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5257,7 +5596,8 @@
     },
     "2020-03-23 MSSP Ep. 173 - Wahlberg": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2549427685.mp3?updated=1738626537",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2549427685.mp3?updated=1738626537",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2549427685.mp3?updated=1738626537",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5269,7 +5609,8 @@
     },
     "2020-03-28 MSSP Ep. 174 - Secure the Bug Out Bag w- Tom Green": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1718001758.mp3?updated=1738626567",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1718001758.mp3?updated=1738626567",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1718001758.mp3?updated=1738626567",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5281,7 +5622,8 @@
     },
     "2020-04-05 MSSP Ep. 176 - Next Level": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3662708068.mp3?updated=1738626540",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3662708068.mp3?updated=1738626540",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3662708068.mp3?updated=1738626540",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5293,7 +5635,8 @@
     },
     "2020-04-12 MSSP Ep. 177 - The McCusker Family Curse": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2731683253.mp3?updated=1738626579",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2731683253.mp3?updated=1738626579",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2731683253.mp3?updated=1738626579",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5305,7 +5648,8 @@
     },
     "2020-04-21 MSSP Ep. 178 - Standing on The Gravitron": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4150130973.mp3?updated=1738627018",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4150130973.mp3?updated=1738627018",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4150130973.mp3?updated=1738627018",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5317,7 +5661,8 @@
     },
     "2020-04-30 MSSP Ep. 180 - O'Connors new leaf": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4286296102.mp3?updated=1738626689",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4286296102.mp3?updated=1738626689",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4286296102.mp3?updated=1738626689",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5329,7 +5674,8 @@
     },
     "2020-05-12 MSSP Ep. 181 - Fueled By Hate": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4682595733.mp3?updated=1738626580",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4682595733.mp3?updated=1738626580",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4682595733.mp3?updated=1738626580",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5341,7 +5687,8 @@
     },
     "2020-05-20 MSSP Ep. 183 - Tybalt's Hole": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9152771513.mp3?updated=1738626580",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9152771513.mp3?updated=1738626580",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9152771513.mp3?updated=1738626580",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5353,7 +5700,8 @@
     },
     "2020-05-27 MSSP Ep. 184 - Dad Dwyer": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT2720918649.mp3?updated=1738625779",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT2720918649.mp3?updated=1738625779",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT2720918649.mp3?updated=1738625779",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5365,7 +5713,8 @@
     },
     "2020-06-01 MSSP Ep. 185 - The Shat Prophecies": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT1751673454.mp3?updated=1738626558",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT1751673454.mp3?updated=1738626558",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT1751673454.mp3?updated=1738626558",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5377,7 +5726,8 @@
     },
     "2020-06-24 MSSP Ep. 302 - Dog Girl": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5376807467.mp3?updated=1738625968",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5376807467.mp3?updated=1738625968",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5376807467.mp3?updated=1738625968",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5389,7 +5739,8 @@
     },
     "2021-01-20 MSSP Ep. EX - Night Stalker": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT4776900776.mp3?updated=1738626532",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4776900776.mp3?updated=1738626532",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4776900776.mp3?updated=1738626532",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5401,7 +5752,8 @@
     },
     "2022-05-04 MSSP Ep. 393.2 - The Presidents - Part Two (feat. Louis C.K.)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT6661524396.mp3?updated=1740680495",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6661524396.mp3?updated=1740680495",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6661524396.mp3?updated=1740680495",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5413,7 +5765,8 @@
     },
     "2022-05-05 MSSP Ep. 393.3 - The Presidents - Part Three (feat. Louis C.K.)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3386920342.mp3?updated=1740680731",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3386920342.mp3?updated=1740680731",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3386920342.mp3?updated=1740680731",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5425,7 +5778,8 @@
     },
     "2022-05-05 MSSP Ep. 393.4 - The Presidents - Part Four (feat. Louis C.K.)": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5300929577.mp3?updated=1740681438",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5300929577.mp3?updated=1740681438",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5300929577.mp3?updated=1740681438",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5437,7 +5791,8 @@
     },
     "2020-03-30 MSSP Ep. 175 - John McAfee Please Don't Kill Us": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT3652584372.mp3?updated=1738626535",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT3652584372.mp3?updated=1738626535",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT3652584372.mp3?updated=1738626535",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5449,7 +5804,8 @@
     },
     "2020-07-15 MSSP Ep. EX - PuppyGirlJenna": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT5377712092.mp3?updated=1738626518",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT5377712092.mp3?updated=1738626518",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT5377712092.mp3?updated=1738626518",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",
@@ -5461,7 +5817,8 @@
     },
     "2020-09-16 MSSP Ep. 315 - Hype Beasts": {
       "sourceType": "public_rss_audio",
-      "url": "https://traffic.megaphone.fm/GLT9242756546.mp3?updated=1738625895",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9242756546.mp3?updated=1738625895",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9242756546.mp3?updated=1738625895",
       "mimeType": "audio/mpeg",
       "isOfficial": true,
       "credit": "Official public podcast RSS",

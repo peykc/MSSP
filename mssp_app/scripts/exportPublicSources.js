@@ -89,11 +89,16 @@ async function main() {
 
   const otR2Count = countOtR2Sources(mergedSources, episodes);
   const ntR2Count = Object.keys(ntR2Sources).length;
-  const rssCount = Object.values(mergedSources).filter((source) => source.sourceType === "public_rss_audio").length;
+  const rssEntries = Object.values(mergedSources).filter((source) => source.sourceType === "public_rss_audio");
+  const rssCount = rssEntries.length;
+  const proxiedCount = rssEntries.filter((source) => Boolean(source.upstreamUrl)).length;
   console.log(
     `Exported ${Object.keys(mergedSources).length} public sources `
-    + `(${otR2Count} R2 OT, ${ntR2Count} R2 NT, ${rssCount} RSS) to ${SOURCES_FILE}`,
+    + `(${otR2Count} R2 OT, ${ntR2Count} R2 NT, ${rssCount} RSS, ${proxiedCount} proxied) to ${SOURCES_FILE}`,
   );
+  if (proxiedCount !== rssCount) {
+    console.warn(`[MSSP] ${rssCount - proxiedCount} RSS source(s) shipped without the audio proxy rewrite`);
+  }
 
   if (report?.summary) {
     const { summary } = report;

@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-06-16T15:27:29.886Z",
+  "generatedAt": "2026-07-06T22:29:33.992Z",
   "feeds": [
     {
       "id": "mssp-public-current",
       "url": "https://feeds.megaphone.fm/GLT1158789509",
-      "itemCount": 367
+      "itemCount": 371
     }
   ],
   "summary": {
@@ -12,7 +12,7 @@
     "autoMatched": 354,
     "manualMatched": 3,
     "unmatchedEpisodes": 0,
-    "unmatchedRssItems": 10,
+    "unmatchedRssItems": 14,
     "lowConfidence": 0,
     "rssMatched": 357,
     "r2OverrideMatched": 3,
@@ -58,6 +58,38 @@
   ],
   "unmatchedEpisodes": [],
   "unmatchedRssItems": [
+    {
+      "feedId": "mssp-public-current",
+      "guid": "f9ceddce-75cc-11f1-8579-c316335202a9",
+      "rssTitle": "Ep 623 - The Good Guy Weed (feat. Lemaire Lee)",
+      "pubDate": "2026-07-02",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT8133066011.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "e3cc9572-7417-11f1-9fe4-6fc02de21f1c",
+      "rssTitle": "Ep 622 - Am-I.Film (feat. Milo Reed)",
+      "pubDate": "2026-06-30",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9195471376.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "7280cab4-710b-11f1-935c-17da4987def2",
+      "rssTitle": "Ep 621 - Landlubbers",
+      "pubDate": "2026-06-26",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9075846780.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
+    {
+      "feedId": "mssp-public-current",
+      "guid": "03f7e26e-6aab-11f1-b00f-7fb9a3160677",
+      "rssTitle": "Ep 620 - In Defense of Sunlight (feat. Rowan Jacobsen)",
+      "pubDate": "2026-06-18",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9875711637.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
     {
       "feedId": "mssp-public-current",
       "guid": "6e87162e-654f-11f1-b73d-475f18d2ffb8",

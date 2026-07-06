@@ -4,9 +4,11 @@ const {
   titleContainsOther,
   tokenOverlapRatio,
 } = require("./rssTitleNormalize");
+const { NT_AUDIO_PROXY_BASE } = require("../rssFeeds.config");
 
 const AUTO_MATCH_THRESHOLD = 80;
 const LOW_CONFIDENCE_MIN = 60;
+const MEGAPHONE_ENCLOSURE_PATTERN = /^https:\/\/traffic\.megaphone\.fm\/(GLT[A-Za-z0-9]+)\.mp3$/;
 
 function isEligibleEpisode(episode) {
   return episode.collectionKind === "new";
@@ -77,11 +79,41 @@ function isSafeAutoMatch(pair) {
   return false;
 }
 
+// Maps a Megaphone enclosure URL onto the mssp_audio_proxy route, preserving the
+// numeric ?updated= param (Megaphone bumps it on re-upload, so it doubles as edge
+// cache invalidation). Returns null for anything that is not a plain Megaphone
+// enclosure so odd entries ship unproxied instead of breaking the build.
+function buildProxiedNtUrl(enclosureUrl) {
+  let parsed;
+  try {
+    parsed = new URL(enclosureUrl);
+  } catch {
+    return null;
+  }
+
+  const match = MEGAPHONE_ENCLOSURE_PATTERN.exec(`${parsed.origin}${parsed.pathname}`);
+  if (!match) return null;
+
+  for (const key of parsed.searchParams.keys()) {
+    if (key !== "updated") return null;
+  }
+  const updated = parsed.searchParams.get("updated");
+  if (updated !== null && !/^\d+$/.test(updated)) return null;
+
+  const suffix = updated !== null ? `?updated=${updated}` : "";
+  return `${NT_AUDIO_PROXY_BASE}/nt/${match[1]}.mp3${suffix}`;
+}
+
 function buildRssSourceEntry(candidate, matchMeta, feedById) {
   const feed = feedById.get(candidate.feedId);
+  const proxiedUrl = buildProxiedNtUrl(candidate.enclosureUrl);
+  if (!proxiedUrl) {
+    console.warn(`[MSSP] Enclosure does not match the Megaphone pattern; shipping unproxied: ${candidate.enclosureUrl}`);
+  }
   return {
     sourceType: "public_rss_audio",
-    url: candidate.enclosureUrl,
+    url: proxiedUrl || candidate.enclosureUrl,
+    ...(proxiedUrl ? { upstreamUrl: candidate.enclosureUrl } : {}),
     mimeType: candidate.mimeType || "audio/mpeg",
     isOfficial: feed?.isOfficial === true,
     credit: feed?.label || "Official public podcast RSS",
@@ -246,6 +278,7 @@ function dedupeLowConfidence(matches, assignedEpisodes) {
 module.exports = {
   AUTO_MATCH_THRESHOLD,
   LOW_CONFIDENCE_MIN,
+  buildProxiedNtUrl,
   isEligibleEpisode,
   isSafeAutoMatch,
   matchRssSources,

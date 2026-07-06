@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
-const { PUBLIC_RSS_FEEDS } = require("../rssFeeds.config");
+const { NT_AUDIO_PROXY_BASE, PUBLIC_RSS_FEEDS } = require("../rssFeeds.config");
+const { buildProxiedNtUrl } = require("./rssMatcher");
 const {
   EXPECTED_R2_COUNT,
   SOURCE_BASE_URL,
@@ -99,6 +100,18 @@ function validateMergedSources({
     }
 
     const url = String(source.url);
+    if (url.startsWith(`${NT_AUDIO_PROXY_BASE}/nt/`)) {
+      if (!source.upstreamUrl || !String(source.upstreamUrl).trim()) {
+        throw new Error(`Proxied public_rss_audio source missing upstreamUrl: ${episodeKey}`);
+      }
+      if (buildProxiedNtUrl(source.upstreamUrl) !== url) {
+        throw new Error(`Proxied public_rss_audio url does not derive from its upstreamUrl: ${episodeKey} -> ${url}`);
+      }
+    } else if (!url.startsWith("https://traffic.megaphone.fm/")) {
+      // Non-Megaphone enclosures ship unproxied (warned at build time); anything
+      // else is an unexpected host.
+      throw new Error(`public_rss_audio url is neither proxied nor a Megaphone enclosure: ${episodeKey} -> ${url}`);
+    }
     const keysForUrl = urlToKeys.get(url) || [];
     keysForUrl.push(episodeKey);
     urlToKeys.set(url, keysForUrl);
