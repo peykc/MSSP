@@ -77,42 +77,23 @@ async function serveAudio(request, target, origin) {
 
   // Megaphone's x-megaphone-payload-2 header is a cut list: it declares the byte
   // range of every ad slot it stitched into this response. Excise the filled
-  // slots while streaming so the cached file is the clean, promo-free edition
-  // whose timeline matches the canonical episode. Fails open: if the header is
-  // missing or unparseable, the audio is cached as received.
+  // slots so the cached file is the clean, promo-free edition whose timeline
+  // matches the canonical episode. Fails open: if the header is missing or
+  // unparseable, the audio is cached as received.
   const contentLength = Number(upstream.headers.get("Content-Length"));
   const promoRanges = parsePromoRanges(upstream.headers.get("x-megaphone-payload-2"), contentLength);
-  const removedBytes = promoRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
-  let body = upstream.body;
+
   if (promoRanges.length) {
-    body = body.pipeThrough(createPromoStripper(promoRanges));
-    // A bare TransformStream body has unknown length, so the runtime drops
-    // Content-Length and the cached object loses 206 range support. Piping
-    // through FixedLengthStream declares the exact stripped size (and fails
-    // loudly on a byte-count mismatch instead of caching a corrupt object).
-    if (typeof FixedLengthStream === "function") {
-      body = body.pipeThrough(new FixedLengthStream(contentLength - removedBytes));
-    }
+    return excisePromosAndServe({
+      cache, request, matchRequest, target, origin, upstream, contentLength, promoRanges,
+    });
   }
 
-  const cacheable = new Response(body, upstream);
-  // Strip Megaphone's DAI slot metadata (x-megaphone-payload*), its blanket
-  // ACAO (*) so this worker's per-origin CORS policy stays authoritative, and
-  // legacy caching headers that would fight the Cache-Control set below.
-  for (const name of [...cacheable.headers.keys()]) {
-    if (name.startsWith("x-megaphone") || name.startsWith("access-control-")) {
-      cacheable.headers.delete(name);
-    }
-  }
-  cacheable.headers.delete("Set-Cookie");
-  cacheable.headers.delete("Expires");
-  cacheable.headers.delete("Pragma");
+  const cacheable = new Response(upstream.body, {
+    status: 200,
+    headers: sanitizeUpstreamHeaders(upstream.headers),
+  });
   cacheable.headers.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
-  cacheable.headers.set("Accept-Ranges", "bytes");
-  if (removedBytes > 0) {
-    cacheable.headers.set("Content-Length", String(contentLength - removedBytes));
-    cacheable.headers.set("X-MSSP-Promos-Removed", `${promoRanges.length} slot(s), ${removedBytes} bytes`);
-  }
 
   // Awaited on purpose: iOS Safari opens media with "Range: bytes=0-" and needs a
   // real 206, which cache.match can only produce once the full object is stored.
@@ -128,6 +109,131 @@ async function serveAudio(request, target, origin) {
 
   const served = await cache.match(matchRequest);
   return finalizeAudio(served ?? cacheable, request.method, origin);
+}
+
+// Removes the promo byte ranges WITHOUT the bytes ever entering JavaScript —
+// mandatory on the Workers free plan, whose 10 ms CPU budget a JS TransformStream
+// over a ~100 MB file blows through. The raw stitched file is cached under a
+// throwaway key (a native copy), then the clean file is assembled from native
+// cache range reads pumped through FixedLengthStream, which also gives the final
+// object the exact Content-Length that 206 range serving requires.
+async function excisePromosAndServe({
+  cache, request, matchRequest, target, origin, upstream, contentLength, promoRanges,
+}) {
+  const removedBytes = promoRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
+  const rawKeyUrl = `${new URL(target.cacheKeyUrl).origin}/__raw/${crypto.randomUUID()}`;
+
+  const rawResponse = new Response(upstream.body, {
+    status: 200,
+    headers: sanitizeUpstreamHeaders(upstream.headers),
+  });
+  // Short TTL: this entry only needs to survive the assembly below; a random
+  // orphan (crashed request) ages out on its own.
+  rawResponse.headers.set("Cache-Control", "public, max-age=300");
+  try {
+    await cache.put(new Request(rawKeyUrl), rawResponse);
+  } catch {
+    return refetchUnstripped(target, request, origin);
+  }
+
+  const cleanedHeaders = sanitizeUpstreamHeaders(upstream.headers);
+  cleanedHeaders.delete("Content-Length"); // FixedLengthStream declares the real one
+  cleanedHeaders.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
+  cleanedHeaders.set("X-MSSP-Promos-Removed", `${promoRanges.length} slot(s), ${removedBytes} bytes`);
+
+  const keepRanges = invertRanges(promoRanges, contentLength);
+  const fixed = new FixedLengthStream(contentLength - removedBytes);
+  const putPromise = cache.put(
+    new Request(target.cacheKeyUrl),
+    new Response(fixed.readable, { status: 200, headers: cleanedHeaders }),
+  );
+  putPromise.catch(() => {}); // outcome handled below; avoid an unhandled rejection
+
+  let assembled = true;
+  try {
+    if (!keepRanges.length) {
+      await fixed.writable.close();
+    }
+    for (let i = 0; i < keepRanges.length; i += 1) {
+      const [start, endInclusive] = keepRanges[i];
+      const part = await cache.match(new Request(rawKeyUrl, {
+        headers: { Range: `bytes=${start}-${endInclusive}` },
+      }));
+      if (!part || part.status !== 206 || !part.body) throw new Error("cache range read failed");
+      await part.body.pipeTo(fixed.writable, { preventClose: i < keepRanges.length - 1 });
+    }
+  } catch (error) {
+    assembled = false;
+    try {
+      await fixed.writable.abort(error);
+    } catch {}
+  }
+
+  if (assembled) {
+    try {
+      await putPromise;
+      await cache.delete(new Request(rawKeyUrl));
+      const served = await cache.match(matchRequest);
+      if (served) return finalizeAudio(served, request.method, origin);
+    } catch {}
+  }
+
+  // Fail open: the stitched-but-playable raw copy beats dead air.
+  const rawMatchRequest = request.method === "HEAD"
+    ? new Request(rawKeyUrl)
+    : new Request(rawKeyUrl, { headers: request.headers });
+  const raw = await cache.match(rawMatchRequest);
+  if (raw) return finalizeAudio(raw, request.method, origin);
+  return refetchUnstripped(target, request, origin);
+}
+
+// Last-resort degradation: the upstream body was consumed by a failed cache
+// write, so fetch the episode again and stream it through unmodified.
+async function refetchUnstripped(target, request, origin) {
+  let retry;
+  try {
+    retry = await fetch(target.upstreamUrl, { redirect: "follow" });
+  } catch {
+    return textResponse("Upstream fetch failed", 502, origin);
+  }
+  const contentType = (retry.headers.get("Content-Type") || "").toLowerCase();
+  if (retry.status !== 200 || !contentType.includes("audio")) {
+    return textResponse("Upstream returned an unexpected response", 502, origin);
+  }
+  return finalizeAudio(new Response(retry.body, {
+    status: 200,
+    headers: sanitizeUpstreamHeaders(retry.headers),
+  }), request.method, origin);
+}
+
+// Strips Megaphone's DAI slot metadata (x-megaphone-payload*), its blanket
+// ACAO (*) so this worker's per-origin CORS policy stays authoritative, and
+// legacy caching headers that would fight the worker's own Cache-Control.
+function sanitizeUpstreamHeaders(upstreamHeaders) {
+  const headers = new Headers(upstreamHeaders);
+  for (const name of [...headers.keys()]) {
+    if (name.startsWith("x-megaphone") || name.startsWith("access-control-")) {
+      headers.delete(name);
+    }
+  }
+  headers.delete("Set-Cookie");
+  headers.delete("Expires");
+  headers.delete("Pragma");
+  headers.set("Accept-Ranges", "bytes");
+  return headers;
+}
+
+// Complements sorted, non-overlapping remove-ranges ([start, endExclusive)) into
+// the inclusive keep-ranges used for cache Range reads.
+export function invertRanges(removeRanges, contentLength) {
+  const keep = [];
+  let cursor = 0;
+  for (const [start, end] of removeRanges) {
+    if (start > cursor) keep.push([cursor, start - 1]);
+    cursor = end;
+  }
+  if (cursor < contentLength) keep.push([cursor, contentLength - 1]);
+  return keep;
 }
 
 // Parses Megaphone's x-megaphone-payload-2 header into byte ranges to remove,
@@ -158,33 +264,6 @@ export function parsePromoRanges(payloadHeader, contentLength) {
     if (ranges[i][0] < ranges[i - 1][1]) return []; // overlapping slots: distrust the header
   }
   return ranges;
-}
-
-// TransformStream that drops the given absolute byte ranges ([start, endExclusive),
-// sorted, non-overlapping) from a stream, emitting everything else untouched.
-export function createPromoStripper(ranges) {
-  let position = 0;
-  let rangeIndex = 0;
-
-  return new TransformStream({
-    transform(chunk, controller) {
-      let offset = 0;
-      while (offset < chunk.byteLength && rangeIndex < ranges.length) {
-        const absolute = position + offset;
-        const [start, end] = ranges[rangeIndex];
-        if (absolute < start) {
-          const emitEnd = Math.min(chunk.byteLength, offset + (start - absolute));
-          controller.enqueue(chunk.subarray(offset, emitEnd));
-          offset = emitEnd;
-        } else {
-          offset += Math.min(chunk.byteLength - offset, end - absolute);
-          if (position + offset >= end) rangeIndex += 1;
-        }
-      }
-      if (offset < chunk.byteLength) controller.enqueue(chunk.subarray(offset));
-      position += chunk.byteLength;
-    },
-  });
 }
 
 // Copies the (immutable) cached/upstream response so headers can be decorated

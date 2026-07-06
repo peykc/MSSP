@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker, { createPromoStripper, parsePromoRanges } from "../src/index.js";
+import worker, { invertRanges, parsePromoRanges } from "../src/index.js";
 
 const PROXY_ORIGIN = "https://nt-audio.pkcollection.net";
 const PAGES_ORIGIN = "https://peykc.github.io";
@@ -19,6 +19,10 @@ class MockEdgeCache {
     if (response.status !== 200) throw new Error("only 200 responses are cacheable");
     const body = new Uint8Array(await response.arrayBuffer());
     this.store.set(request.url, { headers: new Headers(response.headers), body });
+  }
+
+  async delete(request) {
+    return this.store.delete(request.url);
   }
 
   async match(request) {
@@ -344,28 +348,18 @@ test("parsePromoRanges fails open on anything suspicious", () => {
   assert.deepEqual(parsePromoRanges(`${filled(100, 199)},#999#post#1#1000###@tail#128000#1`, 1000), [[100, 200]]);
 });
 
-test("createPromoStripper drops ranges regardless of chunk boundaries", async () => {
-  const source = Uint8Array.from({ length: 100 }, (_, i) => i);
-  const ranges = [[0, 5], [30, 45], [95, 100]];
-  const expected = Uint8Array.from([...source].filter((_, i) => !ranges.some(([s, e]) => i >= s && i < e)));
-
-  for (const chunkSize of [1, 7, 32, 100]) {
-    const chunks = [];
-    for (let i = 0; i < source.length; i += chunkSize) chunks.push(source.slice(i, i + chunkSize));
-    const stream = new ReadableStream({
-      start(controller) {
-        for (const chunk of chunks) controller.enqueue(chunk);
-        controller.close();
-      },
-    }).pipeThrough(createPromoStripper(ranges));
-    const output = new Uint8Array(await new Response(stream).arrayBuffer());
-    assert.deepEqual(output, expected, `chunkSize=${chunkSize}`);
-  }
+test("invertRanges complements remove-ranges into inclusive keep-ranges", () => {
+  assert.deepEqual(invertRanges([[100, 200]], 1000), [[0, 99], [200, 999]]);
+  assert.deepEqual(invertRanges([[0, 100]], 1000), [[100, 999]]);
+  assert.deepEqual(invertRanges([[900, 1000]], 1000), [[0, 899]]);
+  assert.deepEqual(invertRanges([[100, 150], [350, 400]], 1000), [[0, 99], [150, 349], [400, 999]]);
+  assert.deepEqual(invertRanges([[0, 1000]], 1000), []);
 });
 
 test("excises filled promo slots from upstream audio before caching", async () => {
   const bytes = makeAudioBytes(1000);
-  const header = "ad-id#199#mid#1#100#creative-id#true#true,#999#post#1#1000###@episode-id#128000#90391";
+  const header = "ad-a#149#mid#1#100#creative-a#true#true,ad-b#399#mid#2#350#creative-b#true#true,"
+    + "#999#post#1#1000###@episode-id#128000#90391";
   const upstream = () => new Response(bytes.slice(), {
     status: 200,
     headers: {
@@ -374,23 +368,52 @@ test("excises filled promo slots from upstream audio before caching", async () =
       "X-Megaphone-Payload-2": header,
     },
   });
-  const expected = Uint8Array.from([...bytes.slice(0, 100), ...bytes.slice(200)]);
+  const expected = Uint8Array.from([
+    ...bytes.slice(0, 100), ...bytes.slice(150, 350), ...bytes.slice(400),
+  ]);
 
-  await withProxyMocks(async ({ fetchCalls }) => {
+  await withProxyMocks(async ({ cache, fetchCalls }) => {
     const url = `${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`;
 
     const first = await worker.fetch(new Request(url));
     assert.equal(first.status, 200);
+    // Slots are 100-149 and 350-399 inclusive: 50 bytes each.
     assert.equal(first.headers.get("Content-Length"), "900");
-    assert.equal(first.headers.get("X-MSSP-Promos-Removed"), "1 slot(s), 100 bytes");
+    assert.equal(first.headers.get("X-MSSP-Promos-Removed"), "2 slot(s), 100 bytes");
     assert.equal(first.headers.get("X-Megaphone-Payload-2"), null);
     assert.deepEqual(new Uint8Array(await first.arrayBuffer()), expected);
+
+    // The temp raw entry is cleaned up; only the final clean object remains.
+    assert.equal(cache.store.size, 1);
+    assert.ok([...cache.store.keys()][0].includes("/nt/GLT123.mp3"));
 
     // The cached copy is already stripped: the second request is a cache hit
     // with the same clean bytes.
     const second = await worker.fetch(new Request(url));
     assert.deepEqual(new Uint8Array(await second.arrayBuffer()), expected);
     assert.equal(fetchCalls.length, 1);
+  }, { upstream });
+});
+
+test("range requests against the excised object stay correct", async () => {
+  const bytes = makeAudioBytes(1000);
+  const header = "ad-id#199#mid#1#100#creative-id#true#true@episode-id#128000#90391";
+  const upstream = () => new Response(bytes.slice(), {
+    status: 200,
+    headers: {
+      "Content-Type": "audio/mpeg",
+      "Content-Length": "1000",
+      "X-Megaphone-Payload-2": header,
+    },
+  });
+
+  await withProxyMocks(async () => {
+    const url = `${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`;
+    await worker.fetch(new Request(url)); // populate
+
+    const ranged = await worker.fetch(new Request(url, { headers: { Range: "bytes=0-" } }));
+    assert.equal(ranged.status, 206);
+    assert.equal(ranged.headers.get("Content-Range"), "bytes 0-899/900");
   }, { upstream });
 });
 
