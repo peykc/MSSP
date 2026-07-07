@@ -8,7 +8,9 @@
     "deploy": "wrangler deploy",
     "test": "node --test",
     "cuts:generate": "node scripts/generateBakedCuts.mjs",
-    "cuts:check": "node scripts/generateBakedCuts.mjs --check"
+    "cuts:check": "node scripts/generateBakedCuts.mjs --check",
+    "cuts:align": "node scripts/alignBakedPromos.mjs",
+    "cuts:distill": "node scripts/distillBakedPromoCuts.mjs"
   },
   "devDependencies": {
     "wrangler": "^4.103.0"
