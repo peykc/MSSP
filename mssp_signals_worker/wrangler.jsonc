@@ -1,0 +1,39 @@
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "mssp-signals",
+	"main": "src/index.js",
+	"compatibility_date": "2026-07-06",
+	"workers_dev": true,
+	"observability": {
+		"enabled": false
+	},
+	"d1_databases": [
+		{
+			"binding": "DB",
+			"database_name": "mssp-signals-db",
+			"database_id": "2d3c0f56-b677-43dc-882d-b45de2736599",
+			"migrations_dir": "migrations"
+		}
+	],
+	"durable_objects": {
+		"bindings": [
+			{
+				"name": "PRESENCE",
+				"class_name": "PresenceRoom"
+			}
+		]
+	},
+	"migrations": [
+		{
+			"tag": "v1",
+			"new_sqlite_classes": [
+				"PresenceRoom"
+			]
+		}
+	],
+	"secrets": {
+		"required": [
+			"CLIENT_HASH_SALT"
+		]
+	}
+}
