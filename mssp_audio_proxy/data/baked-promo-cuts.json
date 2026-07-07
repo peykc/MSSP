@@ -1,0 +1,1068 @@
+{
+  "generatedAt": "2026-07-07T12:32:46.373Z",
+  "note": "Measured by offline alignment of proxy output vs promo-free archive rips. Post-DAI byte coordinates.",
+  "episodeCount": 86,
+  "totalSecondsRemoved": 2651.7,
+  "entries": {
+    "GLT8321898898": {
+      "episodeKey": "2023-06-07 MSSP Ep. 447 - Brewski Tumble",
+      "updated": "1740693419",
+      "postDaiBytes": 48493863,
+      "cuts": [
+        [
+          10138690,
+          10500433
+        ]
+      ],
+      "secondsRemoved": 30.088
+    },
+    "GLT5955194389": {
+      "episodeKey": "2024-06-04 MSSP Ep. 497 - Jam The Brakes (feat. Sal Vulcano & Luis J. Gomez)",
+      "updated": "1740514875",
+      "postDaiBytes": 56567229,
+      "cuts": [
+        [
+          10425790,
+          10787533
+        ]
+      ],
+      "secondsRemoved": 30.095
+    },
+    "GLT8968416391": {
+      "episodeKey": "2026-05-15 MSSP Ep. 614 - iNasty",
+      "updated": null,
+      "postDaiBytes": 157213986,
+      "cuts": [
+        [
+          154806543,
+          157213986
+        ]
+      ],
+      "secondsRemoved": 60.165
+    },
+    "GLT3115620867": {
+      "episodeKey": "2026-05-27 MSSP Ep. 616 - The Four Heavens (feat. David Stuart)",
+      "updated": null,
+      "postDaiBytes": 152073035,
+      "cuts": [
+        [
+          149662456,
+          152073035
+        ]
+      ],
+      "secondsRemoved": 60.242
+    },
+    "GLT3840441641": {
+      "episodeKey": "2019-12-10 MSSP Ep. 158 - Hot Viral Boyz",
+      "updated": "1738626529",
+      "postDaiBytes": 82055811,
+      "cuts": [
+        [
+          81575159,
+          82055811
+        ]
+      ],
+      "secondsRemoved": 30.008
+    },
+    "GLT3777743382": {
+      "episodeKey": "2020-03-10 MSSP Ep. 171 - Bull's Gone Wild- Spring Break Edition",
+      "updated": "1738625801",
+      "postDaiBytes": 132925121,
+      "cuts": [
+        [
+          132443633,
+          132925121
+        ]
+      ],
+      "secondsRemoved": 30.073
+    },
+    "GLT8923496990": {
+      "episodeKey": "2020-08-12 MSSP Ep. 309 - Homosapiens",
+      "updated": "1738625791",
+      "postDaiBytes": 69268412,
+      "cuts": [
+        [
+          68786088,
+          69268412
+        ]
+      ],
+      "secondsRemoved": 30.106
+    },
+    "GLT5753919563": {
+      "episodeKey": "2021-08-22 MSSP Ep. 359 - Cinnamon (feat. Nate Marshall & Lemaire Lee)",
+      "updated": "1740762540",
+      "postDaiBytes": 66011275,
+      "cuts": [
+        [
+          65859974,
+          66011275
+        ]
+      ],
+      "secondsRemoved": 9.443
+    },
+    "GLT1719131944": {
+      "episodeKey": "2021-09-04 MSSP Ep. 361 - Beach ViBeZ",
+      "updated": "1740762857",
+      "postDaiBytes": 72660468,
+      "cuts": [
+        [
+          72494120,
+          72660468
+        ]
+      ],
+      "secondsRemoved": 10.384
+    },
+    "GLT3040531643": {
+      "episodeKey": "2022-01-05 MSSP Ep. 377 - The Plague",
+      "updated": "1740676664",
+      "postDaiBytes": 47572167,
+      "cuts": [
+        [
+          47209797,
+          47572167
+        ]
+      ],
+      "secondsRemoved": 30.14
+    },
+    "GLT3234312449": {
+      "episodeKey": "2022-02-09 MSSP Ep. 382 - The Easter Ham (feat. Brian Six)",
+      "updated": "1740677773",
+      "postDaiBytes": 66075219,
+      "cuts": [
+        [
+          65894035,
+          66075219
+        ]
+      ],
+      "secondsRemoved": 15.078
+    },
+    "GLT6028150171": {
+      "episodeKey": "2022-03-30 MSSP Ep. 389 - The Franklin Scandal (feat. Nick Bryant)",
+      "updated": "1740679987",
+      "postDaiBytes": 69925996,
+      "cuts": [
+        [
+          69563939,
+          69925996
+        ]
+      ],
+      "secondsRemoved": 30.132
+    },
+    "GLT3386920342": {
+      "episodeKey": "2022-05-05 MSSP Ep. 393.3 - The Presidents - Part Three (feat. Louis C.K.)",
+      "updated": "1740680731",
+      "postDaiBytes": 57640587,
+      "cuts": [
+        [
+          57278843,
+          57640587
+        ]
+      ],
+      "secondsRemoved": 30.098
+    },
+    "GLT5300929577": {
+      "episodeKey": "2022-05-05 MSSP Ep. 393.4 - The Presidents - Part Four (feat. Louis C.K.)",
+      "updated": "1740681438",
+      "postDaiBytes": 88713768,
+      "cuts": [
+        [
+          88362370,
+          88713768
+        ]
+      ],
+      "secondsRemoved": 29.253
+    },
+    "GLT4041049125": {
+      "episodeKey": "2022-08-19 MSSP Ep. 405 - Free Manti (feat. WARMODE)",
+      "updated": "1740682717",
+      "postDaiBytes": 90396590,
+      "cuts": [
+        [
+          89974192,
+          90396590
+        ]
+      ],
+      "secondsRemoved": 30.141
+    },
+    "GLT6613523241": {
+      "episodeKey": "2022-10-19 MSSP Ep. 414 - The Winter of '87",
+      "updated": "1740684752",
+      "postDaiBytes": 45935483,
+      "cuts": [
+        [
+          45572799,
+          45935483
+        ]
+      ],
+      "secondsRemoved": 30.162
+    },
+    "GLT8034992440": {
+      "episodeKey": "2022-11-16 MSSP Ep. 418 - Street Jokin'",
+      "updated": "1740685347",
+      "postDaiBytes": 48373688,
+      "cuts": [
+        [
+          48010377,
+          48373688
+        ]
+      ],
+      "secondsRemoved": 30.218
+    },
+    "GLT1456862515": {
+      "episodeKey": "2023-03-29 MSSP Ep. 436 - Ample Men (feat. Sam Tallent)",
+      "updated": "1740689201",
+      "postDaiBytes": 57539964,
+      "cuts": [
+        [
+          57177280,
+          57539964
+        ]
+      ],
+      "secondsRemoved": 30.176
+    },
+    "GLT3954870099": {
+      "episodeKey": "2023-08-09 MSSP Ep. 455 - Heebie Jeebies",
+      "updated": "1740520606",
+      "postDaiBytes": 49779905,
+      "cuts": [
+        [
+          49416908,
+          49779905
+        ]
+      ],
+      "secondsRemoved": 30.193
+    },
+    "GLT5393181141": {
+      "episodeKey": "2023-11-02 MSSP Ep. 466 - Daddy's D",
+      "updated": "1740518331",
+      "postDaiBytes": 49416302,
+      "cuts": [
+        [
+          49203824,
+          49416302
+        ]
+      ],
+      "secondsRemoved": 15.149
+    },
+    "GLT4525841060": {
+      "episodeKey": "2024-02-07 MSSP Ep. 480 - R.I.P. Tybalt (feat. Luis J. Gomez)",
+      "updated": "1740533940",
+      "postDaiBytes": 54856895,
+      "cuts": [
+        [
+          54493897,
+          54856895
+        ]
+      ],
+      "secondsRemoved": 30.199
+    },
+    "GLT1498331549": {
+      "episodeKey": "2024-01-24 MSSP Ep. 478 - Gone Boy (feat. Jon DelCollo)",
+      "updated": "1740535018",
+      "postDaiBytes": 63299765,
+      "cuts": [
+        [
+          63117327,
+          63299765
+        ]
+      ],
+      "secondsRemoved": 15.181
+    },
+    "GLT8651952255": {
+      "episodeKey": "2024-03-13 MSSP Ep. 485 - Twenty Second Blast (feat. Simon Rex)",
+      "updated": "1740528909",
+      "postDaiBytes": 53410184,
+      "cuts": [
+        [
+          53047500,
+          53410184
+        ]
+      ],
+      "secondsRemoved": 30.171
+    },
+    "GLT2282387614": {
+      "episodeKey": "2024-09-03 MSSP Ep. 512 - Crooked Smile (feat. Jared Klickstein)",
+      "updated": "1769024320",
+      "postDaiBytes": 60748897,
+      "cuts": [
+        [
+          60322475,
+          60748897
+        ]
+      ],
+      "secondsRemoved": 30.412
+    },
+    "GLT5473763098": {
+      "episodeKey": "2024-10-23 MSSP Ep. 523 - Shirtless Workers (feat. Ralph Barbosa)",
+      "updated": "1740429413",
+      "postDaiBytes": 86750180,
+      "cuts": [
+        [
+          86328147,
+          86750180
+        ]
+      ],
+      "secondsRemoved": 30.113
+    },
+    "GLT8220842320": {
+      "episodeKey": "2025-04-24 MSSP Ep. 556 - Spud Sucker",
+      "updated": "1745481821",
+      "postDaiBytes": 48535574,
+      "cuts": [
+        [
+          48173831,
+          48535574
+        ]
+      ],
+      "secondsRemoved": 30.092
+    },
+    "GLT1783289941": {
+      "episodeKey": "2025-04-16 MSSP Ep. 555 - Roundball Rock (feat. Steve Gerben)",
+      "updated": "1744784732",
+      "postDaiBytes": 175624232,
+      "cuts": [
+        [
+          174419466,
+          175624232
+        ]
+      ],
+      "secondsRemoved": 30.11
+    },
+    "GLT6712146228": {
+      "episodeKey": "2025-05-01 MSSP Ep. 557 - Blob Farm (feat. Nate Marshall)",
+      "updated": "1745964767",
+      "postDaiBytes": 54478854,
+      "cuts": [
+        [
+          54116484,
+          54478854
+        ]
+      ],
+      "secondsRemoved": 30.151
+    },
+    "GLT2910189064": {
+      "episodeKey": "2025-05-08 MSSP Ep. 558 - Ay Caramba",
+      "updated": "1746717419",
+      "postDaiBytes": 57071625,
+      "cuts": [
+        [
+          56648861,
+          57071625
+        ]
+      ],
+      "secondsRemoved": 30.153
+    },
+    "GLT8767305815": {
+      "episodeKey": "2025-05-13 MSSP Ep. 559 - Zoom Jam (feat. Nate Marshall & Shawn Gardini)",
+      "updated": "1747164163",
+      "postDaiBytes": 48899283,
+      "cuts": [
+        [
+          48537226,
+          48899283
+        ]
+      ],
+      "secondsRemoved": 30.119
+    },
+    "GLT1720397256": {
+      "episodeKey": "2025-05-22 MSSP Ep. 560 - Big Boy Toys",
+      "updated": "1747884818",
+      "postDaiBytes": 51920759,
+      "cuts": [
+        [
+          51558702,
+          51920759
+        ]
+      ],
+      "secondsRemoved": 30.122
+    },
+    "GLT8204787942": {
+      "episodeKey": "2025-05-29 MSSP Ep. 561 - Beautiful Things",
+      "updated": "1748532156",
+      "postDaiBytes": 48812047,
+      "cuts": [
+        [
+          48449990,
+          48812047
+        ]
+      ],
+      "secondsRemoved": 30.119
+    },
+    "GLT6250930241": {
+      "episodeKey": "2025-06-12 MSSP Ep. 563 - No Nut Clarity (feat. Chris O'Connor & Dave Temple)",
+      "updated": "1749714689",
+      "postDaiBytes": 55718005,
+      "cuts": [
+        [
+          55355635,
+          55718005
+        ]
+      ],
+      "secondsRemoved": 30.151
+    },
+    "GLT1555777750": {
+      "episodeKey": "2025-06-18 MSSP Ep. 564 - Cuddle Puddle (feat. James McCann, Tim Butterly, & Egan Robinson)",
+      "updated": "1751305813",
+      "postDaiBytes": 45739019,
+      "cuts": [
+        [
+          45377903,
+          45739019
+        ]
+      ],
+      "secondsRemoved": 30.037
+    },
+    "GLT2543492502": {
+      "episodeKey": "2025-06-30 MSSP Ep. 565 - The Entertainer (feat. Steve Crawford)",
+      "updated": "1751305869",
+      "postDaiBytes": 47381979,
+      "cuts": [
+        [
+          47019609,
+          47381979
+        ]
+      ],
+      "secondsRemoved": 30.144
+    },
+    "GLT5734875088": {
+      "episodeKey": "2025-07-02 MSSP Ep. 566 - Destroying The Ark",
+      "updated": "1751477662",
+      "postDaiBytes": 43731602,
+      "cuts": [
+        [
+          43386786,
+          43731602
+        ]
+      ],
+      "secondsRemoved": 28.679
+    },
+    "GLT8260328319": {
+      "episodeKey": "2025-07-11 MSSP Ep. 567 - Say Cheese",
+      "updated": "1752208428",
+      "postDaiBytes": 49308566,
+      "cuts": [
+        [
+          48946196,
+          49308566
+        ]
+      ],
+      "secondsRemoved": 30.146
+    },
+    "GLT5041684211": {
+      "episodeKey": "2025-07-21 MSSP Ep. 568 - Hollywood Night Cast",
+      "updated": "1753936484",
+      "postDaiBytes": 52658762,
+      "cuts": [
+        [
+          52296705,
+          52658762
+        ]
+      ],
+      "secondsRemoved": 30.123
+    },
+    "GLT5761176262": {
+      "episodeKey": "2025-07-24 MSSP Ep. 569 - A Derosa Garden (feat. Joe Derosa)",
+      "updated": "1753924952",
+      "postDaiBytes": 50695281,
+      "cuts": [
+        [
+          50333224,
+          50695281
+        ]
+      ],
+      "secondsRemoved": 30.121
+    },
+    "GLT7071096567": {
+      "episodeKey": "2025-08-01 MSSP Ep. 570 - The Alabama Slamma",
+      "updated": "1753995721",
+      "postDaiBytes": 46804558,
+      "cuts": [
+        [
+          46442501,
+          46804558
+        ]
+      ],
+      "secondsRemoved": 30.117
+    },
+    "GLT7916646810": {
+      "episodeKey": "2025-08-06 MSSP Ep. 571 - Daddy's Dots",
+      "updated": "1754508400",
+      "postDaiBytes": 57198946,
+      "cuts": [
+        [
+          56776547,
+          57198946
+        ]
+      ],
+      "secondsRemoved": 30.127
+    },
+    "GLT3763033335": {
+      "episodeKey": "2025-08-14 MSSP Ep. 572 - Gabriel (feat. Gabe Davis)",
+      "updated": "1755202344",
+      "postDaiBytes": 50013169,
+      "cuts": [
+        [
+          49651112,
+          50013169
+        ]
+      ],
+      "secondsRemoved": 30.12
+    },
+    "GLT4338994899": {
+      "episodeKey": "2025-08-21 MSSP Ep. 573 - Angry Jets",
+      "updated": "1755819827",
+      "postDaiBytes": 66756357,
+      "cuts": [
+        [
+          66334689,
+          66756357
+        ]
+      ],
+      "secondsRemoved": 30.081
+    },
+    "GLT7994047602": {
+      "episodeKey": "2025-09-04 MSSP Ep. 575 - Black Seed Fart Max (feat. Nate Marshall & Egan Robinson)",
+      "updated": "1757003139",
+      "postDaiBytes": 55496742,
+      "cuts": [
+        [
+          55134371,
+          55496742
+        ]
+      ],
+      "secondsRemoved": 30.151
+    },
+    "GLT2180424811": {
+      "episodeKey": "2025-09-10 MSSP Ep. 576 - Crack Mobile (feat. Joe List & Nate Marshall)",
+      "updated": "1757470508",
+      "postDaiBytes": 66530926,
+      "cuts": [
+        [
+          66168870,
+          66530926
+        ]
+      ],
+      "secondsRemoved": 30.133
+    },
+    "GLT4598496020": {
+      "episodeKey": "2025-09-25 MSSP Ep. 578 - Post-Negativity (feat. Shawn Gardini)",
+      "updated": "1758817045",
+      "postDaiBytes": 44951169,
+      "cuts": [
+        [
+          44589112,
+          44951169
+        ]
+      ],
+      "secondsRemoved": 30.115
+    },
+    "GLT1172822280": {
+      "episodeKey": "2025-10-01 MSSP Ep. 579 - Crumb & The Hutt (feat. Joe Derosa & Lemaire Lee)",
+      "updated": "1759297996",
+      "postDaiBytes": 66469696,
+      "cuts": [
+        [
+          66107639,
+          66469696
+        ]
+      ],
+      "secondsRemoved": 30.133
+    },
+    "GLT3755824192": {
+      "episodeKey": "2025-10-15 MSSP Ep. 581 - Teenis Fly Trap (feat. Lemaire Lee)",
+      "updated": "1760498640",
+      "postDaiBytes": 155674244,
+      "cuts": [
+        [
+          154469478,
+          155674244
+        ]
+      ],
+      "secondsRemoved": 30.103
+    },
+    "GLT6465629763": {
+      "episodeKey": "2025-10-23 MSSP Ep. 582 - Very Interesting",
+      "updated": "1761203197",
+      "postDaiBytes": 212607847,
+      "cuts": [
+        [
+          211404125,
+          212607847
+        ]
+      ],
+      "secondsRemoved": 30.081
+    },
+    "GLT8306623994": {
+      "episodeKey": "2025-10-31 MSSP Ep. 583 - Ice Cream Dream (feat. James McCann)",
+      "updated": "1761878884",
+      "postDaiBytes": 177632645,
+      "cuts": [
+        [
+          176428923,
+          177632645
+        ]
+      ],
+      "secondsRemoved": 30.079
+    },
+    "GLT3577749746": {
+      "episodeKey": "2025-11-04 MSSP Ep. 584 - The Buzz Man (feat. Marcus King)",
+      "updated": "1762240139",
+      "postDaiBytes": 144414778,
+      "cuts": [
+        [
+          143309277,
+          144414778
+        ]
+      ],
+      "secondsRemoved": 27.621
+    },
+    "GLT2824163571": {
+      "episodeKey": "2025-11-20 MSSP Ep. 586 - Shift Work (feat. Nate Marshall)",
+      "updated": "1763617504",
+      "postDaiBytes": 152774416,
+      "cuts": [
+        [
+          151569650,
+          152774416
+        ]
+      ],
+      "secondsRemoved": 30.108
+    },
+    "GLT5427414528": {
+      "episodeKey": "2025-11-26 MSSP Ep. 587 - PHIL (feat. Steve Gerben & Chris O'Connor)",
+      "updated": "1764194802",
+      "postDaiBytes": 228888807,
+      "cuts": [
+        [
+          227686129,
+          228888807
+        ]
+      ],
+      "secondsRemoved": 30.059
+    },
+    "GLT2206548860": {
+      "episodeKey": "2025-12-04 MSSP Ep. 588 - Horse Life (feat. Lemaire Lee & Nate Marshall)",
+      "updated": "1764834260",
+      "postDaiBytes": 186591497,
+      "cuts": [
+        [
+          185388819,
+          186591497
+        ]
+      ],
+      "secondsRemoved": 30.058
+    },
+    "GLT5287763230": {
+      "episodeKey": "2025-12-12 MSSP Ep. 589 - Broke Mind Virus",
+      "updated": "1765527496",
+      "postDaiBytes": 175377559,
+      "cuts": [
+        [
+          174174881,
+          175377559
+        ]
+      ],
+      "secondsRemoved": 30.057
+    },
+    "GLT3320084970": {
+      "episodeKey": "2025-12-23 MSSP Ep. 591 - M-A DOUBLE HOCKEY STICKS (Mall)",
+      "updated": "1766463378",
+      "postDaiBytes": 161407555,
+      "cuts": [
+        [
+          160204877,
+          161407555
+        ]
+      ],
+      "secondsRemoved": 30.056
+    },
+    "GLT7269021065": {
+      "episodeKey": "2026-01-14 MSSP Ep. 594 - Gooniverse (feat. Steve Gerben & Billy)",
+      "updated": "1768423327",
+      "postDaiBytes": 231549591,
+      "cuts": [
+        [
+          230346913,
+          231549591
+        ]
+      ],
+      "secondsRemoved": 30.059
+    },
+    "GLT1562112305": {
+      "episodeKey": "2026-01-30 MSSP Ep. 596 - 4-Man Jamboree Slam (feat. Ian Fidance, Ehsan Ahmad, Tim Butterly)",
+      "updated": "1769733966",
+      "postDaiBytes": 161468328,
+      "cuts": [
+        [
+          160265650,
+          161468328
+        ]
+      ],
+      "secondsRemoved": 30.056
+    },
+    "GLT2698753603": {
+      "episodeKey": "2026-04-03 MSSP Ep. 606 - Leadership",
+      "updated": "1775196648",
+      "postDaiBytes": 177295292,
+      "cuts": [
+        [
+          176092614,
+          177295292
+        ]
+      ],
+      "secondsRemoved": 30.057
+    },
+    "GLT8927977992": {
+      "episodeKey": "2026-03-20 MSSP Ep. 604 - Tyler Gerben (feat. Steve Gerben, Dan Soder, Billy & Spud)",
+      "updated": null,
+      "postDaiBytes": 316498217,
+      "cuts": [
+        [
+          311547492,
+          312752258
+        ]
+      ],
+      "secondsRemoved": 30.114
+    },
+    "GLT1064728032": {
+      "episodeKey": "2026-04-13 MSSP Ep. 608 - WrestleMania (feat. Cody Rhodes)",
+      "updated": null,
+      "postDaiBytes": 170769248,
+      "cuts": [
+        [
+          169564481,
+          170769248
+        ]
+      ],
+      "secondsRemoved": 30.109
+    },
+    "GLT1051987482": {
+      "episodeKey": "2026-04-15 MSSP Ep. 609 - Mega Heider (feat. Corey Heider & Nate Marshall)",
+      "updated": "1776211686",
+      "postDaiBytes": 154668509,
+      "cuts": [
+        [
+          153465831,
+          154668509
+        ]
+      ],
+      "secondsRemoved": 30.056
+    },
+    "GLT8647431388": {
+      "episodeKey": "2026-05-01 MSSP Ep. 612 - Night Gator (feat. Charles Blyzniuk)",
+      "updated": null,
+      "postDaiBytes": 181562778,
+      "cuts": [
+        [
+          180359056,
+          181562778
+        ]
+      ],
+      "secondsRemoved": 30.083
+    },
+    "GLT8962219894": {
+      "episodeKey": "2026-04-25 MSSP Ep. 610 - The Bewick's Wren (feat. James Mccann)",
+      "updated": "1777080908",
+      "postDaiBytes": 187158513,
+      "cuts": [
+        [
+          185956880,
+          187158513
+        ]
+      ],
+      "secondsRemoved": 30.031
+    },
+    "GLT7753612140": {
+      "episodeKey": "2026-05-07 MSSP Ep. 613 - Solar System Part 1 (feat. Nate Marshall)",
+      "updated": null,
+      "postDaiBytes": 141099278,
+      "cuts": [
+        [
+          139895556,
+          141099278
+        ]
+      ],
+      "secondsRemoved": 30.081
+    },
+    "GLT7213714839": {
+      "episodeKey": "2026-05-20 MSSP Ep. 615 - Slim Goodie (feat. Sheryl Underwood)",
+      "updated": null,
+      "postDaiBytes": 159006464,
+      "cuts": [
+        [
+          156599021,
+          159006464
+        ]
+      ],
+      "secondsRemoved": 60.165
+    },
+    "GLT5874003828": {
+      "episodeKey": "2022-06-06 MSSP Ep. 397 - The Heart of Straightness",
+      "updated": "1740681182",
+      "postDaiBytes": 40197785,
+      "cuts": [
+        [
+          32563552,
+          32925609
+        ]
+      ],
+      "secondsRemoved": 30.103
+    },
+    "GLT8757948754": {
+      "episodeKey": "2021-09-30 MSSP Ep. 365 - Weed Guy (feat. Brian Six, Lemaire Lee, and Ryan Shaner)",
+      "updated": "1740619324",
+      "postDaiBytes": 54996919,
+      "cuts": [
+        [
+          14051234,
+          14814532
+        ]
+      ],
+      "secondsRemoved": 63.503
+    },
+    "GLT1778127846": {
+      "episodeKey": "2025-12-31 MSSP Ep. 592 - 2025： A Year in Review",
+      "updated": "1767157646",
+      "postDaiBytes": 131794867,
+      "cuts": [
+        [
+          130592189,
+          131794867
+        ]
+      ],
+      "secondsRemoved": 30.054
+    },
+    "GLT2618849804": {
+      "episodeKey": "2026-01-22 MSSP Ep. 595 - The Man Who Saves The World？ (feat. Gabe Polsky)",
+      "updated": null,
+      "postDaiBytes": 158836212,
+      "cuts": [
+        [
+          157633535,
+          158836212
+        ]
+      ],
+      "secondsRemoved": 30.056
+    },
+    "GLT7350474790": {
+      "episodeKey": "2026-02-20 MSSP Ep. 599 - Weed Wench (feat. Nate Marshall & Lemaire Lee)",
+      "updated": "1771612416",
+      "postDaiBytes": 158003533,
+      "cuts": [
+        [
+          156801901,
+          158003533
+        ]
+      ],
+      "secondsRemoved": 30.03
+    },
+    "GLT9001324657": {
+      "episodeKey": "2026-03-04 MSSP Ep. 601 - Gen Z Whiteboy (feat. Devan Costa & Conner McNutt)",
+      "updated": "1772587131",
+      "postDaiBytes": 171866932,
+      "cuts": [
+        [
+          170664255,
+          171866932
+        ]
+      ],
+      "secondsRemoved": 30.057
+    },
+    "GLT4656210115": {
+      "episodeKey": "2026-02-26 MSSP Ep. 600 - Hedonic Treadmill (feat. Joe List & Steve Rannazzisi)",
+      "updated": "1772219097",
+      "postDaiBytes": 207719628,
+      "cuts": [
+        [
+          206514861,
+          207719628
+        ]
+      ],
+      "secondsRemoved": 30.111
+    },
+    "GLT1207842021": {
+      "episodeKey": "2026-03-06 MSSP Ep. 602 - Future Man (feat. Kevin Ashton)",
+      "updated": null,
+      "postDaiBytes": 167626584,
+      "cuts": [
+        [
+          166422862,
+          167626584
+        ]
+      ],
+      "secondsRemoved": 30.083
+    },
+    "GLT7968233825": {
+      "episodeKey": "2026-03-25 MSSP Ep. 605 - Arctic Cannibalism (feat. Buddy Levy)",
+      "updated": "1775185626",
+      "postDaiBytes": 167771353,
+      "cuts": [
+        [
+          166568676,
+          167771353
+        ]
+      ],
+      "secondsRemoved": 30.056
+    },
+    "GLT3660958238": {
+      "episodeKey": "2026-04-07 MSSP Ep. 607 - All Guys Welcome (feat. Sam Tallent & Shawn Gardini)",
+      "updated": "1775538608",
+      "postDaiBytes": 197635978,
+      "cuts": [
+        [
+          196433300,
+          197635978
+        ]
+      ],
+      "secondsRemoved": 30.058
+    },
+    "GLT5376807467": {
+      "episodeKey": "2020-06-24 MSSP Ep. 302 - Dog Girl",
+      "updated": "1738625968",
+      "postDaiBytes": 126694459,
+      "cuts": [
+        [
+          90443,
+          156898
+        ],
+        [
+          126578266,
+          126694459
+        ]
+      ],
+      "secondsRemoved": 11.415
+    },
+    "GLT9460089005": {
+      "episodeKey": "2020-07-21 MSSP Ep. 306 - Spuddoula",
+      "updated": "1738625761",
+      "postDaiBytes": 59360694,
+      "cuts": [
+        [
+          89903,
+          1369694
+        ],
+        [
+          12889903,
+          13177876
+        ],
+        [
+          59215245,
+          59360694
+        ]
+      ],
+      "secondsRemoved": 107.076
+    },
+    "GLT2828247135": {
+      "episodeKey": "2020-12-02 MSSP Ep. 326 - Before and Afters",
+      "updated": "1738625793",
+      "postDaiBytes": 80652831,
+      "cuts": [
+        [
+          89945,
+          105409
+        ],
+        [
+          80623156,
+          80652831
+        ]
+      ],
+      "secondsRemoved": 2.821
+    },
+    "GLT4924963865": {
+      "episodeKey": "2020-12-23 MSSP Ep. 329 - God Rules",
+      "updated": "1738626341",
+      "postDaiBytes": 74120448,
+      "cuts": [
+        [
+          90265,
+          150869
+        ],
+        [
+          73658603,
+          74120448
+        ]
+      ],
+      "secondsRemoved": 32.653
+    },
+    "GLT5838467648": {
+      "episodeKey": "2020-12-30 MSSP Ep. 330 - The Wedge",
+      "updated": "1738625811",
+      "postDaiBytes": 96894362,
+      "cuts": [
+        [
+          90419,
+          122183
+        ],
+        [
+          96680367,
+          96894362
+        ]
+      ],
+      "secondsRemoved": 15.36
+    },
+    "GLT3044457918": {
+      "episodeKey": "2021-02-10 MSSP Ep. 334 - The Myth of Women Sleeping",
+      "updated": "1738625807",
+      "postDaiBytes": 71542925,
+      "cuts": [
+        [
+          90713,
+          628208
+        ]
+      ],
+      "secondsRemoved": 33.593
+    },
+    "GLT6151485104": {
+      "episodeKey": "2021-06-01 MSSP Ep. 349 - LIVE from Magooby's (feat. Billy and Spud)",
+      "updated": "1740617181",
+      "postDaiBytes": 65211227,
+      "cuts": [
+        [
+          90051,
+          273170
+        ],
+        [
+          64977692,
+          65211227
+        ]
+      ],
+      "secondsRemoved": 41.665
+    },
+    "GLT1056421306": {
+      "episodeKey": "2023-02-08 MSSP Ep. 429 - The YouKnowWho's & YouKnowWhat's (feat. Rob Crews, Naim Ali, and Dru Montana)",
+      "updated": "1740688575",
+      "postDaiBytes": 49712761,
+      "cuts": [
+        [
+          94005,
+          741006
+        ]
+      ],
+      "secondsRemoved": 53.917
+    },
+    "GLT4896274881": {
+      "episodeKey": "2024-08-05 MSSP Ep. 506 - King Marcus (feat. Marcus King)",
+      "updated": "1740470483",
+      "postDaiBytes": 39424835,
+      "cuts": [
+        [
+          91637,
+          444290
+        ]
+      ],
+      "secondsRemoved": 29.388
+    },
+    "GLT6628629806": {
+      "episodeKey": "2024-12-17 MSSP Ep. 536 - The Program (feat. James Fox)",
+      "updated": "1740189984",
+      "postDaiBytes": 44515040,
+      "cuts": [
+        [
+          92823,
+          120251
+        ]
+      ],
+      "secondsRemoved": 1.959
+    }
+  }
+}
