@@ -1,6 +1,8 @@
 // Proxies New Testament episode audio from Megaphone through the Cloudflare edge
 // cache so every listener receives byte-identical, range-capable files instead of
 // per-request dynamic-ad-insertion stitches.
+import { BAKED_PROMO_CUTS } from "./generated/bakedPromoCuts.js";
+
 const UPSTREAM_BASE = "https://traffic.megaphone.fm/";
 const PRODUCTION_ORIGIN = "https://peykc.github.io";
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
@@ -13,10 +15,17 @@ const NT_PATH_PATTERN = /^\/nt\/(GLT[A-Za-z0-9]+)\.mp3$/;
 const EDGE_TTL_SECONDS = 86400;
 
 // Internal cache-key version. Bump to invalidate every previously cached episode
-// (e.g. when the transformation applied to upstream audio changes). v3: promo
-// slots are excised before caching, with FixedLengthStream so the cached object
-// keeps a Content-Length (required for 206 range serving).
-const CACHE_KEY_VERSION = 3;
+// (e.g. when the transformation applied to upstream audio changes, or the baked
+// promo cut list is regenerated). v4: baked-in promos are excised alongside DAI
+// slots using the aligned cut list in src/generated/bakedPromoCuts.js.
+const CACHE_KEY_VERSION = 4;
+
+// Test seam: lets the test suite install synthetic cut entries without
+// bundling multi-megabyte fixtures. Production always uses the generated map.
+let bakedPromoCuts = BAKED_PROMO_CUTS;
+export function _setBakedPromoCutsForTests(map) {
+  bakedPromoCuts = map ?? BAKED_PROMO_CUTS;
+}
 
 export default {
   async fetch(request) {
@@ -81,11 +90,15 @@ async function serveAudio(request, target, origin) {
   // matches the canonical episode. Fails open: if the header is missing or
   // unparseable, the audio is cached as received.
   const contentLength = Number(upstream.headers.get("Content-Length"));
-  const promoRanges = parsePromoRanges(upstream.headers.get("x-megaphone-payload-2"), contentLength);
+  const daiRanges = parsePromoRanges(upstream.headers.get("x-megaphone-payload-2"), contentLength);
+  const bakedRanges = resolveBakedCuts(target, contentLength, daiRanges);
+  const removeRanges = mergeRanges([...daiRanges, ...bakedRanges]);
 
-  if (promoRanges.length) {
+  if (removeRanges.length) {
     return excisePromosAndServe({
-      cache, request, matchRequest, target, origin, upstream, contentLength, promoRanges,
+      cache, request, matchRequest, target, origin, upstream, contentLength,
+      removeRanges,
+      label: `${daiRanges.length} DAI + ${bakedRanges.length} baked slot(s)`,
     });
   }
 
@@ -118,9 +131,9 @@ async function serveAudio(request, target, origin) {
 // cache range reads pumped through FixedLengthStream, which also gives the final
 // object the exact Content-Length that 206 range serving requires.
 async function excisePromosAndServe({
-  cache, request, matchRequest, target, origin, upstream, contentLength, promoRanges,
+  cache, request, matchRequest, target, origin, upstream, contentLength, removeRanges, label,
 }) {
-  const removedBytes = promoRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
+  const removedBytes = removeRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
   const rawKeyUrl = `${new URL(target.cacheKeyUrl).origin}/__raw/${crypto.randomUUID()}`;
 
   const rawResponse = new Response(upstream.body, {
@@ -139,9 +152,9 @@ async function excisePromosAndServe({
   const cleanedHeaders = sanitizeUpstreamHeaders(upstream.headers);
   cleanedHeaders.delete("Content-Length"); // FixedLengthStream declares the real one
   cleanedHeaders.set("Cache-Control", `public, max-age=${EDGE_TTL_SECONDS}`);
-  cleanedHeaders.set("X-MSSP-Promos-Removed", `${promoRanges.length} slot(s), ${removedBytes} bytes`);
+  cleanedHeaders.set("X-MSSP-Promos-Removed", `${label}, ${removedBytes} bytes`);
 
-  const keepRanges = invertRanges(promoRanges, contentLength);
+  const keepRanges = invertRanges(removeRanges, contentLength);
   const fixed = new FixedLengthStream(contentLength - removedBytes);
   const putPromise = cache.put(
     new Request(target.cacheKeyUrl),
@@ -303,11 +316,69 @@ function parseNtTarget(url) {
   const suffix = updated !== null ? `?updated=${updated}` : "";
   return {
     id,
+    updated,
     // Internal cache key only (never routed): carries the transform version so
     // bumping CACHE_KEY_VERSION orphans previously cached entries.
     cacheKeyUrl: `${url.origin}/nt/${id}.mp3?cv=${CACHE_KEY_VERSION}${updated !== null ? `&updated=${updated}` : ""}`,
     upstreamUrl: `${UPSTREAM_BASE}${id}.mp3${suffix}`,
   };
+}
+
+// Looks up baked-promo cuts for this episode and translates them from post-DAI
+// coordinates into this response's raw coordinates. Guards make every mismatch
+// fail open to unmodified audio: the cut list only applies when the episode's
+// `updated` value and exact post-DAI byte length both match what the cuts were
+// measured against.
+export function resolveBakedCuts(target, contentLength, daiRanges, cutsMap = bakedPromoCuts) {
+  const entry = cutsMap[target.id];
+  if (!entry || !Array.isArray(entry.cuts) || !entry.cuts.length) return [];
+  if ((entry.updated ?? null) !== (target.updated ?? null)) return [];
+
+  const daiBytes = daiRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
+  if (entry.postDaiBytes !== contentLength - daiBytes) return [];
+
+  const raw = [];
+  for (const [start, end] of entry.cuts) {
+    if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start) return [];
+    const rawStart = mapPostDaiToRaw(start, daiRanges, false);
+    const rawEnd = mapPostDaiToRaw(end, daiRanges, true);
+    if (rawEnd > contentLength) return [];
+    raw.push([rawStart, rawEnd]);
+  }
+
+  // Baked cuts must not overlap each other or any DAI slot (touching is fine).
+  const all = [...daiRanges, ...raw].sort((a, b) => a[0] - b[0]);
+  for (let i = 1; i < all.length; i += 1) {
+    if (all[i][0] < all[i - 1][1]) return [];
+  }
+  return raw;
+}
+
+// Maps a post-DAI byte position to its raw (stitched) position by re-inserting
+// the widths of all DAI slots at or before it. A boundary exactly at a slot's
+// insertion point maps before the slot for range ENDS and after it for range
+// STARTS, so a baked cut adjacent to a DAI slot stays adjacent, not overlapping.
+export function mapPostDaiToRaw(position, daiRanges, isEnd) {
+  let shift = 0;
+  for (const [start, end] of daiRanges) {
+    const reachesSlot = isEnd ? position + shift > start : position + shift >= start;
+    if (!reachesSlot) break;
+    shift += end - start;
+  }
+  return position + shift;
+}
+
+// Sorts remove-ranges and coalesces touching neighbours (inputs are validated
+// non-overlapping before this point).
+export function mergeRanges(ranges) {
+  const sorted = [...ranges].sort((a, b) => a[0] - b[0]);
+  const merged = [];
+  for (const [start, end] of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && start <= last[1]) last[1] = Math.max(last[1], end);
+    else merged.push([start, end]);
+  }
+  return merged;
 }
 
 function isAllowedOrigin(origin) {

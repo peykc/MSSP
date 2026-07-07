@@ -1,6 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import worker, { invertRanges, parsePromoRanges } from "../src/index.js";
+import worker, {
+  _setBakedPromoCutsForTests,
+  invertRanges,
+  mapPostDaiToRaw,
+  mergeRanges,
+  parsePromoRanges,
+  resolveBakedCuts,
+} from "../src/index.js";
 
 const PROXY_ORIGIN = "https://nt-audio.pkcollection.net";
 const PAGES_ORIGIN = "https://peykc.github.io";
@@ -99,6 +106,7 @@ async function withProxyMocks(run, { upstream } = {}) {
     globalThis.fetch = originalFetch;
     globalThis.caches = originalCaches;
     globalThis.FixedLengthStream = originalFixedLength;
+    _setBakedPromoCutsForTests(null);
   }
 }
 
@@ -379,7 +387,7 @@ test("excises filled promo slots from upstream audio before caching", async () =
     assert.equal(first.status, 200);
     // Slots are 100-149 and 350-399 inclusive: 50 bytes each.
     assert.equal(first.headers.get("Content-Length"), "900");
-    assert.equal(first.headers.get("X-MSSP-Promos-Removed"), "2 slot(s), 100 bytes");
+    assert.equal(first.headers.get("X-MSSP-Promos-Removed"), "2 DAI + 0 baked slot(s), 100 bytes");
     assert.equal(first.headers.get("X-Megaphone-Payload-2"), null);
     assert.deepEqual(new Uint8Array(await first.arrayBuffer()), expected);
 
@@ -433,6 +441,99 @@ test("caches audio unmodified when the payload header is unusable", async () => 
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("X-MSSP-Promos-Removed"), null);
     assert.deepEqual(new Uint8Array(await response.arrayBuffer()), bytes);
+  }, { upstream });
+});
+
+test("mapPostDaiToRaw re-inserts DAI widths, keeping adjacency clean", () => {
+  const dai = [[100, 200], [500, 550]];
+  assert.equal(mapPostDaiToRaw(50, dai, false), 50);
+  assert.equal(mapPostDaiToRaw(50, dai, true), 50);
+  // Exactly at the first slot's insertion point: starts map after, ends before.
+  assert.equal(mapPostDaiToRaw(100, dai, false), 200);
+  assert.equal(mapPostDaiToRaw(100, dai, true), 100);
+  assert.equal(mapPostDaiToRaw(150, dai, false), 250);
+  // Past both slots: shifted by both widths (post-DAI 400 == raw 500 boundary).
+  assert.equal(mapPostDaiToRaw(400, dai, false), 550);
+  assert.equal(mapPostDaiToRaw(400, dai, true), 400 + 100);
+  assert.equal(mapPostDaiToRaw(450, dai, false), 600);
+});
+
+test("resolveBakedCuts guards fail open on any mismatch", () => {
+  const target = { id: "GLT123", updated: "1" };
+  const dai = [[100, 200]];
+  const entry = { updated: "1", postDaiBytes: 900, cuts: [[300, 400]] };
+
+  assert.deepEqual(resolveBakedCuts(target, 1000, dai, { GLT123: entry }), [[400, 500]]);
+  // Unknown id / wrong updated / wrong post-DAI length / bad shapes:
+  assert.deepEqual(resolveBakedCuts({ id: "GLT999", updated: "1" }, 1000, dai, { GLT123: entry }), []);
+  assert.deepEqual(resolveBakedCuts({ id: "GLT123", updated: "2" }, 1000, dai, { GLT123: entry }), []);
+  assert.deepEqual(resolveBakedCuts(target, 1100, dai, { GLT123: entry }), []);
+  assert.deepEqual(resolveBakedCuts(target, 1000, dai, { GLT123: { ...entry, cuts: [[400, 300]] } }), []);
+  // Translated cut overlapping a DAI slot is distrusted entirely.
+  assert.deepEqual(resolveBakedCuts(target, 1000, [[450, 470]], { GLT123: { updated: "1", postDaiBytes: 980, cuts: [[440, 480]] } }), []);
+});
+
+test("mergeRanges coalesces touching ranges", () => {
+  assert.deepEqual(mergeRanges([[400, 500], [100, 200]]), [[100, 200], [400, 500]]);
+  assert.deepEqual(mergeRanges([[100, 200], [200, 300]]), [[100, 300]]);
+  assert.deepEqual(mergeRanges([]), []);
+});
+
+test("excises DAI and baked promos together", async () => {
+  const bytes = makeAudioBytes(1000);
+  // DAI slot at raw [100, 200); baked cut at post-DAI [300, 400) == raw [400, 500).
+  const header = "ad-id#199#mid#1#100#creative-id#true#true@episode-id#128000#90391";
+  const upstream = () => new Response(bytes.slice(), {
+    status: 200,
+    headers: { "Content-Type": "audio/mpeg", "Content-Length": "1000", "X-Megaphone-Payload-2": header },
+  });
+  const expected = Uint8Array.from([
+    ...bytes.slice(0, 100), ...bytes.slice(200, 400), ...bytes.slice(500),
+  ]);
+
+  await withProxyMocks(async () => {
+    _setBakedPromoCutsForTests({ GLT123: { updated: "1", postDaiBytes: 900, cuts: [[300, 400]] } });
+    const response = await worker.fetch(new Request(`${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("Content-Length"), "800");
+    assert.equal(response.headers.get("X-MSSP-Promos-Removed"), "1 DAI + 1 baked slot(s), 200 bytes");
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()), expected);
+  }, { upstream });
+});
+
+test("excises baked promos even without DAI slots", async () => {
+  const bytes = makeAudioBytes(1000);
+  const upstream = () => new Response(bytes.slice(), {
+    status: 200,
+    headers: { "Content-Type": "audio/mpeg", "Content-Length": "1000" },
+  });
+  const expected = Uint8Array.from([...bytes.slice(0, 100), ...bytes.slice(200)]);
+
+  await withProxyMocks(async () => {
+    _setBakedPromoCutsForTests({ GLT123: { updated: null, postDaiBytes: 1000, cuts: [[100, 200]] } });
+    const response = await worker.fetch(new Request(`${PROXY_ORIGIN}/nt/GLT123.mp3`));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-MSSP-Promos-Removed"), "0 DAI + 1 baked slot(s), 100 bytes");
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()), expected);
+  }, { upstream });
+});
+
+test("baked guard mismatch removes DAI only", async () => {
+  const bytes = makeAudioBytes(1000);
+  const header = "ad-id#199#mid#1#100#creative-id#true#true@episode-id#128000#90391";
+  const upstream = () => new Response(bytes.slice(), {
+    status: 200,
+    headers: { "Content-Type": "audio/mpeg", "Content-Length": "1000", "X-Megaphone-Payload-2": header },
+  });
+  const expected = Uint8Array.from([...bytes.slice(0, 100), ...bytes.slice(200)]);
+
+  await withProxyMocks(async () => {
+    // postDaiBytes measured against a different master: guard must fail open.
+    _setBakedPromoCutsForTests({ GLT123: { updated: "1", postDaiBytes: 12345, cuts: [[300, 400]] } });
+    const response = await worker.fetch(new Request(`${PROXY_ORIGIN}/nt/GLT123.mp3?updated=1`));
+    assert.equal(response.status, 200);
+    assert.equal(response.headers.get("X-MSSP-Promos-Removed"), "1 DAI + 0 baked slot(s), 100 bytes");
+    assert.deepEqual(new Uint8Array(await response.arrayBuffer()), expected);
   }, { upstream });
 });
 

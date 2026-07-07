@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "test": "node --test"
+    "test": "node --test",
+    "cuts:generate": "node scripts/generateBakedCuts.mjs",
+    "cuts:check": "node scripts/generateBakedCuts.mjs --check"
   },
   "devDependencies": {
     "wrangler": "^4.103.0"
