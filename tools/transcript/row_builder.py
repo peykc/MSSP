@@ -589,6 +589,58 @@ def verify_row_word_integrity(
     }
 
 
+FRAGMENT_MERGE_MAX_GAP_SEC = 1.5
+_SENTENCE_END_RE = re.compile(r'[.!?]["\']?\s*$')
+
+
+def _row_ends_sentence(segment: dict[str, Any]) -> bool:
+    return bool(_SENTENCE_END_RE.search(str(segment.get("body") or "").strip()))
+
+
+def merge_same_speaker_fragment_rows(
+    segments: list[dict[str, Any]],
+    *,
+    row_min_words: int = 6,
+    row_max_words: int = 40,
+    max_gap_sec: float = FRAGMENT_MERGE_MAX_GAP_SEC,
+    diarized: bool = True,
+) -> list[dict[str, Any]]:
+    """Rejoin same-speaker rows that shatter one phrase mid-sentence.
+
+    Turn splits from smoothing/rescoring leave runs of same-speaker rows where a
+    single phrase is broken mid-sentence ("and I was like" / "I don't look in the
+    mirror" / "the whole time"). Merge a row into its predecessor only when the
+    predecessor ends WITHOUT sentence-final punctuation — completed sentences keep
+    their own line, matching the hand-labeled ground-truth style.
+    """
+    if not diarized or len(segments) < 2:
+        return segments
+
+    merged: list[dict[str, Any]] = [segments[0]]
+    for seg in segments[1:]:
+        prev = merged[-1]
+        same_speaker = seg.get("speaker") and seg.get("speaker") == prev.get("speaker")
+        prev_words = prev.get("words") or []
+        seg_words = seg.get("words") or []
+        gap = None
+        if prev.get("endTime") is not None and seg.get("startTime") is not None:
+            gap = float(seg["startTime"]) - float(prev["endTime"])
+        if (
+            same_speaker
+            and gap is not None
+            and 0 <= gap <= max_gap_sec
+            and not _row_ends_sentence(prev)
+            and len(prev_words) + len(seg_words) <= row_max_words
+        ):
+            all_words = prev_words + [dict(w, turnId=prev.get("turnId")) for w in seg_words]
+            prev["words"] = all_words
+            prev["endTime"] = seg.get("endTime", prev.get("endTime"))
+            prev["body"] = join_row_body(all_words)
+        else:
+            merged.append(seg)
+    return merged
+
+
 def _display_word_from_canonical(word: dict[str, Any], turn_id: int | None) -> dict[str, Any]:
     entry: dict[str, Any] = {
         "body": word["body"],
@@ -612,6 +664,7 @@ def build_display_rows_from_turns(
     row_hard_max_words: int = DEFAULT_ROW_HARD_MAX_WORDS,
     row_pause_sec: float = 1.5,
     diarized: bool = True,
+    merge_fragment_rows: bool = True,
 ) -> list[dict[str, Any]]:
     if strategy != ROW_STRATEGY_V2:
         raise ValueError(f"build_display_rows_from_turns requires {ROW_STRATEGY_V2}")
@@ -644,6 +697,14 @@ def build_display_rows_from_turns(
         segments.extend(rows)
 
     segments = merge_orphan_rows(segments, row_pause_sec, diarized)
+    if merge_fragment_rows:
+        segments = merge_same_speaker_fragment_rows(
+            segments,
+            row_min_words=row_min_words,
+            row_max_words=row_max_words,
+            max_gap_sec=row_pause_sec,
+            diarized=diarized,
+        )
     return segments
 
 
@@ -658,6 +719,7 @@ def rebuild_display_rows(
     diarized: bool = False,
     speech_turns: list[dict[str, Any]] | None = None,
     word_segments: list[dict[str, Any]] | None = None,
+    merge_fragment_rows: bool = True,
 ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
     """Return (display_segments, flat_word_segments)."""
     if strategy == ROW_STRATEGY_V2:
@@ -673,6 +735,7 @@ def rebuild_display_rows(
             row_hard_max_words=row_hard_max_words,
             row_pause_sec=row_pause_sec,
             diarized=diarized,
+            merge_fragment_rows=merge_fragment_rows,
         )
         return display_segments, list(canonical_words)
 

@@ -1,0 +1,61 @@
+{
+  "stem": "2016-11-16 MSSPOT Ep. 1 - Inaugral Business",
+  "groundTruthSpeakers": {
+    "Matt": 312,
+    "Shane": 457,
+    "Caller": 13,
+    "Theme song": 20,
+    "Phil": 36
+  },
+  "engineClusterCount": 6,
+  "gtLines": 838,
+  "engineSegments": 791,
+  "wordsAligned": 6261,
+  "coverageGt": 1.0,
+  "coverageEngine": 1.0,
+  "attribution": {
+    "clusterPurityAccuracy": 0.9246,
+    "strictOneToOneAccuracy": 0.8959,
+    "hostSeparationAccuracy": 0.9257
+  },
+  "clusterMapping": {
+    "SPEAKER_06": {
+      "label": "Shane",
+      "words": 3525,
+      "purity": 0.9177
+    },
+    "SPEAKER_01": {
+      "label": "Matt",
+      "words": 1958,
+      "purity": 0.9208
+    },
+    "SPEAKER_03": {
+      "label": "Phil",
+      "words": 261,
+      "purity": 0.9502
+    },
+    "SPEAKER_00": {
+      "label": "Theme song",
+      "words": 224,
+      "purity": 0.9688
+    },
+    "SPEAKER_04": {
+      "label": "Shane",
+      "words": 187,
+      "purity": 0.9626
+    },
+    "SPEAKER_02": {
+      "label": "Caller",
+      "words": 106,
+      "purity": 1.0
+    }
+  },
+  "segmentation": {
+    "precision": 0.9481,
+    "recall": 0.8949,
+    "f1": 0.9207,
+    "tp": 749,
+    "fp": 41,
+    "fn": 88
+  }
+}

@@ -138,6 +138,14 @@ class RunConfig:
     fail_on_invalid: bool = False
     qa_report: bool = False
     speaker_assignment_padding_sec: float = 0.10
+    turn_context_repair: bool = False
+    turn_context_repair_margin: float = 0.35
+    turn_context_repair_max_span: int = 12
+    cluster_merge: bool = True
+    cluster_merge_threshold: float = 0.70
+    acoustic_rescore: bool = True
+    acoustic_rescore_margin: float = 0.15
+    merge_fragment_rows: bool = True
 
     def row_settings_dict(self) -> dict[str, Any]:
         return {
@@ -181,6 +189,21 @@ class RunConfig:
             payload["num_speakers"] = effective
         return hash_config(payload)
 
+    def word_speakers_config_hash(self) -> str:
+        """Keys STAGE_WORD_SPEAKERS. Separate from diarize_config_hash so changing
+        cluster-merge settings never invalidates the expensive diarization cache."""
+        payload: dict[str, Any] = {
+            "diarize": self.diarize_config_hash(),
+            "padding_sec": self.speaker_assignment_padding_sec,
+            "cluster_merge": self.cluster_merge,
+        }
+        if self.cluster_merge:
+            payload["cluster_merge_threshold"] = self.cluster_merge_threshold
+        payload["acoustic_rescore"] = self.acoustic_rescore
+        if self.acoustic_rescore:
+            payload["acoustic_rescore_margin"] = self.acoustic_rescore_margin
+        return hash_config(payload)
+
     def turns_config_hash(self, preset_name: str) -> str:
         return hash_config(
             {
@@ -189,6 +212,10 @@ class RunConfig:
                 "speaker_smoothing": self.speaker_smoothing,
                 "preset": preset_name,
                 "padding_sec": self.speaker_assignment_padding_sec,
+                "turn_context_repair": self.turn_context_repair,
+                "turn_context_repair_margin": self.turn_context_repair_margin,
+                "turn_context_repair_max_span": self.turn_context_repair_max_span,
+                "boundary_snap": "v1",
             }
         )
 
@@ -383,6 +410,12 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--preserve-folders", action="store_true", help="Mirror input subfolder structure under output")
     parser.add_argument("--test", action="store_true", help="Process only the first eligible file")
     parser.add_argument("--only", default=None, help="Process only this exact filename")
+    parser.add_argument(
+        "--only-list",
+        default=None,
+        help="Process only the filenames listed (one per line) in this file. Lets one "
+        "process handle a chunk of episodes with models reused across them.",
+    )
     parser.add_argument("--force", action="store_true", help="Re-transcribe even if output JSON exists")
     parser.add_argument("--language", default=None, help="Force language code (e.g. en)")
     parser.add_argument("--model", default="large-v3-turbo", help="Target ASR model name")
@@ -425,6 +458,88 @@ def parse_args() -> argparse.Namespace:
         choices=["normal", "aggressive", "conservative"],
         help="Override smoothing intensity",
     )
+    repair_group = parser.add_mutually_exclusive_group()
+    repair_group.add_argument(
+        "--turn-context-repair",
+        dest="turn_context_repair",
+        action="store_true",
+        help="Reassign low-margin words to the nearest confident speaker anchor "
+        "(default OFF: only helps ~0.4%% of words on tested audio; see eval notes)",
+    )
+    repair_group.add_argument(
+        "--no-turn-context-repair",
+        dest="turn_context_repair",
+        action="store_false",
+        help="Disable turn-context speaker repair (default)",
+    )
+    parser.add_argument(
+        "--turn-context-repair-margin",
+        type=float,
+        default=0.35,
+        help="Margin below which a word is eligible for turn-context repair (default 0.35)",
+    )
+    parser.add_argument(
+        "--turn-context-repair-max-span",
+        type=int,
+        default=12,
+        help="Max contiguous low-margin words repaired to one anchor (default 12)",
+    )
+    parser.set_defaults(turn_context_repair=False)
+    merge_group = parser.add_mutually_exclusive_group()
+    merge_group.add_argument(
+        "--cluster-merge",
+        dest="cluster_merge",
+        action="store_true",
+        help="Merge diarization clusters with near-identical voice embeddings (default on)",
+    )
+    merge_group.add_argument(
+        "--no-cluster-merge",
+        dest="cluster_merge",
+        action="store_false",
+        help="Disable embedding-based cluster merging",
+    )
+    parser.add_argument(
+        "--cluster-merge-threshold",
+        type=float,
+        default=0.70,
+        help="Cosine similarity at/above which clusters merge (default 0.70; "
+        "same-speaker pairs score 0.82-0.84 on tested episodes, distinct speakers <=0.67)",
+    )
+    parser.set_defaults(cluster_merge=True)
+    rescore_group = parser.add_mutually_exclusive_group()
+    rescore_group.add_argument(
+        "--acoustic-rescore",
+        dest="acoustic_rescore",
+        action="store_true",
+        help="Re-decide crosstalk/uncovered word spans by voice embedding (default on)",
+    )
+    rescore_group.add_argument(
+        "--no-acoustic-rescore",
+        dest="acoustic_rescore",
+        action="store_false",
+        help="Disable acoustic re-scoring of crosstalk spans",
+    )
+    parser.add_argument(
+        "--acoustic-rescore-margin",
+        type=float,
+        default=0.15,
+        help="Cosine margin a rival speaker must win by to take a crosstalk span (default 0.15)",
+    )
+    parser.set_defaults(acoustic_rescore=True)
+    fragment_group = parser.add_mutually_exclusive_group()
+    fragment_group.add_argument(
+        "--merge-fragment-rows",
+        dest="merge_fragment_rows",
+        action="store_true",
+        help="Merge consecutive same-speaker fragment rows into one line (default on)",
+    )
+    fragment_group.add_argument(
+        "--no-merge-fragment-rows",
+        dest="merge_fragment_rows",
+        action="store_false",
+        help="Keep fragment rows split (pre-repair display behavior)",
+    )
+    parser.set_defaults(merge_fragment_rows=True)
     parser.add_argument("--turn-strategy", default=TURN_STRATEGY_DEFAULT, help="Canonical turn build strategy")
     parser.add_argument("--row-strategy", default=ROW_STRATEGY_DEFAULT, help="Display row rebuild strategy")
     parser.add_argument("--row-min-words", type=int, default=6, help="Min words before sentence can split a row")
@@ -665,18 +780,32 @@ def discover_audio_files(input_dir: Path, extensions: set[str], recursive: bool)
     return sorted(files, key=lambda p: str(p).lower())
 
 
+def read_only_list(path: str | None) -> list[str] | None:
+    if not path:
+        return None
+    return [line.strip() for line in Path(path).read_text(encoding="utf-8").splitlines() if line.strip()]
+
+
 def apply_file_filters(
     files: list[Path],
     start_after: str | None,
     limit: int | None,
     test: bool,
     only: str | None,
+    only_list: list[str] | None = None,
 ) -> list[Path]:
     if only:
         files = [f for f in files if f.name == only]
         if not files:
             print(f"WARNING: --only file not found: {only}", file=sys.stderr)
         return files
+
+    if only_list:
+        wanted = set(only_list)
+        selected = [f for f in files if f.name in wanted]
+        for name in wanted - {f.name for f in selected}:
+            print(f"WARNING: --only-list file not found: {name}", file=sys.stderr)
+        return selected
 
     if start_after:
         idx = None
@@ -1653,6 +1782,7 @@ def process_file(
             row_hard_max_words=run_config.row_hard_max_words,
             row_pause_sec=run_config.row_pause_sec,
             diarized=run_config.diarize,
+            merge_fragment_rows=run_config.merge_fragment_rows,
         )
         existing = validate_json_file(output_path) if output_path.exists() else {}
         diagnostics = build_episode_diagnostics(
@@ -1967,6 +2097,56 @@ def process_file(
                     turn_source=turn_source,
                 )
 
+        cluster_merge_info: dict[str, Any] | None = None
+        acoustic_rescore_info: dict[str, Any] | None = None
+        cluster_stats: dict[str, Any] | None = None
+        merge_map: dict[str, str] = {}
+        if (
+            run_config.diarize
+            and (run_config.cluster_merge or run_config.acoustic_rescore)
+            and turn_source != "legacy_word_speakers"
+            and diarization_segments
+        ):
+            from cluster_merge import apply_merge_map, compute_cluster_stats, derive_merge_map
+
+            cluster_stats = (diar_payload or {}).get("clusterStats")
+            if not cluster_stats:
+                if audio is None:
+                    import whisperx
+                    audio = whisperx.load_audio(str(source_path))
+                print("  [cluster_merge] Computing speaker embeddings")
+                monitor.start_stage("cluster_merge", None)
+                cluster_stats = compute_cluster_stats(
+                    audio, diarization_segments, run_config.hf_token
+                )
+                monitor.end_stage()
+                # Enrich the diarization cache so future runs skip audio + embedding.
+                cache.save_stage(
+                    episode_key,
+                    STAGE_DIARIZATION,
+                    {"segments": diarization_segments, "clusterStats": cluster_stats},
+                    audio_hash=audio_hash,
+                    config_hash=run_config.diarize_config_hash(),
+                )
+
+        if run_config.cluster_merge and cluster_stats:
+            merge_map = derive_merge_map(cluster_stats, run_config.cluster_merge_threshold)
+            if merge_map:
+                before = len({s.get("speaker") for s in diarization_segments})
+                diarization_segments = apply_merge_map(diarization_segments, merge_map)
+                after = len({s.get("speaker") for s in diarization_segments})
+                print(
+                    f"  [cluster_merge] {before} -> {after} clusters: "
+                    + ", ".join(f"{k}->{v}" for k, v in sorted(merge_map.items()))
+                )
+            else:
+                print("  [cluster_merge] No same-voice clusters found")
+            cluster_merge_info = {
+                "enabled": True,
+                "threshold": run_config.cluster_merge_threshold,
+                "map": merge_map,
+            }
+
         step_assign = 4 if run_config.diarize and not skip_gpu else 1
         if run_config.diarize:
             print(f"  [{step_assign}/{total_steps}] Assigning speakers")
@@ -1980,12 +2160,35 @@ def process_file(
                     padding_sec=run_config.speaker_assignment_padding_sec,
                 )
                 require_speaker_assignment(word_segments, turn_source=turn_source)
+                if run_config.acoustic_rescore and cluster_stats:
+                    from acoustic_rescore import rescore_suspect_spans
+
+                    if audio is None:
+                        import whisperx
+                        audio = whisperx.load_audio(str(source_path))
+                    monitor.start_stage("acoustic_rescore", None)
+                    word_segments, rescored_count = rescore_suspect_spans(
+                        word_segments,
+                        diarization_segments,
+                        cluster_stats,
+                        merge_map,
+                        audio,
+                        run_config.hf_token,
+                        decision_margin=run_config.acoustic_rescore_margin,
+                    )
+                    monitor.end_stage()
+                    print(f"  [acoustic_rescore] {rescored_count} words relabeled by voice")
+                    acoustic_rescore_info = {
+                        "enabled": True,
+                        "decisionMargin": run_config.acoustic_rescore_margin,
+                        "relabeledWords": rescored_count,
+                    }
                 cache.save_stage(
                     episode_key,
                     STAGE_WORD_SPEAKERS,
                     {"words": word_segments},
                     audio_hash=audio_hash,
-                    config_hash=run_config.diarize_config_hash(),
+                    config_hash=run_config.word_speakers_config_hash(),
                 )
             monitor.end_stage()
         else:
@@ -2040,6 +2243,9 @@ def process_file(
                 speaker_analysis,
                 smoothing,
                 turn_source=turn_source,
+                repair_enabled=run_config.turn_context_repair,
+                repair_margin=run_config.turn_context_repair_margin,
+                repair_max_span=run_config.turn_context_repair_max_span,
             )
             monitor.end_stage()
             cache.save_stage(
@@ -2063,6 +2269,7 @@ def process_file(
                 row_hard_max_words=run_config.row_hard_max_words,
                 row_pause_sec=run_config.row_pause_sec,
                 diarized=run_config.diarize,
+                merge_fragment_rows=run_config.merge_fragment_rows,
             )
         else:
             display_segments, word_segments = rebuild_display_rows(
@@ -2105,6 +2312,10 @@ def process_file(
             pipeline_timing=pipeline_timing,
             monitor=monitor,
         )
+        if cluster_merge_info is not None:
+            transcript["metadata"]["clusterMerge"] = cluster_merge_info
+        if acoustic_rescore_info is not None:
+            transcript["metadata"]["acousticRescore"] = acoustic_rescore_info
 
         print(f"  [{total_steps}/{total_steps}] Saving: {output_path.name}")
         monitor.start_stage("save", None)
@@ -2189,7 +2400,8 @@ def run_isolated_per_file_parent(args: argparse.Namespace) -> int:
     extensions = parse_extensions(args.extensions)
     all_files = discover_audio_files(input_dir, extensions, args.recursive)
     files = apply_file_filters(
-        all_files, args.start_after, args.limit, args.test, args.only
+        all_files, args.start_after, args.limit, args.test, args.only,
+        only_list=read_only_list(args.only_list),
     )
 
     print("Process isolation: ON (fresh Python/CUDA process per episode)")
@@ -2348,6 +2560,14 @@ def main() -> int:
         write_diagnostics=args.write_diagnostics,
         fail_on_invalid=args.fail_on_invalid,
         qa_report=args.qa_report,
+        turn_context_repair=args.turn_context_repair,
+        turn_context_repair_margin=args.turn_context_repair_margin,
+        turn_context_repair_max_span=args.turn_context_repair_max_span,
+        cluster_merge=args.cluster_merge,
+        cluster_merge_threshold=args.cluster_merge_threshold,
+        acoustic_rescore=args.acoustic_rescore,
+        acoustic_rescore_margin=args.acoustic_rescore_margin,
+        merge_fragment_rows=args.merge_fragment_rows,
     )
 
     try:
@@ -2357,7 +2577,8 @@ def main() -> int:
         return 1
 
     files = apply_file_filters(
-        all_files, args.start_after, args.limit, args.test, args.only
+        all_files, args.start_after, args.limit, args.test, args.only,
+        only_list=read_only_list(args.only_list),
     )
 
     if args.reuse_diarize_model is None:

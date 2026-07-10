@@ -1,0 +1,125 @@
+.launch-search {
+  position: relative;
+  z-index: 30;
+  width: min(480px, 100%);
+  margin: 18px auto clamp(20px, 3vw, 32px);
+}
+
+.launch-search__box {
+  width: 100%;
+}
+
+.launch-search__results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: min(60vh, 520px);
+  overflow-y: auto;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.launch-search__section-header {
+  padding: 10px 14px 4px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.launch-search__result {
+  display: block;
+  width: 100%;
+  padding: 10px 14px;
+  color: var(--text);
+  text-align: left;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.launch-search__result:hover,
+.launch-search__result.is-active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.launch-search__result-title {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+  font-weight: 600;
+}
+
+.launch-search__result-name {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.launch-search__result-meta {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.launch-search__result-lock {
+  flex: none;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.launch-search__snippet {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-top: 4px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.launch-search__snippet-text {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.launch-search__snippet mark {
+  color: var(--accent);
+  background: transparent;
+  font-weight: 700;
+}
+
+.launch-search__timestamp {
+  flex: none;
+  padding: 1px 7px;
+  color: var(--text);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+}
+
+.launch-search__status {
+  padding: 12px 14px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.launch-search__status.is-error {
+  color: var(--accent);
+}
+
+.launch-search__footer {
+  padding: 8px 14px 10px;
+  color: var(--muted);
+  font-size: 11px;
+  border-top: 1px solid var(--line);
+}

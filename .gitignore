@@ -2,3 +2,5 @@ MSSP - Collection Build Report.txt
 node_modules/
 .wrangler/
 .align-work/
+mssp_app/search-index-cache/
+mssp_app/search-index-dist/

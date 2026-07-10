@@ -1,0 +1,50 @@
+{
+  "stem": "2019-08-15 MSSPOT Ep. 142 - War Room II-Pt 1",
+  "groundTruthSpeakers": {
+    "Matt": 201,
+    "Spud": 175,
+    "Shane": 118,
+    "Billy": 36
+  },
+  "engineClusterCount": 4,
+  "gtLines": 530,
+  "engineSegments": 3292,
+  "wordsAligned": 3597,
+  "coverageGt": 1.0,
+  "coverageEngine": 0.1407,
+  "attribution": {
+    "clusterPurityAccuracy": 0.8262,
+    "strictOneToOneAccuracy": 0.8262,
+    "hostSeparationAccuracy": 0.8262
+  },
+  "clusterMapping": {
+    "SPEAKER_00": {
+      "label": "Spud",
+      "words": 1469,
+      "purity": 0.8843
+    },
+    "SPEAKER_04": {
+      "label": "Matt",
+      "words": 1428,
+      "purity": 0.7976
+    },
+    "SPEAKER_02": {
+      "label": "Shane",
+      "words": 580,
+      "purity": 0.7828
+    },
+    "SPEAKER_01": {
+      "label": "Billy",
+      "words": 120,
+      "purity": 0.6667
+    }
+  },
+  "segmentation": {
+    "precision": 0.9041,
+    "recall": 0.8015,
+    "f1": 0.8497,
+    "tp": 424,
+    "fp": 45,
+    "fn": 105
+  }
+}

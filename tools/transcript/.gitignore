@@ -11,3 +11,6 @@ gen-large-v3/
 __pycache__/
 *.py[cod]
 .venv/
+
+# Download Script
+download_audio.mjs

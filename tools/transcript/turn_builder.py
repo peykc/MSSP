@@ -11,6 +11,10 @@ from row_builder import join_row_body
 UNCERTAIN_MARGIN_THRESHOLD = 0.15
 AMBIGUOUS_SPAN_MAX_WORDS = 4
 HIGH_CONFIDENCE_MARGIN = 0.15
+# Wider, candidate-gated turn-context repair (see repair_words_to_turn_context).
+# Defaults tuned on Ep. 1 ground truth; overridable via CLI.
+DEFAULT_REPAIR_MARGIN = 0.35
+DEFAULT_REPAIR_MAX_SPAN = 12
 SHORT_INTERJECTION_MAX_DURATION_SEC = 1.5
 SHORT_INTERJECTION_MAX_WORDS = 4
 SHORT_INTERJECTIONS = frozenset({
@@ -151,6 +155,42 @@ def nearest_high_confidence_anchor_after(
     return None
 
 
+def is_repair_anchor(word: dict[str, Any], anchor_margin: float) -> bool:
+    """A trustworthy anchor for turn-context repair: confident and not overlap-flagged."""
+    if "overlap_possible" in word_flags(word):
+        return False
+    speaker = str(word.get("speaker") or "")
+    if not speaker or speaker == "UNKNOWN":
+        return False
+    return assignment_margin(word) >= anchor_margin
+
+
+def nearest_repair_anchor_before(
+    words: list[dict[str, Any]],
+    start_index: int,
+    anchor_margin: float,
+    *,
+    max_lookback: int = 60,
+) -> dict[str, Any] | None:
+    for index in range(start_index - 1, max(-1, start_index - max_lookback - 1), -1):
+        if is_repair_anchor(words[index], anchor_margin):
+            return words[index]
+    return None
+
+
+def nearest_repair_anchor_after(
+    words: list[dict[str, Any]],
+    end_index: int,
+    anchor_margin: float,
+    *,
+    max_lookahead: int = 60,
+) -> dict[str, Any] | None:
+    for index in range(end_index, min(len(words), end_index + max_lookahead)):
+        if is_repair_anchor(words[index], anchor_margin):
+            return words[index]
+    return None
+
+
 def assign_span_speaker(
     span_words: list[dict[str, Any]],
     speaker: str,
@@ -210,6 +250,81 @@ def resolve_ambiguous_spans(
         mark_span_unresolved(span)
 
     return resolved, resolved_count
+
+
+def repair_words_to_turn_context(
+    words: list[dict[str, Any]],
+    *,
+    margin_threshold: float = DEFAULT_REPAIR_MARGIN,
+    max_span: int = DEFAULT_REPAIR_MAX_SPAN,
+    anchor_margin: float | None = None,
+) -> tuple[list[dict[str, Any]], int]:
+    """Reassign low-margin words to the nearest confident speaker anchor.
+
+    This is a wider, candidate-gated companion to resolve_ambiguous_spans. It
+    targets the "recoverable" bleed errors: words the diarizer placed on a
+    neighboring speaker at a boundary, where the true speaker is still one of the
+    word's candidates. A word is only moved when the anchor's speaker was actually
+    a candidate for it (or the word carries no candidate set), which keeps the pass
+    from inventing labels for confidently-wrong words and limits collateral on
+    correct boundary words.
+    """
+    if not words:
+        return [], 0
+
+    anchor_gate = margin_threshold if anchor_margin is None else anchor_margin
+    repaired = [dict(w) for w in words]
+    repaired_count = 0
+
+    def is_repairable(word: dict[str, Any]) -> bool:
+        if "overlap_possible" in word_flags(word):
+            return True
+        return assignment_margin(word) < margin_threshold
+
+    index = 0
+    total = len(repaired)
+    while index < total:
+        if not is_repairable(repaired[index]):
+            index += 1
+            continue
+        start = index
+        while (
+            index < total
+            and is_repairable(repaired[index])
+            and (index - start) < max_span
+        ):
+            index += 1
+        end = index  # exclusive
+        span = repaired[start:end]
+        if is_standalone_interjection_phrase(span):
+            continue
+
+        prev_word = repaired[start - 1] if start > 0 else None
+        prev_anchor = nearest_repair_anchor_before(repaired, start, anchor_gate)
+        next_anchor = nearest_repair_anchor_after(repaired, end, anchor_gate)
+
+        target: str | None = None
+        if prev_word and ends_sentence(str(prev_word.get("body") or "")) and next_anchor:
+            target = str(next_anchor["speaker"])
+        elif prev_anchor and (prev_word is None or not ends_sentence(str(prev_word.get("body") or ""))):
+            target = str(prev_anchor["speaker"])
+        elif next_anchor:
+            target = str(next_anchor["speaker"])
+
+        if not target or target == "UNKNOWN":
+            continue
+
+        for word in span:
+            if str(word.get("speaker") or "") == target:
+                continue
+            candidates = word.get("speakerCandidates") or {}
+            if candidates and target not in candidates:
+                continue  # candidate gate: don't invent a label the word never supported
+            word["speaker"] = target
+            append_word_flag(word, "turn_context_repaired")
+            repaired_count += 1
+
+    return repaired, repaired_count
 
 
 def count_following_same_speaker_words(
@@ -570,6 +685,77 @@ def stitch_same_speaker_fragments(
     return stitched, stitch_count
 
 
+BOUNDARY_SNAP_MAX_WORDS = 2
+
+
+def snap_turn_boundaries(
+    turn_groups: list[list[dict[str, Any]]],
+) -> tuple[list[list[dict[str, Any]]], int]:
+    """Refine the exact cut point at speaker transitions using punctuation + pause.
+
+    Ground-truth measurement showed 19-30% of true speaker changes land 1-2 words
+    off: the previous speaker's sentence-final words start the next speaker's turn
+    (or a fresh sentence starter trails the previous turn). Both cases carry
+    linguistic evidence — move the words only when the sentence structure AND the
+    silence gaps agree the cut is misplaced.
+    """
+    snapped = 0
+    for i in range(len(turn_groups) - 1):
+        lead, follow = turn_groups[i], turn_groups[i + 1]
+        if not lead or not follow:
+            continue
+        if lead[-1].get("speaker") == follow[0].get("speaker"):
+            continue
+        if ends_sentence(str(lead[-1].get("body") or "")):
+            continue  # cut already sits on a sentence boundary
+
+        # Pull a sentence-completing head of `follow` back into `lead`:
+        # follow's first 1-2 words close lead's open sentence, and the silence
+        # after them is at least as large as at the current cut.
+        moved = False
+        for k in range(1, BOUNDARY_SNAP_MAX_WORDS + 1):
+            if len(follow) - k < 1:
+                break
+            head = follow[:k]
+            if not ends_sentence(str(head[-1].get("body") or "")):
+                continue
+            if word_gap(head[-1], follow[k]) >= word_gap(lead[-1], head[0]):
+                lead_speaker = str(lead[-1].get("speaker") or "")
+                for word in head:
+                    word["speaker"] = lead_speaker
+                    append_word_flag(word, "boundary_snapped")
+                lead.extend(head)
+                del follow[:k]
+                snapped += k
+                moved = True
+            break
+        if moved:
+            continue
+
+        # Push a fresh-sentence tail of `lead` forward into `follow`:
+        # lead's last 1-2 words start a new sentence (a sentence just ended before
+        # them) and the silence before them dominates the current cut.
+        for k in range(1, BOUNDARY_SNAP_MAX_WORDS + 1):
+            if len(lead) - k < 1:
+                break
+            tail = lead[-k:]
+            if ends_sentence(str(tail[-1].get("body") or "")):
+                break  # tail closes a sentence; it belongs to lead
+            if not ends_sentence(str(lead[-k - 1].get("body") or "")):
+                continue
+            if word_gap(lead[-k - 1], tail[0]) >= word_gap(tail[-1], follow[0]):
+                follow_speaker = str(follow[0].get("speaker") or "")
+                for word in tail:
+                    word["speaker"] = follow_speaker
+                    append_word_flag(word, "boundary_snapped")
+                follow[:0] = tail
+                del lead[-k:]
+                snapped += k
+            break
+
+    return [g for g in turn_groups if g], snapped
+
+
 def build_turn_record(
     turn_id: int,
     turn_words: list[dict[str, Any]],
@@ -621,6 +807,9 @@ def build_speech_turns(
     preset: SmoothingPreset | None = None,
     *,
     turn_source: str = "full_pipeline",
+    repair_enabled: bool = False,
+    repair_margin: float = DEFAULT_REPAIR_MARGIN,
+    repair_max_span: int = DEFAULT_REPAIR_MAX_SPAN,
 ) -> tuple[list[dict[str, Any]], dict[str, int]]:
     if not words:
         return [], {
@@ -631,6 +820,8 @@ def build_speech_turns(
             "resolvedAmbiguousSpanCount": 0,
             "orphanBoundaryTokenAbsorbedCount": 0,
             "sentencePrefixReattachedCount": 0,
+            "turnContextRepairedCount": 0,
+            "boundarySnappedCount": 0,
         }
 
     preset = preset or get_preset(speaker_analysis.get("recommendedPreset", PRESET_CHAOTIC))
@@ -640,8 +831,21 @@ def build_speech_turns(
     smoothed, absorbed = smooth_speaker_flips(words, speaker_classes, preset, legacy=legacy)
     resolved, resolved_spans = resolve_ambiguous_spans(smoothed, preset)
     repaired, repair_counters = repair_orphan_boundary_tokens(resolved, preset)
+    if repair_enabled and not legacy:
+        repaired, turn_context_repaired = repair_words_to_turn_context(
+            repaired, margin_threshold=repair_margin, max_span=repair_max_span
+        )
+    else:
+        turn_context_repaired = 0
     turn_groups = group_words_into_turns(repaired, preset)
     turn_groups, stitch_count = stitch_same_speaker_fragments(turn_groups, preset)
+    if legacy:
+        boundary_snapped = 0
+    else:
+        turn_groups, boundary_snapped = snap_turn_boundaries(turn_groups)
+        # snapping can leave adjacent same-speaker turns; stitch once more
+        turn_groups, extra_stitch = stitch_same_speaker_fragments(turn_groups, preset)
+        stitch_count += extra_stitch
 
     preserved = 0
     speech_turns: list[dict[str, Any]] = []
@@ -667,5 +871,7 @@ def build_speech_turns(
         "resolvedAmbiguousSpanCount": resolved_spans,
         "orphanBoundaryTokenAbsorbedCount": repair_counters["orphanBoundaryTokenAbsorbedCount"],
         "sentencePrefixReattachedCount": repair_counters["sentencePrefixReattachedCount"],
+        "turnContextRepairedCount": turn_context_repaired,
+        "boundarySnappedCount": boundary_snapped,
     }
     return speech_turns, counters

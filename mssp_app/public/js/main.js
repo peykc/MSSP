@@ -1,6 +1,7 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
+import { createGlobalSearch } from "./globalSearch.js";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { getCommunityClientId } from "./community/communityIdentity.js";
@@ -109,6 +110,38 @@ async function init() {
       ...normalizePlayerRequestOptions(options),
       playbackIntent: Boolean(getSourceForEpisode(episode)),
     });
+  }
+
+  async function playEpisodeAtTime(episode, seconds) {
+    const snapshot = playerState.getState();
+    const alreadyLoaded = snapshot.selectedEpisode?.episodeKey === episode.episodeKey && snapshot.duration > 0;
+    if (alreadyLoaded) {
+      audioController.seek(seconds);
+      await requestPlay(episode);
+      return;
+    }
+
+    const duration = Number(episode.durationSeconds);
+    const seedable = seconds >= 5 && Number.isFinite(duration) && duration > 0
+      && seconds < duration - 30 && seconds / duration < 0.95;
+    if (seedable) {
+      // Ride the existing loadedmetadata -> restoreSavedPosition path.
+      playbackProgressStore.savePosition({ episodeKey: episode.episodeKey, currentTime: seconds, duration });
+    } else {
+      // Positions the progress store won't restore (t < 5s or near the end):
+      // seek once metadata arrives, after restoreSavedPosition has run.
+      const unsubscribe = playerState.subscribe((playerSnapshot) => {
+        if (playerSnapshot.selectedEpisode?.episodeKey !== episode.episodeKey) {
+          unsubscribe();
+          return;
+        }
+        if (playerSnapshot.duration > 0) {
+          unsubscribe();
+          requestAnimationFrame(() => audioController.seek(seconds));
+        }
+      });
+    }
+    await requestPlay(episode);
   }
 
   async function loadEpisodeForPlayer(episode, { collectionId: requestedCollectionId, preserveExpanded = false, playbackIntent = false } = {}) {
@@ -317,6 +350,21 @@ async function init() {
   });
   dom.backButton.addEventListener("click", libraryView.closeLibrary);
   initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
+
+  let episodesByKey = null;
+  createGlobalSearch({
+    dom,
+    searchEpisodes: (query) => apiClient.getEpisodes({ collection: "anthology", query }),
+    getEpisodeByKey: (episodeKey) => {
+      if (!episodesByKey || episodesByKey.size !== archiveEpisodes.length) {
+        episodesByKey = new Map(archiveEpisodes.map((episode) => [episode.episodeKey, episode]));
+      }
+      return episodesByKey.get(episodeKey);
+    },
+    getSourceStatusForEpisode,
+    onPlayEpisode: requestPlay,
+    onPlayEpisodeAtTime: playEpisodeAtTime,
+  });
 
   try {
     const [data, archiveResult] = await Promise.all([

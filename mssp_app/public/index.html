@@ -28,6 +28,7 @@
     <link rel="stylesheet" href="./css/base.css">
     <link rel="stylesheet" href="./css/layout.css">
     <link rel="stylesheet" href="./css/launch.css">
+    <link rel="stylesheet" href="./css/global-search.css">
     <link rel="stylesheet" href="./css/archive.css">
     <link rel="stylesheet" href="./css/sealed-stone.css">
     <link rel="stylesheet" href="./css/library.css">
@@ -107,6 +108,13 @@
               </g>
             </svg>
           </button>
+        </div>
+        <div class="launch-search" id="globalSearch">
+          <label class="search launch-search__box">
+            <span class="search__icon">⌕</span>
+            <input id="globalSearchInput" type="search" autocomplete="off" placeholder="Search episodes &amp; transcripts" aria-label="Search episodes and transcripts" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="globalSearchResults">
+          </label>
+          <div class="launch-search__results is-hidden" id="globalSearchResults" role="listbox" aria-label="Search results"></div>
         </div>
         <div class="launch__heading">
           <p class="eyebrow">Matt and Shane's Secret Podcast</p>

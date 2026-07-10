@@ -1,4 +1,4 @@
-const RELEASE_ID = "v287";
+const RELEASE_ID = "v288";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -15,6 +15,7 @@ const SHELL_PATHS = [
   "./css/base.css",
   "./css/layout.css",
   "./css/launch.css",
+  "./css/global-search.css",
   "./css/archive.css",
   "./css/sealed-stone.css",
   "./css/library.css",
@@ -45,6 +46,7 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js",
+  "./js/globalSearch.js",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js",
