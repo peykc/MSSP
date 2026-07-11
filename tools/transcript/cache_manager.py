@@ -52,7 +52,9 @@ def hash_config(data: dict[str, Any]) -> str:
 
 
 def safe_episode_key(stem: str) -> str:
-    return stem.replace("/", "_").replace("\\", "_")
+    # Percent-encode path separators instead of flattening them to "_" so
+    # nested `season/episode` cannot collide with a flat `season_episode`.
+    return stem.replace("%", "%25").replace("/", "%2F").replace("\\", "%5C")
 
 
 class TranscriptCache:

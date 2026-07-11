@@ -1,0 +1,30 @@
+name: Transcript unit tests
+
+on:
+  push:
+    paths:
+      - "tools/transcript/**"
+      - ".github/workflows/transcript-unit-tests.yml"
+  pull_request:
+    paths:
+      - "tools/transcript/**"
+      - ".github/workflows/transcript-unit-tests.yml"
+
+jobs:
+  unit-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11", "3.12"]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Run offline module checks
+        run: python tools/transcript/test/test_v2_modules.py

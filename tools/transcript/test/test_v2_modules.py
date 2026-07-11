@@ -10,7 +10,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from cache_manager import CACHE_SCHEMA_VERSION, TranscriptCache, hash_config
+from cache_manager import CACHE_SCHEMA_VERSION, TranscriptCache, hash_config, safe_episode_key
 from speaker_assignment import (
     NEARBY_SCORE_MAX,
     NEARBY_SCORE_MIN,
@@ -421,6 +421,183 @@ def test_sanitize_json_value_handles_dataclass():
     assert preset_dict["name"] == "normal"
 
 
+def test_asr_model_fallback_is_explicit_and_cache_keyed():
+    from transcribe import RunConfig, asr_model_candidates, model_dependency_versions
+
+    assert asr_model_candidates("large-v3", allow_fallback=False) == ["large-v3"]
+    candidates = asr_model_candidates("large-v3", allow_fallback=True)
+    assert candidates[0] == "large-v3"
+    assert "large-v3-turbo" in candidates
+    assert len(candidates) == len(set(candidates))
+    assert "whisperx" in model_dependency_versions()
+    assert "pyannote-audio" in model_dependency_versions()
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        strict = RunConfig(root, root, root, "large-v3", allow_model_fallback=False)
+        permissive = RunConfig(root, root, root, "large-v3", allow_model_fallback=True)
+        assert strict.asr_config_hash() != permissive.asr_config_hash()
+
+
+def test_parallel_output_validation_checks_model_and_diarization():
+    from transcribe_parallel import inspect_transcript_output, passthrough_option
+
+    assert passthrough_option(["--model", "large-v3"], "--model", "default") == "large-v3"
+    assert passthrough_option(["--model=large-v3"], "--model", "default") == "large-v3"
+    assert (
+        passthrough_option(
+            ["--model", "large-v3-turbo", "--model=large-v3"],
+            "--model",
+            "default",
+        )
+        == "large-v3"
+    )
+
+    with tempfile.TemporaryDirectory() as tmp:
+        output = Path(tmp) / "episode.json"
+        output.write_text(
+            json.dumps(
+                {
+                    "version": "1.2.0",
+                    "format": "mssp-transcript",
+                    "metadata": {
+                        "model": "large-v3",
+                        "requested_model": "large-v3",
+                        "diarized": True,
+                    },
+                    "segments": [],
+                    "wordSegments": [],
+                    "rawSegments": [],
+                    "diarizationSegments": [],
+                    "speechTurns": [],
+                    "diagnostics": {
+                        "wordCount": 0,
+                        "segmentCount": 0,
+                        "speechTurnCount": 0,
+                        "rowWordIntegrityOk": True,
+                        "singleWordSegmentPercent": 0,
+                    },
+                }
+            ),
+            encoding="utf-8",
+        )
+        valid, reason, actual = inspect_transcript_output(
+            output,
+            expected_model="large-v3",
+            require_diarized=True,
+        )
+        assert valid and reason is None and actual == "large-v3"
+
+        valid, reason, _ = inspect_transcript_output(
+            output,
+            expected_model="large-v3-turbo",
+            require_diarized=True,
+        )
+        assert not valid and reason and "expected large-v3-turbo" in reason
+
+        fallback_document = json.loads(output.read_text(encoding="utf-8"))
+        fallback_document["metadata"]["model"] = "large-v3-turbo"
+        output.write_text(json.dumps(fallback_document), encoding="utf-8")
+        valid, reason, actual = inspect_transcript_output(
+            output,
+            expected_model="large-v3",
+            require_diarized=True,
+            allow_model_fallback=True,
+        )
+        assert valid and reason is None and actual == "large-v3-turbo"
+
+
+def test_only_list_absolute_paths_and_nested_cache_keys():
+    from transcribe import apply_file_filters, episode_cache_key
+    from transcribe_parallel import find_output_collisions
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        first = root / "season-1" / "episode.mp3"
+        second = root / "season-2" / "episode.mp3"
+        first.parent.mkdir()
+        second.parent.mkdir()
+        first.touch()
+        second.touch()
+
+        selected = apply_file_filters(
+            [first, second],
+            start_after=None,
+            limit=None,
+            test=False,
+            only=None,
+            only_list=[str(second.resolve())],
+        )
+        assert selected == [second]
+        assert episode_cache_key(first, root) == "season-1/episode"
+        assert episode_cache_key(second, root) == "season-2/episode"
+        assert safe_episode_key("season-1/episode") != safe_episode_key("season-1_episode")
+        output_root = root / "output"
+        assert find_output_collisions([first, second], root, output_root, False)
+        assert not find_output_collisions([first, second], root, output_root, True)
+
+
+def _manifest_writer(root_value: str, worker_index: int, barrier) -> None:
+    from transcribe import ManifestItem, RunConfig, update_manifest_atomic
+
+    root = Path(root_value)
+    config = RunConfig(root, root, root / ".cache", "large-v3")
+    barrier.wait(timeout=10)
+    for item_index in range(10):
+        unique_index = worker_index * 10 + item_index
+        update_manifest_atomic(
+            root,
+            ManifestItem(
+                f"episode-{unique_index}.mp3",
+                f"episode-{unique_index}",
+                f"episode-{unique_index}.json",
+                "ok",
+            ),
+            config,
+        )
+
+
+def test_manifest_update_preserves_same_named_nested_outputs():
+    from transcribe import ManifestItem, RunConfig, load_manifest, update_manifest_atomic
+
+    with tempfile.TemporaryDirectory() as tmp:
+        root = Path(tmp)
+        config = RunConfig(root, root, root / ".cache", "large-v3")
+        update_manifest_atomic(
+            root,
+            ManifestItem("episode.mp3", "episode", "season-1/episode.json", "ok"),
+            config,
+        )
+        update_manifest_atomic(
+            root,
+            ManifestItem("episode.mp3", "episode", "season-2/episode.json", "ok"),
+            config,
+        )
+        manifest = load_manifest(root / "index.json")
+        paths = {item["transcriptFile"] for item in manifest["items"]}
+        assert paths == {"season-1/episode.json", "season-2/episode.json"}
+
+
+def test_manifest_updates_are_cross_process_safe():
+    import multiprocessing
+
+    with tempfile.TemporaryDirectory() as tmp:
+        context = multiprocessing.get_context("spawn")
+        barrier = context.Barrier(4)
+        processes = [
+            context.Process(target=_manifest_writer, args=(tmp, index, barrier))
+            for index in range(4)
+        ]
+        for process in processes:
+            process.start()
+        for process in processes:
+            process.join(timeout=20)
+            assert process.exitcode == 0
+
+        manifest = json.loads((Path(tmp) / "index.json").read_text(encoding="utf-8"))
+        assert len(manifest["items"]) == 40
+
+
 def main() -> None:
     test_assignment_scores_clamped()
     test_no_overlap_unknown()
@@ -447,6 +624,11 @@ def main() -> None:
     test_overclustered_two_host_preset()
     test_speaker_analysis_json_serializable()
     test_sanitize_json_value_handles_dataclass()
+    test_asr_model_fallback_is_explicit_and_cache_keyed()
+    test_parallel_output_validation_checks_model_and_diarization()
+    test_only_list_absolute_paths_and_nested_cache_keys()
+    test_manifest_update_preserves_same_named_nested_outputs()
+    test_manifest_updates_are_cross_process_safe()
     print("All v2 module checks passed.")
 
 

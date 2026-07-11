@@ -2,7 +2,12 @@
 gen/
 gen-turbo/
 gen-large-v3/
+gen-large-v3/_parallel-logs/
 .cache/
+
+# Runtime logs
+*.log
+console.txt
 
 # Secrets
 .env

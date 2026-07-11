@@ -50,33 +50,38 @@ echo Upgrading pip ...
 if errorlevel 1 goto :fail
 
 echo.
-echo [1/4] Installing PyTorch ^(CUDA 12.4^) ...
-"%PIP%" install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
+echo [1/5] Installing pinned PyTorch 2.8.0 ^(CUDA 12.8^) ...
+"%PIP%" install torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
 if errorlevel 1 goto :fail
 
 echo.
-echo [2/4] Installing whisperx ...
-"%PIP%" install whisperx
+echo [2/5] Installing pinned transcription dependencies ...
+"%PIP%" install -r "%~dp0requirements.txt"
 if errorlevel 1 goto :fail
 
 echo.
-echo [3/4] Re-pinning CUDA PyTorch ^(whisperx may swap wheels^) ...
-"%PIP%" install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
+echo [3/5] Re-pinning CUDA PyTorch ^(dependencies may swap wheels^) ...
+"%PIP%" install torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
 if errorlevel 1 goto :fail
 
 echo.
-echo [4/4] Verifying CUDA PyTorch ...
+echo [4/5] Verifying dependency consistency ...
+"%PY%" -m pip check
+if errorlevel 1 goto :fail
+
+echo.
+echo [5/5] Verifying CUDA PyTorch ...
 "%PY%" -c "import torch; v=torch.__version__; ok=torch.cuda.is_available() and '+cu' in v; print(f'torch {v}, cuda={torch.cuda.is_available()}'); raise SystemExit(0 if ok else 1)"
 if errorlevel 1 (
   echo.
   echo ERROR: GPU PyTorch not active. CUDA diarization will fall back to CPU.
   echo Re-run setup after installing Python 3.12, or manually:
-  echo   "%PIP%" install --force-reinstall torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
+  echo   "%PIP%" install --force-reinstall torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
   goto :fail
 )
 
 for /f "delims=" %%G in ('"%PY%" -c "import torch; print(f'{torch.cuda.get_device_properties(0).total_memory/(1024**3):.1f}') if torch.cuda.is_available() else print('0')"') do set "VRAM_GB=%%G"
-echo GPU VRAM: %VRAM_GB% GB — transcribe.bat will use CUDA ASR + diarize, CPU align on ^<8GB cards.
+echo GPU VRAM: %VRAM_GB% GB — transcribe_v2_large_v3.bat will use CUDA ASR + diarize, CPU align on ^<8GB cards.
 
 where ffmpeg >nul 2>&1
 if errorlevel 1 (
@@ -96,7 +101,7 @@ if not exist "%~dp0.env" (
 )
 
 echo.
-echo Setup complete. Double-click transcribe.bat to run.
+echo Setup complete. Double-click transcribe_v2_large_v3.bat to run.
 echo.
 pause
 exit /b 0

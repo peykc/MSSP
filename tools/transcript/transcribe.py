@@ -6,14 +6,16 @@ Portable folder layout (copy this entire directory next to your audio files):
 
   YourAudioFolder/
     *.mp3
-    Transcription/          # or rename to transcripts/
+    tools/transcript/
       transcribe.py
-      transcribe.bat
-      gen/                  # created on first run (default output)
+      transcribe_v2_large_v3.bat   # main quality run -> gen-large-v3/
+      transcribe_v2_turbo.bat      # faster preview run -> gen-turbo/
+      gen/                         # default when running transcribe.py directly
         index.json
         {episode-stem}.json
 
 Defaults: input = parent folder (audio), output = ./gen/
+The v2 launchers override output to gen-large-v3/ or gen-turbo/.
 """
 
 from __future__ import annotations
@@ -28,8 +30,10 @@ import re
 import sys
 import subprocess
 import traceback
+from contextlib import contextmanager
 from dataclasses import asdict, dataclass, is_dataclass
 from datetime import datetime, timezone
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
@@ -84,12 +88,37 @@ ROW_STRATEGY_DEFAULT = ROW_STRATEGY_V2
 TURN_STRATEGY_DEFAULT = "adaptive-speaker-turn-v1"
 ASR_BACKEND = "whisperx-faster-whisper"
 SAMPLE_RATE = 16000
+MODEL_DEPENDENCY_DISTRIBUTIONS = (
+    "whisperx",
+    "torch",
+    "torchaudio",
+    "torchvision",
+    "pyannote-audio",
+    "faster-whisper",
+    "ctranslate2",
+    "transformers",
+    "torchcodec",
+)
 HF_SETUP_MSG = (
     "HuggingFace token required for --diarize:\n"
     "  1. Create token: https://huggingface.co/settings/tokens\n"
     "  2. Accept license: https://huggingface.co/pyannote/speaker-diarization-community-1\n"
     "  3. Set HF_TOKEN in .env or environment, or pass --hf-token"
 )
+
+
+@lru_cache(maxsize=1)
+def model_dependency_versions() -> dict[str, str]:
+    """Installed model stack; included in cache keys and transcript metadata."""
+    from importlib.metadata import PackageNotFoundError, version
+
+    versions: dict[str, str] = {}
+    for distribution in MODEL_DEPENDENCY_DISTRIBUTIONS:
+        try:
+            versions[distribution] = version(distribution)
+        except PackageNotFoundError:
+            versions[distribution] = "not-installed"
+    return versions
 
 
 @dataclass
@@ -99,6 +128,7 @@ class RunConfig:
     cache_dir: Path
     requested_model: str
     actual_model: str | None = None
+    allow_model_fallback: bool = False
     compute_type: str = "float16"
     requested_compute_type: str = "float16"
     batch_size: int = 4
@@ -161,16 +191,24 @@ class RunConfig:
             {
                 "backend": ASR_BACKEND,
                 "model": self.requested_model,
+                "allow_model_fallback": self.allow_model_fallback,
                 "device": self.device,
                 "compute_type": self.requested_compute_type,
                 "batch_size": self.batch_size,
                 "language": self.language,
                 "vad": self.vad_settings or default_vad_settings(),
+                "dependencies": model_dependency_versions(),
             }
         )
 
     def align_config_hash(self, language: str) -> str:
-        return hash_config({"language": language, "device": self.align_device})
+        return hash_config(
+            {
+                "language": language,
+                "device": self.align_device,
+                "dependencies": model_dependency_versions(),
+            }
+        )
 
     def effective_num_speakers(self) -> int | None:
         if self.speaker_mode == "forced-two-host":
@@ -183,6 +221,7 @@ class RunConfig:
             "max_speakers": self.max_speakers,
             "device": self.diarize_device,
             "speaker_mode": self.speaker_mode,
+            "dependencies": model_dependency_versions(),
         }
         effective = self.effective_num_speakers()
         if effective is not None:
@@ -224,11 +263,13 @@ class RunConfig:
             "backend": ASR_BACKEND,
             "model": actual_model,
             "requested_model": self.requested_model,
+            "allow_model_fallback": self.allow_model_fallback,
             "device": self.device,
             "compute_type": self.compute_type,
             "requested_compute_type": self.requested_compute_type,
             "batch_size": effective_batch,
             "vad": self.vad_settings or default_vad_settings(),
+            "dependencies": model_dependency_versions(),
         }
 
 
@@ -419,6 +460,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--force", action="store_true", help="Re-transcribe even if output JSON exists")
     parser.add_argument("--language", default=None, help="Force language code (e.g. en)")
     parser.add_argument("--model", default="large-v3-turbo", help="Target ASR model name")
+    parser.add_argument(
+        "--allow-model-fallback",
+        action="store_true",
+        help="Allow a different ASR model if --model cannot load (default: fail rather than mix models)",
+    )
     parser.add_argument(
         "--compute-type",
         "--asr-compute-type",
@@ -802,8 +848,25 @@ def apply_file_filters(
 
     if only_list:
         wanted = set(only_list)
-        selected = [f for f in files if f.name in wanted]
-        for name in wanted - {f.name for f in selected}:
+        wanted_absolute = {
+            str(Path(value).resolve()).casefold()
+            for value in wanted
+            if Path(value).is_absolute()
+        }
+        wanted_names = {value for value in wanted if not Path(value).is_absolute()}
+        selected = [
+            f
+            for f in files
+            if str(f.resolve()).casefold() in wanted_absolute or f.name in wanted_names
+        ]
+        matched = {
+            str(f.resolve()).casefold()
+            if str(f.resolve()).casefold() in wanted_absolute
+            else f.name
+            for f in selected
+        }
+        normalized_wanted = wanted_absolute | wanted_names
+        for name in normalized_wanted - matched:
             print(f"WARNING: --only-list file not found: {name}", file=sys.stderr)
         return selected
 
@@ -829,6 +892,12 @@ def apply_file_filters(
 
 def filename_stem(source_path: Path) -> str:
     return source_path.stem
+
+
+def episode_cache_key(source_path: Path, input_dir: Path) -> str:
+    """Stable per-input key; preserves old flat keys and disambiguates nested files."""
+    relative = Path(source_relative_path(source_path, input_dir))
+    return relative.with_suffix("").as_posix()
 
 
 def safe_filename_component(name: str) -> str:
@@ -1037,6 +1106,35 @@ def save_transcript_json(path: Path, document: dict[str, Any]) -> None:
     atomic_write_json(path, clean, post_load_validate=validate_transcript_document)
 
 
+@contextmanager
+def manifest_file_lock(lock_path: Path):
+    """Cross-process lock for the manifest read-modify-write transaction."""
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+b") as lock_file:
+        if os.name == "nt":
+            import msvcrt
+
+            lock_file.seek(0, os.SEEK_END)
+            if lock_file.tell() == 0:
+                lock_file.write(b"\0")
+                lock_file.flush()
+            lock_file.seek(0)
+            msvcrt.locking(lock_file.fileno(), msvcrt.LK_LOCK, 1)
+            try:
+                yield
+            finally:
+                lock_file.seek(0)
+                msvcrt.locking(lock_file.fileno(), msvcrt.LK_UNLCK, 1)
+        else:
+            import fcntl
+
+            fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
+            try:
+                yield
+            finally:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+
+
 def load_manifest(manifest_path: Path) -> dict[str, Any]:
     if not manifest_path.exists():
         return {"items": []}
@@ -1046,24 +1144,31 @@ def load_manifest(manifest_path: Path) -> dict[str, Any]:
 
 def update_manifest_atomic(output_dir: Path, item: ManifestItem, run_config: RunConfig) -> None:
     manifest_path = output_dir / MANIFEST_NAME
-    manifest = load_manifest(manifest_path)
-    items: list[dict[str, Any]] = manifest.get("items", [])
-    item_dict = item.to_dict()
-    replaced = False
-    for i, existing in enumerate(items):
-        if existing.get("sourceFile") == item.source_file:
-            items[i] = item_dict
-            replaced = True
-            break
-    if not replaced:
-        items.append(item_dict)
+    lock_path = manifest_path.with_suffix(manifest_path.suffix + ".lock")
+    with manifest_file_lock(lock_path):
+        manifest = load_manifest(manifest_path)
+        items: list[dict[str, Any]] = manifest.get("items", [])
+        item_dict = item.to_dict()
+        replaced = False
+        for i, existing in enumerate(items):
+            same_output = existing.get("transcriptFile") == item.transcript_file
+            legacy_same_source = (
+                not existing.get("transcriptFile")
+                and existing.get("sourceFile") == item.source_file
+            )
+            if same_output or legacy_same_source:
+                items[i] = item_dict
+                replaced = True
+                break
+        if not replaced:
+            items.append(item_dict)
 
-    manifest["generatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    manifest["model"] = run_config.actual_model or run_config.requested_model
-    manifest["computeType"] = run_config.compute_type
-    manifest["inputDir"] = str(run_config.input_dir)
-    manifest["items"] = items
-    atomic_write_json(manifest_path, manifest)
+        manifest["generatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        manifest["model"] = run_config.actual_model or run_config.requested_model
+        manifest["computeType"] = run_config.compute_type
+        manifest["inputDir"] = str(run_config.input_dir)
+        manifest["items"] = items
+        atomic_write_json(manifest_path, manifest)
 
 
 def resolve_batch_size(batch_size: int, device: str, diarize: bool) -> int:
@@ -1083,21 +1188,22 @@ def resolve_batch_size(batch_size: int, device: str, diarize: bool) -> int:
     return effective
 
 
+def asr_model_candidates(requested: str, allow_fallback: bool) -> list[str]:
+    candidates = [requested]
+    if allow_fallback:
+        candidates.extend(MODEL_FALLBACK_CHAIN)
+    return list(dict.fromkeys(candidates))
+
+
 def resolve_and_load_asr_model(
     requested: str,
     device: str,
     compute_type: str,
+    allow_fallback: bool = False,
 ) -> tuple[Any, str]:
     import whisperx
 
-    def dedupe(names: list[str]) -> list[str]:
-        out: list[str] = []
-        for name in names:
-            if name not in out:
-                out.append(name)
-        return out
-
-    chains: list[list[str]] = [dedupe([requested, *MODEL_FALLBACK_CHAIN])]
+    chains: list[list[str]] = [asr_model_candidates(requested, allow_fallback)]
     last_error: Exception | None = None
     saw_host_oom = False
 
@@ -1125,9 +1231,14 @@ def resolve_and_load_asr_model(
                     saw_host_oom = True
                     break
 
-        if saw_host_oom and chain_idx == 0:
-            chains.append(dedupe(LOW_RAM_FALLBACK_CHAIN))
+        if saw_host_oom and chain_idx == 0 and allow_fallback:
+            chains.append(list(dict.fromkeys(LOW_RAM_FALLBACK_CHAIN)))
 
+    if not allow_fallback:
+        raise RuntimeError(
+            f"Requested ASR model '{requested}' could not be loaded; model fallback is disabled. "
+            "Fix the model/environment or explicitly pass --allow-model-fallback."
+        ) from last_error
     raise RuntimeError(
         "Could not load any ASR model. "
         + (
@@ -1278,6 +1389,7 @@ def _run_asr_transcribe(
     batch_size: int,
     progress_callback: Any | None = None,
     vad_settings: dict[str, Any] | None = None,
+    allow_model_fallback: bool = False,
 ) -> tuple[dict[str, Any], str]:
     batch_sizes: list[int] = []
     bs = batch_size
@@ -1291,7 +1403,12 @@ def _run_asr_transcribe(
     free_gpu()
     if device == "cuda":
         log_gpu_memory("before ASR load")
-    model, actual_model = resolve_and_load_asr_model(requested_model, device, compute_type)
+    model, actual_model = resolve_and_load_asr_model(
+        requested_model,
+        device,
+        compute_type,
+        allow_fallback=allow_model_fallback,
+    )
     if device == "cuda":
         log_gpu_memory("after ASR load")
 
@@ -1336,6 +1453,7 @@ def transcribe_audio(
     batch_size: int,
     monitor: PipelineMonitor | None = None,
     vad_settings: dict[str, Any] | None = None,
+    allow_model_fallback: bool = False,
 ) -> tuple[dict[str, Any], Any, str, float, str]:
     import whisperx
 
@@ -1363,6 +1481,7 @@ def transcribe_audio(
                 batch_size,
                 progress_callback,
                 vad_settings=vad_settings,
+                allow_model_fallback=allow_model_fallback,
             )
             if attempt_idx > 0:
                 print(
@@ -1730,7 +1849,7 @@ def process_file(
     force: bool,
 ) -> tuple[ManifestItem, AlignCache, DiarizeCache]:
     stem = filename_stem(source_path)
-    episode_key = stem
+    episode_key = episode_cache_key(source_path, input_dir)
     output_path = transcript_output_path(
         source_path, input_dir, output_dir, run_config.preserve_folders
     )
@@ -1874,9 +1993,14 @@ def process_file(
                 print(f"  [cache] ASR loaded for {source_path.name}")
                 asr_result = asr_payload["result"]
                 actual_model = asr_payload.get("actualModel", actual_model)
+                run_config.actual_model = actual_model
                 run_config.compute_type = asr_payload.get(
                     "actualComputeType",
                     asr_payload.get("computeType", run_config.requested_compute_type),
+                )
+                asr_metadata = asr_payload.get("asrMetadata") or run_config.asr_metadata(
+                    actual_model,
+                    effective_batch,
                 )
                 language = asr_result.get("language") or language
                 duration_seconds = asr_payload.get("durationSeconds", 0.0)
@@ -1896,6 +2020,7 @@ def process_file(
                     effective_batch,
                     monitor=monitor,
                     vad_settings=vad_settings,
+                    allow_model_fallback=run_config.allow_model_fallback,
                 )
                 monitor.end_stage()
                 run_config.actual_model = actual_model
@@ -2522,6 +2647,7 @@ def main() -> int:
         output_dir=output_dir,
         cache_dir=cache_dir,
         requested_model=args.model,
+        allow_model_fallback=args.allow_model_fallback,
         compute_type=compute_type,
         requested_compute_type=compute_type,
         batch_size=args.batch_size,

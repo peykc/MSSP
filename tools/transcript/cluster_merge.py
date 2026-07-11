@@ -32,7 +32,8 @@ def load_embedding_inference(hf_token: str | None, device: str | None = None) ->
 
     if device is None:
         device = "cuda" if torch.cuda.is_available() else "cpu"
-    model = Model.from_pretrained(EMBEDDING_MODEL_NAME, use_auth_token=hf_token)
+    # pyannote.audio 4.x renamed `use_auth_token` to `token`.
+    model = Model.from_pretrained(EMBEDDING_MODEL_NAME, token=hf_token)
     return Inference(model, window="whole", device=torch.device(device))
 
 

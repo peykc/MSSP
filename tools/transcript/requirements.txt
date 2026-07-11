@@ -1,9 +1,10 @@
+# Pinned production model stack (2026-07-10).
 # Windows + NVIDIA GPU — install in this order:
 #   python -m venv .venv
 #   .\.venv\Scripts\Activate.ps1
-#   pip install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
-#   pip install whisperx transformers
-#   pip install torch torchaudio torchvision --index-url https://download.pytorch.org/whl/cu124
+#   pip install torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
+#   pip install -r requirements.txt
+#   pip install torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
 #     (re-pin CUDA torch if whisperx pulled CPU wheels)
 #
 # Windows: if HuggingFace model download fails with WinError 1314, either enable
@@ -14,5 +15,10 @@
 #
 # Prerequisites: ffmpeg on PATH (winget install Gyan.FFmpeg)
 
-# torch + torchaudio: installed by setup.bat from the CUDA wheel index (do not pip install from here — pulls CPU wheels)
-whisperx
+# torch family is installed by setup.bat from the CUDA wheel index.
+whisperx==3.8.6
+pyannote-audio==4.0.7
+faster-whisper==1.2.1
+ctranslate2==4.8.1
+transformers==4.57.6
+torchcodec==0.7.0
