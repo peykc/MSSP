@@ -177,7 +177,7 @@ setup.bat
 
 Requirements:
 
-- Python 3.10–3.12 recommended
+- Python 3.10–3.13
 - Pinned CUDA 12.8 PyTorch and WhisperX model stack from `requirements.txt`
 - `HF_TOKEN` in `.env` for diarization
 

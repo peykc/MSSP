@@ -2,14 +2,14 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-echo MSSP Transcript — one-time setup
+echo MSSP Transcript - one-time setup
 echo Folder: %~dp0
 echo.
 
 where python >nul 2>&1
 if errorlevel 1 (
   echo ERROR: Python not found on PATH.
-  echo Install Python 3.10-3.12 from https://www.python.org/downloads/
+  echo Install Python 3.10-3.13 from https://www.python.org/downloads/
   echo and check "Add python.exe to PATH" during install.
   echo.
   pause
@@ -18,10 +18,10 @@ if errorlevel 1 (
 
 for /f "delims=" %%V in ('python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')"') do set "PYVER=%%V"
 echo Using Python %PYVER%
-for /f "delims=" %%M in ('python -c "import sys; print(1 if sys.version_info >= (3, 13) else 0)"') do set "PY313=%%M"
-if "%PY313%"=="1" (
-  echo ERROR: Python 3.13+ cannot get CUDA PyTorch ^(needed for GPU diarization^).
-  echo Install Python 3.12 from https://www.python.org/downloads/ and run setup.bat again.
+for /f "delims=" %%M in ('python -c "import sys; print(1 if sys.version_info >= (3, 14) else 0)"') do set "PY314=%%M"
+if "%PY314%"=="1" (
+  echo ERROR: Python 3.14+ is not supported by the pinned transcription stack.
+  echo Install Python 3.13 from https://www.python.org/downloads/ and run setup.bat again.
   echo.
   pause
   exit /b 1
@@ -75,13 +75,13 @@ echo [5/5] Verifying CUDA PyTorch ...
 if errorlevel 1 (
   echo.
   echo ERROR: GPU PyTorch not active. CUDA diarization will fall back to CPU.
-  echo Re-run setup after installing Python 3.12, or manually:
+  echo Re-run setup after checking the NVIDIA driver, or manually:
   echo   "%PIP%" install --force-reinstall torch==2.8.0 torchaudio==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
   goto :fail
 )
 
 for /f "delims=" %%G in ('"%PY%" -c "import torch; print(f'{torch.cuda.get_device_properties(0).total_memory/(1024**3):.1f}') if torch.cuda.is_available() else print('0')"') do set "VRAM_GB=%%G"
-echo GPU VRAM: %VRAM_GB% GB — transcribe_v2_large_v3.bat will use CUDA ASR + diarize, CPU align on ^<8GB cards.
+echo GPU VRAM: %VRAM_GB% GB - transcribe_v2_large_v3.bat will use CUDA ASR + diarize, CPU align on ^<8GB cards.
 
 where ffmpeg >nul 2>&1
 if errorlevel 1 (
