@@ -21,7 +21,12 @@ import bisect
 from collections import Counter
 from typing import Any
 
-from cluster_merge import SAMPLE_RATE, load_embedding_inference, merged_centroids
+from cluster_merge import (
+    SAMPLE_RATE,
+    _clamp_embedding_span,
+    load_embedding_inference,
+    merged_centroids,
+)
 
 DEFAULT_DECISION_MARGIN = 0.15  # new speaker must beat incumbent by this cosine margin
 MIN_SIM = 0.30                  # and clear this absolute similarity
@@ -98,13 +103,16 @@ def rescore_suspect_spans(
     inference = load_embedding_inference(hf_token)
     waveform = torch.from_numpy(np.asarray(audio)).unsqueeze(0)
     audio_file = {"waveform": waveform, "sample_rate": SAMPLE_RATE}
-    total_duration = waveform.shape[1] / SAMPLE_RATE
+    num_samples = waveform.shape[1]
 
     out = [dict(w) for w in words]
     relabeled = 0
     for span in spans:
-        span_start = _word_time(words[span[0]], "startTime")
-        span_end = min(_word_time(words[span[-1]], "endTime"), total_duration)
+        span_start, span_end = _clamp_embedding_span(
+            _word_time(words[span[0]], "startTime"),
+            _word_time(words[span[-1]], "endTime"),
+            num_samples,
+        )
         if span_end - span_start < MIN_SPAN_SEC:
             continue
         candidates = overlapping_speakers(span_start, span_end, CANDIDATE_PAD_SEC) & set(centroids)

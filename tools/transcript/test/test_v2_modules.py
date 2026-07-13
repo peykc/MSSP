@@ -11,6 +11,8 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from cache_manager import CACHE_SCHEMA_VERSION, TranscriptCache, hash_config, safe_episode_key
+from acoustic_rescore import MIN_SPAN_SEC
+from cluster_merge import _clamp_embedding_span
 from speaker_assignment import (
     NEARBY_SCORE_MAX,
     NEARBY_SCORE_MIN,
@@ -165,6 +167,20 @@ def test_same_speaker_turn_splits_on_long_pause():
     preset = get_preset("normal")
     turns = group_words_into_turns(words, preset)
     assert len(turns) == 2
+
+
+def test_embedding_span_stays_below_waveform_boundary():
+    num_samples = 74_011_792
+    start, end = _clamp_embedding_span(
+        4_624.0,
+        num_samples / 16_000,
+        num_samples,
+    )
+    assert start == 4_624.0
+    assert round(end * 16_000) < num_samples
+    assert end == (num_samples - 1) / 16_000
+    # Acoustic-rescore end-of-file spans must still be long enough to evaluate.
+    assert end - start >= MIN_SPAN_SEC
 
 
 def test_asr_cache_hash_uses_requested_compute_type():
@@ -610,6 +626,7 @@ def main() -> None:
     test_smoothing_intensity_adjusts_preset()
     test_nearby_padding_rescues_boundary_word()
     test_same_speaker_turn_splits_on_long_pause()
+    test_embedding_span_stays_below_waveform_boundary()
     test_asr_cache_hash_uses_requested_compute_type()
     test_transcribe_vad_kwargs_empty()
     test_serialize_diarization_dataframe_shape()

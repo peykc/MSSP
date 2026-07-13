@@ -25,6 +25,21 @@ EMBEDDING_MODEL_NAME = "pyannote/wespeaker-voxceleb-resnet34-LM"
 SAMPLE_RATE = 16000
 
 
+def _clamp_embedding_span(
+    start: float,
+    end: float,
+    num_samples: int,
+    sample_rate: int = SAMPLE_RATE,
+) -> tuple[float, float]:
+    """Clamp a crop below pyannote's exclusive end-of-waveform boundary."""
+    start_f = max(0.0, float(start))
+    # pyannote rejects an in-memory crop when round(end * sample_rate) is
+    # greater than or equal to num_samples. Keep the endpoint one sample below
+    # that boundary; omitting the final sample is acoustically insignificant.
+    last_valid_end = max(0, num_samples - 1) / sample_rate
+    return start_f, min(float(end), last_valid_end)
+
+
 def load_embedding_inference(hf_token: str | None, device: str | None = None) -> Any:
     """Shared speaker-embedding Inference used by cluster merge and acoustic rescore."""
     import torch
@@ -82,7 +97,7 @@ def compute_cluster_stats(
 
     waveform = torch.from_numpy(np.asarray(audio)).unsqueeze(0)
     audio_file = {"waveform": waveform, "sample_rate": SAMPLE_RATE}
-    total_duration = waveform.shape[1] / SAMPLE_RATE
+    num_samples = waveform.shape[1]
 
     by_cluster: dict[str, list[tuple[float, float]]] = {}
     for seg in diarization_segments:
@@ -91,8 +106,7 @@ def compute_cluster_stats(
         end = seg.get("endTime")
         if not speaker or start is None or end is None:
             continue
-        start_f = float(start)
-        end_f = min(float(end), total_duration)
+        start_f, end_f = _clamp_embedding_span(start, end, num_samples)
         if end_f - start_f >= MIN_SEGMENT_DURATION_SEC:
             by_cluster.setdefault(str(speaker), []).append((start_f, end_f))
 
