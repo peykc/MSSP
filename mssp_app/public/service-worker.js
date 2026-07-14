@@ -1,4 +1,4 @@
-const RELEASE_ID = "v288";
+const RELEASE_ID = "v291";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -15,7 +15,7 @@ const SHELL_PATHS = [
   "./css/base.css",
   "./css/layout.css",
   "./css/launch.css",
-  "./css/global-search.css",
+  "./css/global-search.css?v=search-switcher-d",
   "./css/archive.css",
   "./css/sealed-stone.css",
   "./css/library.css",
@@ -30,7 +30,7 @@ const SHELL_PATHS = [
   "./css/patreon-rss.css",
   "./css/transcript.css?v=scroll-hydrate-d",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=community-signals-v1",
+  "./js/main.js?v=search-switcher-c",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
@@ -46,7 +46,7 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js",
-  "./js/globalSearch.js",
+  "./js/globalSearch.js?v=search-switcher-c",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js",

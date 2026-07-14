@@ -1,7 +1,7 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
-import { createGlobalSearch } from "./globalSearch.js";
+import { createGlobalSearch } from "./globalSearch.js?v=search-switcher-c";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { getCommunityClientId } from "./community/communityIdentity.js";

@@ -5,16 +5,30 @@ import { debounce, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
 
 const SEARCH_DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
-const EPISODE_RESULT_LIMIT = 8;
-const TRANSCRIPT_EPISODE_LIMIT = 3;
-const MAX_TRANSCRIPT_FETCHES = 5;
-const MATCHES_PER_EPISODE = 2;
+const EPISODE_RESULT_LIMIT = 24;
+const TRANSCRIPT_BATCH_SIZE = 8;
 const PREFIX_EXPANSION_LIMIT = 50;
-const TIMELINE_CACHE_LIMIT = 10;
+const TIMELINE_CACHE_LIMIT = 48;
 const SNIPPET_WORDS_BEFORE = 6;
 const SNIPPET_WORDS_AFTER = 8;
 const PLAY_PRE_ROLL_SECONDS = 2;
 const DEFAULT_TRANSCRIPT_BASE_URL = "https://transcripts.pkcollection.net/mssp";
+
+const MODE_EPISODES = "episodes";
+const MODE_TRANSCRIPTS = "transcripts";
+
+const KIND_LABELS = {
+  old: "MSSPOT",
+  new: "MSSP",
+  paytch: "PAYTCH",
+  anthology: "MSSP",
+};
+
+const LOCK_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M7 9V7a5 5 0 0 1 10 0v2h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h1Zm2 0h6V7a3 3 0 0 0-6 0v2Zm3 4a2 2 0 0 1 1.18 3.62L14 20h-4l.82-3.38A2 2 0 0 1 12 13Z"></path>
+  </svg>
+`;
 
 function getTranscriptBaseUrl() {
   const override = typeof window !== "undefined" ? window.MSSP_TRANSCRIPT_BASE_URL : "";
@@ -46,6 +60,17 @@ function formatTimestamp(seconds) {
   return hours ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
+function formatCountLabel(count, { capped = false } = {}) {
+  if (count == null) return "";
+  if (capped) return `${count}+`;
+  return String(count);
+}
+
+function collectionKindLabel(episode) {
+  const kind = episode.coverKind || episode.collectionKind || "";
+  return KIND_LABELS[kind] || "";
+}
+
 export function createGlobalSearch({
   dom,
   searchEpisodes,
@@ -57,8 +82,22 @@ export function createGlobalSearch({
   let queryToken = 0;
   let manifestPromise = null;
   let activeIndex = -1;
+  let activeMode = MODE_EPISODES;
+  let activeQuery = "";
+  let episodeResults = [];
+  let transcriptResults = [];
+  let transcriptCandidates = [];
+  let transcriptCursor = 0;
+  let transcriptStatus = "idle";
+  let transcriptLoadingMore = false;
+  let coverageStats = null;
   const shardCache = new Map();
   const timelineCache = new Map();
+
+  let switchEpisodesBtn = null;
+  let switchTranscriptsBtn = null;
+  let panelEl = null;
+  let footerEl = null;
 
   function fetchJson(url) {
     return fetch(url).then((response) => {
@@ -107,7 +146,6 @@ export function createGlobalSearch({
     return request;
   }
 
-  // Stage 1: shard lookups -> ranked candidate episode ordinals.
   async function findCandidateEpisodes(tokens, manifest) {
     const uniqueTokens = [...new Set(tokens)];
     const expandToken = tokens[tokens.length - 1];
@@ -127,7 +165,6 @@ export function createGlobalSearch({
 
       if (shard.tokens[token]) addPostings(shard.tokens[token]);
       if (isLast) {
-        // Prefix-expand the token still being typed so results appear as you type.
         let expansions = 0;
         for (const candidate of Object.keys(shard.tokens)) {
           if (candidate === token || !candidate.startsWith(token)) continue;
@@ -161,32 +198,66 @@ export function createGlobalSearch({
       .map(([ordinal]) => manifest.episodeKeys[ordinal]);
   }
 
-  // Stage 2: fetch top candidate transcripts and locate exact matches.
-  async function findTranscriptMatches(query, candidateKeys, isStale) {
-    const results = [];
+  function pickAllSegmentMatches(matches) {
+    const picked = [];
+    const seenEntries = new Set();
+    for (const match of matches) {
+      if (seenEntries.has(match.entryIndex)) continue;
+      seenEntries.add(match.entryIndex);
+      picked.push(match);
+    }
+    return picked;
+  }
+
+  async function loadTranscriptBatch(query, isStale) {
+    if (transcriptLoadingMore) return;
+    if (transcriptCursor >= transcriptCandidates.length) return;
+
+    transcriptLoadingMore = true;
+    const batch = [];
     let fetches = 0;
-    for (const episodeKey of candidateKeys) {
-      if (results.length >= TRANSCRIPT_EPISODE_LIMIT || fetches >= MAX_TRANSCRIPT_FETCHES) break;
+
+    while (
+      batch.length < TRANSCRIPT_BATCH_SIZE
+      && transcriptCursor < transcriptCandidates.length
+      && fetches < TRANSCRIPT_BATCH_SIZE * 3
+    ) {
+      const episodeKey = transcriptCandidates[transcriptCursor];
+      transcriptCursor += 1;
       fetches += 1;
+
       let timeline;
       try {
         timeline = await getTimeline(episodeKey);
       } catch {
         continue;
       }
-      if (isStale()) return results;
-      const matches = buildSearchIndex(timeline, query);
-      if (!matches.length) continue;
-
-      const picked = [];
-      for (const match of matches) {
-        if (picked.length >= MATCHES_PER_EPISODE) break;
-        if (picked.some((existing) => existing.entryIndex === match.entryIndex)) continue;
-        picked.push(match);
+      if (isStale()) {
+        transcriptLoadingMore = false;
+        return;
       }
-      results.push({ episodeKey, timeline, matches: picked, totalMatches: matches.length });
+
+      const matches = pickAllSegmentMatches(buildSearchIndex(timeline, query));
+      if (!matches.length) continue;
+      batch.push({ episodeKey, timeline, matches });
     }
-    return results;
+
+    if (isStale()) {
+      transcriptLoadingMore = false;
+      return;
+    }
+
+    if (batch.length) transcriptResults = transcriptResults.concat(batch);
+    transcriptStatus = transcriptResults.length ? "ready" : (transcriptCursor < transcriptCandidates.length ? "loading" : "empty");
+    transcriptLoadingMore = false;
+
+    if (activeMode === MODE_TRANSCRIPTS) {
+      appendTranscriptBatch(batch);
+      updateSwitcherLabels();
+      updateFooter();
+    } else {
+      updateSwitcherLabels();
+    }
   }
 
   function setExpanded(expanded) {
@@ -212,13 +283,6 @@ export function createGlobalSearch({
     }
   }
 
-  function createSectionHeader(label) {
-    const header = document.createElement("div");
-    header.className = "launch-search__section-header";
-    header.textContent = label;
-    return header;
-  }
-
   function createStatusRow(text, { error = false } = {}) {
     const status = document.createElement("div");
     status.className = `launch-search__status${error ? " is-error" : ""}`;
@@ -226,10 +290,10 @@ export function createGlobalSearch({
     return status;
   }
 
-  function createResultButton(onActivate) {
+  function createResultButton(onActivate, className = "launch-search__result") {
     const button = document.createElement("button");
     button.type = "button";
-    button.className = "launch-search__result";
+    button.className = className;
     button.id = `globalSearchOption-${getOptionButtons().length}-${queryToken}`;
     button.setAttribute("role", "option");
     button.addEventListener("click", () => {
@@ -239,27 +303,57 @@ export function createGlobalSearch({
     return button;
   }
 
-  function createTitleLine(episode) {
-    const title = document.createElement("div");
-    title.className = "launch-search__result-title";
+  function createEpisodeHeadContent(episode) {
+    const wrap = document.createElement("div");
+    wrap.className = "launch-search__episode";
 
-    const name = document.createElement("span");
-    name.className = "launch-search__result-name";
-    name.textContent = `${formatEpisodeLabel(episode)} — ${episode.title || episode.episodeKey}`;
-    title.append(name);
+    const cover = document.createElement("img");
+    cover.className = "launch-search__cover";
+    cover.src = episode.coverUrl || "./assets/covers/anthology.webp";
+    cover.alt = "";
+    cover.loading = "lazy";
+    cover.decoding = "async";
+    wrap.append(cover);
+
+    const body = document.createElement("div");
+    body.className = "launch-search__episode-body";
+
+    const top = document.createElement("div");
+    top.className = "launch-search__episode-top";
+
+    const epLabel = document.createElement("span");
+    epLabel.className = "launch-search__episode-label";
+    epLabel.textContent = formatEpisodeLabel(episode);
+    top.append(epLabel);
+
+    const kind = collectionKindLabel(episode);
+    if (kind) {
+      const kindEl = document.createElement("span");
+      kindEl.className = `launch-search__kind launch-search__kind--${episode.coverKind || episode.collectionKind || "anthology"}`;
+      kindEl.textContent = kind;
+      top.append(kindEl);
+    }
+
+    if (getSourceStatusForEpisode(episode).id === SOURCE_STATUSES.RSS_REQUIRED) {
+      const lock = document.createElement("span");
+      lock.className = "launch-search__lock";
+      lock.setAttribute("aria-label", "PAYTCH locked");
+      lock.innerHTML = LOCK_ICON;
+      top.append(lock);
+    }
 
     const meta = document.createElement("span");
     meta.className = "launch-search__result-meta";
     meta.textContent = formatPlayerDate(episode.date);
-    title.append(meta);
+    top.append(meta);
 
-    if (getSourceStatusForEpisode(episode).id === SOURCE_STATUSES.RSS_REQUIRED) {
-      const lock = document.createElement("span");
-      lock.className = "launch-search__result-lock";
-      lock.textContent = "🔒 PAYTCH";
-      title.append(lock);
-    }
-    return title;
+    const title = document.createElement("div");
+    title.className = "launch-search__episode-title";
+    title.textContent = episode.title || episode.episodeKey;
+
+    body.append(top, title);
+    wrap.append(body);
+    return wrap;
   }
 
   function createSnippet(timeline, match) {
@@ -290,33 +384,213 @@ export function createGlobalSearch({
     return snippet;
   }
 
-  function renderEpisodeSection(container, episodes) {
-    container.append(createSectionHeader("Episodes"));
-    if (!episodes.length) {
-      container.append(createStatusRow("No episode matches"));
+  function updateSwitcherLabels() {
+    if (!switchEpisodesBtn || !switchTranscriptsBtn) return;
+
+    switchEpisodesBtn.replaceChildren("Episodes");
+    if (episodeResults.length) {
+      const badge = document.createElement("span");
+      badge.className = "launch-search__switch-count";
+      badge.textContent = formatCountLabel(episodeResults.length);
+      switchEpisodesBtn.append(badge);
+    }
+
+    switchTranscriptsBtn.replaceChildren("Transcripts");
+    if (transcriptStatus === "loading" && !transcriptResults.length) {
+      const transcriptBadge = document.createElement("span");
+      transcriptBadge.className = "launch-search__switch-count";
+      transcriptBadge.textContent = "…";
+      switchTranscriptsBtn.append(transcriptBadge);
+    } else if (transcriptCandidates.length) {
+      const transcriptBadge = document.createElement("span");
+      transcriptBadge.className = "launch-search__switch-count";
+      transcriptBadge.textContent = formatCountLabel(transcriptCandidates.length);
+      switchTranscriptsBtn.append(transcriptBadge);
+    }
+
+    switchEpisodesBtn.setAttribute("aria-selected", activeMode === MODE_EPISODES ? "true" : "false");
+    switchTranscriptsBtn.setAttribute("aria-selected", activeMode === MODE_TRANSCRIPTS ? "true" : "false");
+    switchEpisodesBtn.classList.toggle("is-active", activeMode === MODE_EPISODES);
+    switchTranscriptsBtn.classList.toggle("is-active", activeMode === MODE_TRANSCRIPTS);
+  }
+
+  function updateFooter() {
+    if (!footerEl) return;
+    if (activeMode === MODE_TRANSCRIPTS && coverageStats) {
+      footerEl.hidden = false;
+      const withTx = coverageStats.episodesWithTranscripts ?? "?";
+      const total = coverageStats.episodesTotal ?? "?";
+      const loaded = transcriptResults.length;
+      const remaining = Math.max(0, transcriptCandidates.length - transcriptCursor);
+      if (remaining > 0 || transcriptLoadingMore) {
+        footerEl.textContent = `Loaded ${loaded} of ${transcriptCandidates.length} matching episodes · index ${withTx}/${total}`;
+      } else {
+        footerEl.textContent = `${loaded} matching episode${loaded === 1 ? "" : "s"} · index covers ${withTx} of ${total}`;
+      }
       return;
     }
-    for (const episode of episodes.slice(0, EPISODE_RESULT_LIMIT)) {
+    footerEl.hidden = true;
+    footerEl.textContent = "";
+  }
+
+  function createTranscriptGroup(result) {
+    const episode = getEpisodeByKey(result.episodeKey);
+    if (!episode) return null;
+
+    const group = document.createElement("div");
+    group.className = "launch-search__group";
+
+    const head = createResultButton(
+      () => onPlayEpisode(episode),
+      "launch-search__result launch-search__group-head",
+    );
+    head.append(createEpisodeHeadContent(episode));
+    group.append(head);
+
+    for (const match of result.matches) {
+      const startTime = result.timeline[match.entryIndex].words[match.wordIndex].startTime;
+      const hit = createResultButton(
+        () => onPlayEpisodeAtTime(episode, Math.max(0, startTime - PLAY_PRE_ROLL_SECONDS)),
+        "launch-search__result launch-search__hit",
+      );
+      hit.append(createSnippet(result.timeline, match));
+      group.append(hit);
+    }
+
+    return group;
+  }
+
+  function appendTranscriptBatch(batch) {
+    if (!panelEl || activeMode !== MODE_TRANSCRIPTS) return;
+
+    const empty = panelEl.querySelector(".launch-search__status");
+    if (empty) empty.remove();
+
+    for (const result of batch) {
+      const group = createTranscriptGroup(result);
+      if (group) panelEl.append(group);
+    }
+
+    syncLoadMoreRow();
+  }
+
+  function syncLoadMoreRow() {
+    if (!panelEl) return;
+    const existing = panelEl.querySelector(".launch-search__load-more");
+    if (existing) existing.remove();
+
+    if (transcriptCursor >= transcriptCandidates.length && !transcriptLoadingMore) return;
+
+    const row = document.createElement("div");
+    row.className = "launch-search__load-more";
+    row.textContent = transcriptLoadingMore
+      ? "Loading more matches…"
+      : "Scroll for more matches";
+    panelEl.append(row);
+  }
+
+  function renderEpisodeResults() {
+    panelEl.replaceChildren();
+    if (!episodeResults.length) {
+      panelEl.append(createStatusRow("No episode matches"));
+      return;
+    }
+    for (const episode of episodeResults.slice(0, EPISODE_RESULT_LIMIT)) {
       const button = createResultButton(() => onPlayEpisode(episode));
-      button.append(createTitleLine(episode));
-      container.append(button);
+      button.append(createEpisodeHeadContent(episode));
+      panelEl.append(button);
     }
   }
 
-  function renderTranscriptResults(container, transcriptResults) {
-    for (const result of transcriptResults) {
-      const episode = getEpisodeByKey(result.episodeKey);
-      if (!episode) continue;
-      for (const match of result.matches) {
-        const startTime = result.timeline[match.entryIndex].words[match.wordIndex].startTime;
-        const button = createResultButton(() => {
-          onPlayEpisodeAtTime(episode, Math.max(0, startTime - PLAY_PRE_ROLL_SECONDS));
-        });
-        button.append(createTitleLine(episode));
-        button.append(createSnippet(result.timeline, match));
-        container.append(button);
-      }
+  function renderTranscriptResults() {
+    panelEl.replaceChildren();
+
+    if (transcriptStatus === "loading" && !transcriptResults.length) {
+      panelEl.append(createStatusRow("Searching transcripts…"));
+      return;
     }
+    if (transcriptStatus === "error") {
+      panelEl.append(createStatusRow("Transcript search unavailable", { error: true }));
+      return;
+    }
+    if (!transcriptResults.length) {
+      panelEl.append(createStatusRow("No transcript matches"));
+      return;
+    }
+
+    for (const result of transcriptResults) {
+      const group = createTranscriptGroup(result);
+      if (group) panelEl.append(group);
+    }
+    syncLoadMoreRow();
+  }
+
+  function paintActiveMode() {
+    if (!panelEl) return;
+    if (activeMode === MODE_EPISODES) renderEpisodeResults();
+    else renderTranscriptResults();
+    updateSwitcherLabels();
+    updateFooter();
+    setActiveIndex(-1);
+  }
+
+  function setMode(mode) {
+    if (mode !== MODE_EPISODES && mode !== MODE_TRANSCRIPTS) return;
+    if (activeMode === mode) return;
+    activeMode = mode;
+    paintActiveMode();
+  }
+
+  async function maybeLoadMoreFromScroll() {
+    if (activeMode !== MODE_TRANSCRIPTS || !panelEl) return;
+    if (transcriptLoadingMore) return;
+    if (transcriptCursor >= transcriptCandidates.length) return;
+    const remaining = panelEl.scrollHeight - panelEl.scrollTop - panelEl.clientHeight;
+    if (remaining > 120) return;
+    const token = queryToken;
+    await loadTranscriptBatch(activeQuery, () => token !== queryToken);
+  }
+
+  function buildShell() {
+    const container = dom.globalSearchResults;
+    container.replaceChildren();
+
+    const chrome = document.createElement("div");
+    chrome.className = "launch-search__chrome";
+
+    const switcher = document.createElement("div");
+    switcher.className = "launch-search__switch";
+    switcher.setAttribute("role", "tablist");
+    switcher.setAttribute("aria-label", "Search result type");
+
+    switchEpisodesBtn = document.createElement("button");
+    switchEpisodesBtn.type = "button";
+    switchEpisodesBtn.className = "launch-search__switch-tab";
+    switchEpisodesBtn.setAttribute("role", "tab");
+    switchEpisodesBtn.addEventListener("click", () => setMode(MODE_EPISODES));
+
+    switchTranscriptsBtn = document.createElement("button");
+    switchTranscriptsBtn.type = "button";
+    switchTranscriptsBtn.className = "launch-search__switch-tab";
+    switchTranscriptsBtn.setAttribute("role", "tab");
+    switchTranscriptsBtn.addEventListener("click", () => setMode(MODE_TRANSCRIPTS));
+
+    switcher.append(switchEpisodesBtn, switchTranscriptsBtn);
+    chrome.append(switcher);
+
+    panelEl = document.createElement("div");
+    panelEl.className = "launch-search__panel";
+    panelEl.setAttribute("role", "presentation");
+    panelEl.addEventListener("scroll", () => {
+      void maybeLoadMoreFromScroll();
+    }, { passive: true });
+
+    footerEl = document.createElement("div");
+    footerEl.className = "launch-search__footer";
+    footerEl.hidden = true;
+
+    container.append(chrome, panelEl, footerEl);
+    updateSwitcherLabels();
   }
 
   async function runQuery(rawQuery) {
@@ -328,67 +602,81 @@ export function createGlobalSearch({
     if (normalized.length < MIN_QUERY_LENGTH) {
       setExpanded(false);
       dom.globalSearchResults.replaceChildren();
+      panelEl = null;
+      footerEl = null;
+      switchEpisodesBtn = null;
+      switchTranscriptsBtn = null;
       return;
     }
 
-    const container = dom.globalSearchResults;
-    container.replaceChildren();
-    setExpanded(true);
+    activeMode = MODE_EPISODES;
+    activeQuery = query;
+    episodeResults = [];
+    transcriptResults = [];
+    transcriptCandidates = [];
+    transcriptCursor = 0;
+    transcriptStatus = "loading";
+    transcriptLoadingMore = false;
+    coverageStats = null;
 
-    // Section 1: episode metadata (instant — data is already cached client-side).
-    let episodes = [];
+    buildShell();
+    setExpanded(true);
+    paintActiveMode();
+
     try {
       const payload = await searchEpisodes(query);
-      episodes = payload?.episodes || [];
+      if (isStale()) return;
+      episodeResults = payload?.episodes || [];
     } catch {
-      episodes = [];
+      if (isStale()) return;
+      episodeResults = [];
     }
-    if (isStale()) return;
-    renderEpisodeSection(container, episodes);
-
-    // Section 2: transcripts (async, two-stage).
-    container.append(createSectionHeader("Transcripts"));
-    const pending = createStatusRow("Searching transcripts…");
-    container.append(pending);
-    setActiveIndex(-1);
+    paintActiveMode();
 
     let manifest;
     try {
       manifest = await getManifest();
     } catch {
       if (isStale()) return;
-      pending.replaceWith(createStatusRow("Transcript search unavailable", { error: true }));
+      transcriptStatus = "error";
+      paintActiveMode();
       return;
     }
     if (isStale()) return;
+
+    coverageStats = manifest.stats || {
+      episodesWithTranscripts: manifest.episodeKeys?.length,
+      episodesTotal: undefined,
+    };
 
     const tokens = normalized.split(" ").filter((t) => t.length >= (manifest.minTokenLength || MIN_QUERY_LENGTH));
-    let transcriptResults = [];
     try {
-      if (tokens.length) {
-        const candidates = await findCandidateEpisodes(tokens, manifest);
-        if (isStale()) return;
-        transcriptResults = await findTranscriptMatches(query, candidates, isStale);
+      if (!tokens.length) {
+        transcriptStatus = "empty";
+        paintActiveMode();
+        return;
       }
+      transcriptCandidates = await findCandidateEpisodes(tokens, manifest);
+      if (isStale()) return;
+      if (!transcriptCandidates.length) {
+        transcriptStatus = "empty";
+        paintActiveMode();
+        return;
+      }
+      updateSwitcherLabels();
+      await loadTranscriptBatch(query, isStale);
+      if (isStale()) return;
+      if (!transcriptResults.length && transcriptCursor >= transcriptCandidates.length) {
+        transcriptStatus = "empty";
+      } else if (transcriptResults.length) {
+        transcriptStatus = "ready";
+      }
+      paintActiveMode();
     } catch {
       if (isStale()) return;
-      pending.replaceWith(createStatusRow("Transcript search unavailable", { error: true }));
-      return;
+      transcriptStatus = "error";
+      paintActiveMode();
     }
-    if (isStale()) return;
-
-    if (!transcriptResults.length) {
-      pending.replaceWith(createStatusRow("No transcript matches"));
-    } else {
-      pending.remove();
-      renderTranscriptResults(container, transcriptResults);
-    }
-
-    const footer = document.createElement("div");
-    footer.className = "launch-search__footer";
-    const stats = manifest.stats || {};
-    footer.textContent = `Transcript search covers ${stats.episodesWithTranscripts ?? manifest.episodeKeys.length} of ${stats.episodesTotal ?? "?"} episodes`;
-    container.append(footer);
   }
 
   function close() {
@@ -398,7 +686,17 @@ export function createGlobalSearch({
   function clear() {
     dom.globalSearchInput.value = "";
     queryToken += 1;
+    episodeResults = [];
+    transcriptResults = [];
+    transcriptCandidates = [];
+    transcriptCursor = 0;
+    transcriptStatus = "idle";
+    coverageStats = null;
     dom.globalSearchResults.replaceChildren();
+    panelEl = null;
+    footerEl = null;
+    switchEpisodesBtn = null;
+    switchTranscriptsBtn = null;
     setExpanded(false);
   }
 
@@ -419,13 +717,11 @@ export function createGlobalSearch({
   dom.globalSearchInput.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
       event.preventDefault();
-      if (dom.globalSearchInput.value) {
-        clear();
-      } else {
-        close();
-      }
+      if (dom.globalSearchInput.value) clear();
+      else close();
       return;
     }
+
     const buttons = getOptionButtons();
     if (!buttons.length || dom.globalSearchResults.classList.contains("is-hidden")) return;
     if (event.key === "ArrowDown") {
@@ -441,9 +737,7 @@ export function createGlobalSearch({
   });
 
   document.addEventListener("pointerdown", (event) => {
-    if (!dom.globalSearch.contains(event.target)) {
-      close();
-    }
+    if (!dom.globalSearch.contains(event.target)) close();
   });
 
   return { close, clear };
