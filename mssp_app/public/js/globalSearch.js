@@ -30,6 +30,18 @@ const LOCK_ICON = `
   </svg>
 `;
 
+const PLAY_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24">
+    <path d="m7 4 12 8-12 8V4Z"></path>
+  </svg>
+`;
+
+const CHEVRON_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="m6 9 6 6 6-6"></path>
+  </svg>
+`;
+
 function getTranscriptBaseUrl() {
   const override = typeof window !== "undefined" ? window.MSSP_TRANSCRIPT_BASE_URL : "";
   return String(override || DEFAULT_TRANSCRIPT_BASE_URL).replace(/\/+$/, "");
@@ -76,6 +88,7 @@ export function createGlobalSearch({
   searchEpisodes,
   getEpisodeByKey,
   getSourceStatusForEpisode,
+  onSelectEpisode,
   onPlayEpisode,
   onPlayEpisodeAtTime,
 }) {
@@ -91,9 +104,10 @@ export function createGlobalSearch({
   let transcriptStatus = "idle";
   let transcriptLoadingMore = false;
   let coverageStats = null;
+  const collapsedEpisodeKeys = new Set();
   const shardCache = new Map();
   const timelineCache = new Map();
-
+  let panelTouchY = 0;
   let switchEpisodesBtn = null;
   let switchTranscriptsBtn = null;
   let panelEl = null;
@@ -263,6 +277,7 @@ export function createGlobalSearch({
   function setExpanded(expanded) {
     dom.globalSearchResults.classList.toggle("is-hidden", !expanded);
     dom.globalSearchInput.setAttribute("aria-expanded", expanded ? "true" : "false");
+    document.body.classList.toggle("search-results-open", expanded);
     if (!expanded) setActiveIndex(-1);
   }
 
@@ -420,13 +435,7 @@ export function createGlobalSearch({
       footerEl.hidden = false;
       const withTx = coverageStats.episodesWithTranscripts ?? "?";
       const total = coverageStats.episodesTotal ?? "?";
-      const loaded = transcriptResults.length;
-      const remaining = Math.max(0, transcriptCandidates.length - transcriptCursor);
-      if (remaining > 0 || transcriptLoadingMore) {
-        footerEl.textContent = `Loaded ${loaded} of ${transcriptCandidates.length} matching episodes · index ${withTx}/${total}`;
-      } else {
-        footerEl.textContent = `${loaded} matching episode${loaded === 1 ? "" : "s"} · index covers ${withTx} of ${total}`;
-      }
+      footerEl.textContent = `${withTx}/${total} episodes indexed`;
       return;
     }
     footerEl.hidden = true;
@@ -438,13 +447,58 @@ export function createGlobalSearch({
     if (!episode) return null;
 
     const group = document.createElement("div");
-    group.className = "launch-search__group";
+    const coverKind = episode.coverKind || episode.collectionKind || "anthology";
+    group.className = `launch-search__group launch-search__group--${coverKind}`;
+    const collapsed = collapsedEpisodeKeys.has(result.episodeKey);
+    if (collapsed) group.classList.add("is-collapsed");
 
-    const head = createResultButton(
-      () => onPlayEpisode(episode),
-      "launch-search__result launch-search__group-head",
-    );
-    head.append(createEpisodeHeadContent(episode));
+    const head = document.createElement("div");
+    head.className = "launch-search__group-head";
+    head.setAttribute("role", "button");
+    head.tabIndex = 0;
+    head.setAttribute("aria-expanded", collapsed ? "false" : "true");
+    head.id = `globalSearchGroup-${getOptionButtons().length}-${queryToken}`;
+
+    const toggle = document.createElement("button");
+    toggle.type = "button";
+    toggle.className = "launch-search__collapse";
+    toggle.setAttribute("aria-label", collapsed ? "Expand transcript matches" : "Collapse transcript matches");
+    toggle.innerHTML = CHEVRON_ICON;
+
+    const main = document.createElement("button");
+    main.type = "button";
+    main.className = "launch-search__result launch-search__group-main";
+    main.setAttribute("role", "option");
+    main.id = `globalSearchOption-${getOptionButtons().length}-${queryToken}`;
+    main.append(createEpisodeHeadContent(episode));
+    main.addEventListener("click", (event) => {
+      event.stopPropagation();
+      close();
+      onSelectEpisode?.(episode);
+    });
+
+    const play = document.createElement("button");
+    play.type = "button";
+    play.className = "launch-search__play";
+    play.setAttribute("aria-label", `Play ${episode.title || formatEpisodeLabel(episode)}`);
+    play.innerHTML = PLAY_ICON;
+    play.addEventListener("click", (event) => {
+      event.stopPropagation();
+      close();
+      onPlayEpisode(episode);
+    });
+
+    toggle.addEventListener("click", (event) => {
+      event.stopPropagation();
+      const next = !group.classList.contains("is-collapsed");
+      group.classList.toggle("is-collapsed", next);
+      head.setAttribute("aria-expanded", next ? "false" : "true");
+      toggle.setAttribute("aria-label", next ? "Expand transcript matches" : "Collapse transcript matches");
+      if (next) collapsedEpisodeKeys.add(result.episodeKey);
+      else collapsedEpisodeKeys.delete(result.episodeKey);
+    });
+
+    head.append(toggle, main, play);
     group.append(head);
 
     for (const match of result.matches) {
@@ -496,9 +550,27 @@ export function createGlobalSearch({
       return;
     }
     for (const episode of episodeResults.slice(0, EPISODE_RESULT_LIMIT)) {
-      const button = createResultButton(() => onPlayEpisode(episode));
-      button.append(createEpisodeHeadContent(episode));
-      panelEl.append(button);
+      const row = document.createElement("div");
+      row.className = "launch-search__episode-row";
+
+      const select = createResultButton(() => {
+        onSelectEpisode?.(episode);
+      }, "launch-search__result launch-search__episode-select");
+      select.append(createEpisodeHeadContent(episode));
+
+      const play = document.createElement("button");
+      play.type = "button";
+      play.className = "launch-search__play";
+      play.setAttribute("aria-label", `Play ${episode.title || formatEpisodeLabel(episode)}`);
+      play.innerHTML = PLAY_ICON;
+      play.addEventListener("click", (event) => {
+        event.stopPropagation();
+        close();
+        onPlayEpisode(episode);
+      });
+
+      row.append(select, play);
+      panelEl.append(row);
     }
   }
 
@@ -584,6 +656,31 @@ export function createGlobalSearch({
     panelEl.addEventListener("scroll", () => {
       void maybeLoadMoreFromScroll();
     }, { passive: true });
+    panelEl.addEventListener("touchstart", (event) => {
+      if (event.touches.length !== 1) return;
+      panelTouchY = event.touches[0].clientY;
+    }, { passive: true });
+    panelEl.addEventListener("touchmove", (event) => {
+      if (event.touches.length !== 1) return;
+      const y = event.touches[0].clientY;
+      const dy = y - panelTouchY;
+      panelTouchY = y;
+      const maxScroll = panelEl.scrollHeight - panelEl.clientHeight;
+      if (maxScroll <= 0) {
+        event.preventDefault();
+        return;
+      }
+      const atTop = panelEl.scrollTop <= 0;
+      const atBottom = panelEl.scrollTop >= maxScroll - 1;
+      // Finger moving down (dy > 0) scrolls content toward the start.
+      if ((atTop && dy > 0) || (atBottom && dy < 0)) {
+        event.preventDefault();
+        return;
+      }
+      // Keep the gesture inside the panel so #app / pull-to-refresh cannot steal it.
+      event.preventDefault();
+      panelEl.scrollTop -= dy;
+    }, { passive: false });
 
     footerEl = document.createElement("div");
     footerEl.className = "launch-search__footer";
@@ -618,6 +715,7 @@ export function createGlobalSearch({
     transcriptStatus = "loading";
     transcriptLoadingMore = false;
     coverageStats = null;
+    collapsedEpisodeKeys.clear();
 
     buildShell();
     setExpanded(true);
@@ -692,6 +790,8 @@ export function createGlobalSearch({
     transcriptCursor = 0;
     transcriptStatus = "idle";
     coverageStats = null;
+    collapsedEpisodeKeys.clear();
+    document.body.classList.remove("search-results-open");
     dom.globalSearchResults.replaceChildren();
     panelEl = null;
     footerEl = null;

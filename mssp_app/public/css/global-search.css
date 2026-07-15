@@ -1,12 +1,23 @@
 .launch-search {
   position: relative;
   z-index: 30;
-  width: min(560px, 100%);
+  display: block;
+  width: 100%;
+  max-width: 100%;
   margin: 18px auto clamp(20px, 3vw, 32px);
+  box-sizing: border-box;
 }
 
-.launch-search__box {
+/* Beat library.css `.search { width: min(340px, 42vw) }` so input matches results / launch column. */
+#globalSearch.launch-search > .search.launch-search__box {
+  display: flex;
   width: 100%;
+  min-width: 0;
+  max-width: none;
+  margin-left: 0;
+  margin-right: 0;
+  flex: none;
+  box-sizing: border-box;
 }
 
 .launch-search__results {
@@ -14,10 +25,13 @@
   top: calc(100% + 8px);
   left: 0;
   right: 0;
+  width: 100%;
+  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   max-height: min(52vh, 400px);
   overflow: hidden;
+  font-family: "Spectral", Georgia, "Times New Roman", serif;
   background: var(--panel-strong);
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 12px;
@@ -97,6 +111,9 @@
   overflow-x: hidden;
   overflow-y: auto;
   overscroll-behavior: contain;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
   scrollbar-gutter: stable;
 }
 
@@ -109,6 +126,14 @@
 .launch-search__group:last-child {
   border-bottom: 0;
   padding-bottom: 0;
+}
+
+.launch-search__group.is-collapsed .launch-search__hit {
+  display: none;
+}
+
+.launch-search__group.is-collapsed .launch-search__collapse {
+  transform: rotate(-90deg);
 }
 
 .launch-search__result {
@@ -131,19 +156,86 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  padding: 10px 14px 8px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 34px;
+  gap: 2px;
+  align-items: center;
+  padding: 6px 8px 6px 6px;
   background: rgba(31, 29, 28, 0.97);
   border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   backdrop-filter: blur(12px);
 }
 
-.launch-search__group-head:hover,
-.launch-search__group-head.is-active {
-  background: rgba(42, 39, 37, 0.98);
+.launch-search__collapse,
+.launch-search__play {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  color: var(--muted);
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.launch-search__play {
+  width: 34px;
+  height: 34px;
+  color: var(--text);
+}
+
+.launch-search__collapse svg,
+.launch-search__play svg {
+  width: 16px;
+  height: 16px;
+}
+
+.launch-search__play svg {
+  fill: currentColor;
+}
+
+.launch-search__collapse {
+  transition: transform 140ms ease;
+}
+
+.launch-search__collapse:hover,
+.launch-search__play:hover,
+.launch-search__collapse:focus-visible,
+.launch-search__play:focus-visible {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.launch-search__group-main {
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+}
+
+.launch-search__group-main:hover,
+.launch-search__group-main.is-active {
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .launch-search__hit {
-  padding: 6px 14px 6px 62px;
+  padding: 6px 14px;
+}
+
+.launch-search__episode-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 34px;
+  gap: 2px;
+  align-items: center;
+  padding: 2px 8px 2px 6px;
+}
+
+.launch-search__episode-select {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 8px;
 }
 
 .launch-search__episode {
@@ -198,25 +290,24 @@
 }
 
 .launch-search__kind--old {
-  background: #d7c4a8;
+  background: #8da1b8;
 }
 
 .launch-search__kind--new {
-  background: #c9d4e0;
+  background: #c79457;
 }
 
 .launch-search__kind--paytch {
-  background: var(--accent);
+  background: #db855f;
 }
 
 .launch-search__kind--anthology {
-  background: #e2d8cc;
+  background: #7fc1ad;
 }
 
 .launch-search__episode-title {
   overflow: hidden;
   color: var(--text);
-  font-family: "Spectral", Georgia, "Times New Roman", serif;
   font-size: 0.98rem;
   font-weight: 500;
   letter-spacing: 0.01em;
@@ -264,9 +355,25 @@
 }
 
 .launch-search__snippet mark {
-  color: var(--accent);
+  color: var(--kind-accent, #7fc1ad);
   background: transparent;
   font-weight: 700;
+}
+
+.launch-search__group--old {
+  --kind-accent: #8da1b8;
+}
+
+.launch-search__group--new {
+  --kind-accent: #c79457;
+}
+
+.launch-search__group--paytch {
+  --kind-accent: #db855f;
+}
+
+.launch-search__group--anthology {
+  --kind-accent: #7fc1ad;
 }
 
 .launch-search__timestamp {

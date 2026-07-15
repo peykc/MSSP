@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-06T22:29:33.988Z",
+  "generatedAt": "2026-07-15T02:57:01.876Z",
   "schemaVersion": 1,
   "sourceBaseUrl": "https://mssp.pkcollection.net",
   "sources": {
@@ -1165,25 +1165,25 @@
     },
     "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.": {
       "sourceType": "r2_audio",
-      "objectKey": "mssp/2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z..mp3",
-      "url": "https://mssp.pkcollection.net/mssp/2020-04-22%20MSSP%20Ep.%20179%20-%20Roll%20Call%20Ft%E2%A7%B8%20The%20D.A.W.G.Z..mp3",
-      "mimeType": "audio/mpeg",
+      "objectKey": "mssp/2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z..m4a",
+      "url": "https://mssp.pkcollection.net/mssp/2020-04-22%20MSSP%20Ep.%20179%20-%20Roll%20Call%20Ft%E2%A7%B8%20The%20D.A.W.G.Z..m4a",
+      "mimeType": "audio/mp4",
       "isOfficial": false,
       "credit": "New Testament archival mirror"
     },
     "2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL": {
       "sourceType": "r2_audio",
-      "objectKey": "mssp/2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL.mp3",
-      "url": "https://mssp.pkcollection.net/mssp/2020-05-17%20MSSP%20Ep.%20182%20-%20D.A.W.G.%20ROLL%20CALL.mp3",
-      "mimeType": "audio/mpeg",
+      "objectKey": "mssp/2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL.m4a",
+      "url": "https://mssp.pkcollection.net/mssp/2020-05-17%20MSSP%20Ep.%20182%20-%20D.A.W.G.%20ROLL%20CALL.m4a",
+      "mimeType": "audio/mp4",
       "isOfficial": false,
       "credit": "New Testament archival mirror"
     },
     "2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream": {
       "sourceType": "r2_audio",
-      "objectKey": "mssp/2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream.mp3",
-      "url": "https://mssp.pkcollection.net/mssp/2020-11-04%20MSSP%20Ep.%20322%20-%202020%20Presidential%20Livestream.mp3",
-      "mimeType": "audio/mpeg",
+      "objectKey": "mssp/2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream.m4a",
+      "url": "https://mssp.pkcollection.net/mssp/2020-11-04%20MSSP%20Ep.%20322%20-%202020%20Presidential%20Livestream.m4a",
+      "mimeType": "audio/mp4",
       "isOfficial": false,
       "credit": "New Testament archival mirror"
     },

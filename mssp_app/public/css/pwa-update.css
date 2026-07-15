@@ -90,7 +90,7 @@
 }
 
 @media (pointer: coarse) {
-  body.pwa-pull-enabled:not(.library-open, .stats-open, .calendar-open, .patreon-rss-open, .player-expanded) #app {
+  body.pwa-pull-enabled:not(.library-open, .stats-open, .calendar-open, .patreon-rss-open, .player-expanded, .search-results-open) #app {
     overscroll-behavior-y: none;
   }
 }

@@ -18,13 +18,19 @@
   },
   "r2Matches": {
     "2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z.": {
-      "reason": "Visual episode mirrored to R2; YouTube embed planned."
+      "extension": "m4a",
+      "mimeType": "audio/mp4",
+      "reason": "Visual episode mirrored to R2 as AAC/M4A; YouTube embed planned. Replaced broken VBR MP3 seek index."
     },
     "2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL": {
-      "reason": "Visual episode mirrored to R2; YouTube embed planned."
+      "extension": "m4a",
+      "mimeType": "audio/mp4",
+      "reason": "Visual episode mirrored to R2 as AAC/M4A; YouTube embed planned. Replaced broken VBR MP3 seek index."
     },
     "2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream": {
-      "reason": "Visual episode mirrored to R2; YouTube embed planned."
+      "extension": "m4a",
+      "mimeType": "audio/mp4",
+      "reason": "Visual episode mirrored to R2 as AAC/M4A; YouTube embed planned. Replaced broken VBR MP3 seek index."
     }
   },
   "youtubeEmbeds": {

@@ -1,9 +1,20 @@
 const { SOURCE_BASE_URL, buildUrl } = require("./buildR2Sources");
 
 const NT_SOURCE_PREFIX = "mssp";
+const DEFAULT_AUDIO_EXTENSION = "mp3";
+const DEFAULT_AUDIO_MIME_TYPE = "audio/mpeg";
 
-function buildObjectKey(episode) {
-  return `${NT_SOURCE_PREFIX}/${episode.date} ${episode.type} Ep. ${episode.episode} - ${episode.title}.mp3`;
+function normalizeAudioExtension(extension) {
+  const value = String(extension || DEFAULT_AUDIO_EXTENSION).trim().replace(/^\./, "").toLowerCase();
+  if (!/^[a-z0-9]+$/.test(value)) {
+    throw new Error(`Invalid R2 override audio extension: ${extension}`);
+  }
+  return value;
+}
+
+function buildObjectKey(episode, extension = DEFAULT_AUDIO_EXTENSION) {
+  const ext = normalizeAudioExtension(extension);
+  return `${NT_SOURCE_PREFIX}/${episode.date} ${episode.type} Ep. ${episode.episode} - ${episode.title}.${ext}`;
 }
 
 function buildR2OverrideSources(episodes, overrides = {}) {
@@ -22,12 +33,14 @@ function buildR2OverrideSources(episodes, overrides = {}) {
       throw new Error(`R2 override is only supported for New Testament episodes: ${episodeKey}`);
     }
 
-    const objectKey = buildObjectKey(episode);
+    const extension = override?.extension || DEFAULT_AUDIO_EXTENSION;
+    const mimeType = override?.mimeType || DEFAULT_AUDIO_MIME_TYPE;
+    const objectKey = buildObjectKey(episode, extension);
     sources[episodeKey] = {
       sourceType: "r2_audio",
       objectKey,
       url: buildUrl(objectKey),
-      mimeType: "audio/mpeg",
+      mimeType,
       isOfficial: false,
       credit: "New Testament archival mirror",
     };

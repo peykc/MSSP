@@ -1,4 +1,4 @@
-const RELEASE_ID = "v291";
+const RELEASE_ID = "v297";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -13,9 +13,8 @@ const SHELL_PATHS = [
   "./index.html",
   "./site.webmanifest",
   "./css/base.css",
-  "./css/layout.css",
+  "./css/layout.css?v=search-scroll-lock-a",
   "./css/launch.css",
-  "./css/global-search.css?v=search-switcher-d",
   "./css/archive.css",
   "./css/sealed-stone.css",
   "./css/library.css",
@@ -29,8 +28,9 @@ const SHELL_PATHS = [
   "./css/pwa-update.css",
   "./css/patreon-rss.css",
   "./css/transcript.css?v=scroll-hydrate-d",
+  "./css/global-search.css?v=search-footer-font",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=search-switcher-c",
+  "./js/main.js?v=search-footer-font",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
@@ -46,10 +46,10 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js",
-  "./js/globalSearch.js?v=search-switcher-c",
+  "./js/globalSearch.js?v=search-footer-font",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
-  "./js/libraryView.js",
+  "./js/libraryView.js?v=search-switcher-g",
   "./js/launchSplash.js",
   "./js/player/audioController.js",
   "./js/player/mediaSessionController.js",
@@ -58,7 +58,7 @@ const SHELL_PATHS = [
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-l",
   "./js/player/transcriptSearch.js?v=scroll-hydrate-g",
-  "./js/pwa.js?v=automatic-refresh-v1",
+  "./js/pwa.js?v=search-scroll-lock-a",
   "./js/search.js",
   "./js/sources/publicSources.js",
   "./js/sources/patreonRssMatcher.js",

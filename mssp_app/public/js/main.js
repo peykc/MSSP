@@ -1,7 +1,7 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
-import { createGlobalSearch } from "./globalSearch.js?v=search-switcher-c";
+import { createGlobalSearch } from "./globalSearch.js?v=search-footer-font";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { getCommunityClientId } from "./community/communityIdentity.js";
@@ -12,7 +12,7 @@ import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
-import { createLibraryView } from "./libraryView.js";
+import { createLibraryView } from "./libraryView.js?v=search-switcher-g";
 import { createStatsPageView } from "./statsPageView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
@@ -21,7 +21,7 @@ import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
-import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js";
+import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=search-scroll-lock-a";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createPatreonRssSources } from "./sources/patreonRssSources.js";
@@ -362,6 +362,9 @@ async function init() {
       return episodesByKey.get(episodeKey);
     },
     getSourceStatusForEpisode,
+    onSelectEpisode: (episode) => {
+      void libraryView.openEpisode(episode);
+    },
     onPlayEpisode: requestPlay,
     onPlayEpisodeAtTime: playEpisodeAtTime,
   });

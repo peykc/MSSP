@@ -1,10 +1,10 @@
 {
-  "generatedAt": "2026-07-06T22:29:33.992Z",
+  "generatedAt": "2026-07-15T02:57:01.881Z",
   "feeds": [
     {
       "id": "mssp-public-current",
       "url": "https://feeds.megaphone.fm/GLT1158789509",
-      "itemCount": 371
+      "itemCount": 372
     }
   ],
   "summary": {
@@ -12,7 +12,7 @@
     "autoMatched": 354,
     "manualMatched": 3,
     "unmatchedEpisodes": 0,
-    "unmatchedRssItems": 14,
+    "unmatchedRssItems": 15,
     "lowConfidence": 0,
     "rssMatched": 357,
     "r2OverrideMatched": 3,
@@ -27,10 +27,10 @@
       "date": "2020-04-22",
       "episode": "179",
       "title": "Roll Call Ft⧸ The D.A.W.G.Z.",
-      "reason": "Visual episode mirrored to R2; YouTube embed planned.",
+      "reason": "Visual episode mirrored to R2 as AAC/M4A; YouTube embed planned. Replaced broken VBR MP3 seek index.",
       "sourceType": "r2_audio",
-      "objectKey": "mssp/2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z..mp3",
-      "url": "https://mssp.pkcollection.net/mssp/2020-04-22%20MSSP%20Ep.%20179%20-%20Roll%20Call%20Ft%E2%A7%B8%20The%20D.A.W.G.Z..mp3",
+      "objectKey": "mssp/2020-04-22 MSSP Ep. 179 - Roll Call Ft⧸ The D.A.W.G.Z..m4a",
+      "url": "https://mssp.pkcollection.net/mssp/2020-04-22%20MSSP%20Ep.%20179%20-%20Roll%20Call%20Ft%E2%A7%B8%20The%20D.A.W.G.Z..m4a",
       "credit": "New Testament archival mirror"
     },
     {
@@ -38,10 +38,10 @@
       "date": "2020-05-17",
       "episode": "182",
       "title": "D.A.W.G. ROLL CALL",
-      "reason": "Visual episode mirrored to R2; YouTube embed planned.",
+      "reason": "Visual episode mirrored to R2 as AAC/M4A; YouTube embed planned. Replaced broken VBR MP3 seek index.",
       "sourceType": "r2_audio",
-      "objectKey": "mssp/2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL.mp3",
-      "url": "https://mssp.pkcollection.net/mssp/2020-05-17%20MSSP%20Ep.%20182%20-%20D.A.W.G.%20ROLL%20CALL.mp3",
+      "objectKey": "mssp/2020-05-17 MSSP Ep. 182 - D.A.W.G. ROLL CALL.m4a",
+      "url": "https://mssp.pkcollection.net/mssp/2020-05-17%20MSSP%20Ep.%20182%20-%20D.A.W.G.%20ROLL%20CALL.m4a",
       "credit": "New Testament archival mirror"
     },
     {
@@ -49,15 +49,23 @@
       "date": "2020-11-04",
       "episode": "322",
       "title": "2020 Presidential Livestream",
-      "reason": "Visual episode mirrored to R2; YouTube embed planned.",
+      "reason": "Visual episode mirrored to R2 as AAC/M4A; YouTube embed planned. Replaced broken VBR MP3 seek index.",
       "sourceType": "r2_audio",
-      "objectKey": "mssp/2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream.mp3",
-      "url": "https://mssp.pkcollection.net/mssp/2020-11-04%20MSSP%20Ep.%20322%20-%202020%20Presidential%20Livestream.mp3",
+      "objectKey": "mssp/2020-11-04 MSSP Ep. 322 - 2020 Presidential Livestream.m4a",
+      "url": "https://mssp.pkcollection.net/mssp/2020-11-04%20MSSP%20Ep.%20322%20-%202020%20Presidential%20Livestream.m4a",
       "credit": "New Testament archival mirror"
     }
   ],
   "unmatchedEpisodes": [],
   "unmatchedRssItems": [
+    {
+      "feedId": "mssp-public-current",
+      "guid": "59121974-7bcf-11f1-9bdf-bffa68d3cb81",
+      "rssTitle": "Ep 624 - Big Boy (feat. Nate Marshall)",
+      "pubDate": "2026-07-14",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT9719222132.mp3",
+      "reason": "No eligible anthology episode matched this RSS item"
+    },
     {
       "feedId": "mssp-public-current",
       "guid": "f9ceddce-75cc-11f1-8579-c316335202a9",

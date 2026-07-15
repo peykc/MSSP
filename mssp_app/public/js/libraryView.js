@@ -44,6 +44,28 @@ export function createLibraryView({
     return openLibrary("anthology");
   }
 
+  async function openEpisode(episode) {
+    if (!episode) return;
+    state.favoritesOnly = false;
+    await openLibrary("anthology");
+
+    const matched = state.episodes.find((item) => item.episodeKey === episode.episodeKey)
+      || state.episodes.find((item) => item.id === episode.id);
+    if (!matched) return;
+
+    state.selectedEpisodeId = matched.id;
+    applyEpisodeFilters({ resetSelection: false });
+    const index = state.visibleEpisodes.findIndex((item) => item.id === matched.id);
+    if (index >= 0) {
+      const rowHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--row")) || 64;
+      const targetTop = index * rowHeight;
+      const maxScroll = Math.max(0, state.visibleEpisodes.length * rowHeight - dom.episodeList.clientHeight);
+      dom.episodeList.scrollTop = Math.max(0, Math.min(targetTop - dom.episodeList.clientHeight * 0.28, maxScroll));
+    }
+    renderDetails();
+    renderVisibleRows();
+  }
+
   async function openLibrary(id) {
     state.activeCollection = state.collections.find((item) => item.id === id);
     if (!state.activeCollection) return;
@@ -113,5 +135,6 @@ export function createLibraryView({
     loadEpisodes,
     openCollection,
     openFavorites,
+    openEpisode,
   };
 }
