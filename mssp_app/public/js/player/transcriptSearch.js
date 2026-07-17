@@ -50,6 +50,8 @@ function findWordSubstringRanges(wordBody, normalizedToken) {
   return ranges;
 }
 
+export { findWordSubstringRanges };
+
 export function buildSearchIndex(timeline, query) {
   const normalizedQuery = normalizeSearchText(query);
   if (!normalizedQuery) return [];
@@ -75,16 +77,33 @@ export function buildSearchIndex(timeline, query) {
       continue;
     }
 
-    const maxWindow = queryTokens.length + 1;
     const joinedQuery = queryTokens.join(" ");
-    for (let start = 0; start < normalizedWords.length; start += 1) {
-      for (let size = 1; size <= maxWindow && start + size <= normalizedWords.length; size += 1) {
-        const windowText = normalizedWords.slice(start, start + size).join(" ");
-        if (windowText.includes(joinedQuery)) {
-          matches.push({ entryIndex, wordIndex: start, wordCount: size });
+    for (let wordIndex = 0; wordIndex < normalizedWords.length; wordIndex += 1) {
+      if (!normalizedWords[wordIndex].includes(joinedQuery)) continue;
+      const ranges = findWordSubstringRanges(entry.words[wordIndex].body, joinedQuery);
+      for (const range of ranges) {
+        matches.push({ entryIndex, wordIndex, wordCount: 1, ...range });
+      }
+    }
+
+    for (let start = 0; start <= normalizedWords.length - queryTokens.length; start += 1) {
+      let matched = true;
+      for (let tokenIndex = 0; tokenIndex < queryTokens.length; tokenIndex += 1) {
+        if (!normalizedWords[start + tokenIndex].includes(queryTokens[tokenIndex])) {
+          matched = false;
           break;
         }
       }
+      if (!matched) continue;
+      matches.push({
+        entryIndex,
+        wordIndex: start,
+        wordCount: queryTokens.length,
+        tokenHighlights: queryTokens.map((token, tokenIndex) => {
+          const ranges = findWordSubstringRanges(entry.words[start + tokenIndex].body, token);
+          return ranges[0] || null;
+        }),
+      });
     }
   }
 

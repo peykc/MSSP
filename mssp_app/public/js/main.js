@@ -1,13 +1,13 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
-import { createGlobalSearch } from "./globalSearch.js?v=search-footer-font";
+import { createGlobalSearch } from "./globalSearch.js?v=search-virtual-b";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
 import { createCommunitySignals } from "./community/communitySignals.js";
-import { dom } from "./dom.js";
+import { dom } from "./dom.js?v=search-sort-controls-a";
 import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { createCoverFilters } from "./filters.js";
@@ -19,7 +19,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js";
+import { createPlayerView } from "./player/playerView.js?v=search-multi-mark";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=search-scroll-lock-a";
 import { initSearch } from "./search.js";

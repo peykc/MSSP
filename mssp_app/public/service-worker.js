@@ -1,4 +1,4 @@
-const RELEASE_ID = "v297";
+const RELEASE_ID = "v311";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -28,9 +28,9 @@ const SHELL_PATHS = [
   "./css/pwa-update.css",
   "./css/patreon-rss.css",
   "./css/transcript.css?v=scroll-hydrate-d",
-  "./css/global-search.css?v=search-footer-font",
+  "./css/global-search.css?v=search-virtual-b",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=search-footer-font",
+  "./js/main.js?v=search-virtual-b",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
@@ -39,14 +39,14 @@ const SHELL_PATHS = [
   "./js/calendarModal.js",
   "./js/collectionGlyphs.js",
   "./js/collectionsView.js",
-  "./js/dom.js",
+  "./js/dom.js?v=search-sort-controls-a",
   "./js/episodeDetails.js",
   "./js/episodeRow.js",
   "./js/episodeList.js",
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js",
-  "./js/globalSearch.js?v=search-footer-font",
+  "./js/globalSearch.js?v=search-virtual-b",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js?v=search-switcher-g",
@@ -54,10 +54,10 @@ const SHELL_PATHS = [
   "./js/player/audioController.js",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js",
+  "./js/player/playerView.js?v=search-multi-mark",
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-l",
-  "./js/player/transcriptSearch.js?v=scroll-hydrate-g",
+  "./js/player/transcriptSearch.js?v=search-multi-mark",
   "./js/pwa.js?v=search-scroll-lock-a",
   "./js/search.js",
   "./js/sources/publicSources.js",

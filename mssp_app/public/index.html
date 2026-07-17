@@ -41,7 +41,7 @@
     <link rel="stylesheet" href="./css/pwa-update.css">
     <link rel="stylesheet" href="./css/patreon-rss.css">
     <link rel="stylesheet" href="./css/transcript.css?v=scroll-hydrate-d">
-    <link rel="stylesheet" href="./css/global-search.css?v=search-footer-font">
+    <link rel="stylesheet" href="./css/global-search.css?v=search-virtual-b">
     <style>
       body.launch-loading .launch {
         visibility: hidden;
@@ -110,10 +110,23 @@
           </button>
         </div>
         <div class="launch-search" id="globalSearch">
-          <label class="search launch-search__box">
-            <span class="search__icon">⌕</span>
-            <input id="globalSearchInput" type="search" autocomplete="off" placeholder="Search episodes &amp; transcripts" aria-label="Search episodes and transcripts" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="globalSearchResults">
-          </label>
+          <div class="launch-search__bar">
+            <label class="search launch-search__box">
+              <span class="search__icon">⌕</span>
+              <input id="globalSearchInput" type="search" autocomplete="off" placeholder="Search episodes &amp; transcripts" aria-label="Search episodes and transcripts" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="globalSearchResults">
+            </label>
+            <div class="launch-search__sort-controls" aria-label="Sort results">
+              <button class="launch-search__sort-direction" id="globalSearchSortDirection" type="button" aria-label="Reverse result order" data-direction="forward">
+                <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M4 7h9M4 12h6M4 17h3"></path>
+                  <path d="M18 5v14m0 0-4-4m4 4 4-4"></path>
+                </svg>
+              </button>
+              <button class="launch-search__sort-mode" id="globalSearchSort" type="button" aria-label="Sort results by relevance" data-sort="relevance">
+                <span class="launch-search__sort-label" id="globalSearchSortLabel">Relevance</span>
+              </button>
+            </div>
+          </div>
           <div class="launch-search__results is-hidden" id="globalSearchResults" role="listbox" aria-label="Search results"></div>
         </div>
         <div class="launch__heading">
@@ -587,6 +600,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=search-footer-font"></script>
+    <script type="module" src="./js/main.js?v=search-virtual-b"></script>
   </body>
 </html>
