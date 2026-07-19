@@ -127,7 +127,7 @@ body.launch-loading .launch {
   letter-spacing: 0.06em;
   cursor: pointer;
   background: linear-gradient(180deg, #e3dac9, #e3d3bb);
-  transition: filter 160ms ease, transform 160ms ease;
+  transition: filter 160ms ease, transform 160ms ease, color 160ms ease, background 160ms ease;
 }
 
 .launch__paytch-link:hover,
@@ -142,12 +142,29 @@ body.launch-loading .launch {
   outline-offset: 3px;
 }
 
+.launch__paytch-link.is-linked {
+  color: #e3dac9;
+  gap: 0;
+  padding: 9px 11px;
+  background: linear-gradient(180deg, #ff7a67, #f96854);
+}
+
+.launch__paytch-link.is-linked:hover,
+.launch__paytch-link.is-linked:focus-visible {
+  filter: brightness(1.06);
+}
+
 .launch__paytch-link__icon {
   display: block;
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
   color: #f96854;
+  transition: color 160ms ease;
+}
+
+.launch__paytch-link.is-linked .launch__paytch-link__icon {
+  color: #e3dac9;
 }
 
 .launch__paytch-link__label {

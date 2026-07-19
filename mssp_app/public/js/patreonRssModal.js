@@ -21,8 +21,9 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
   let suppressClickUntil = 0;
 
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const prefersSlideAnimation = () =>
-    !prefersReducedMotion() && window.matchMedia("(max-width: 520px)").matches;
+  const prefersSlideAnimation = () => !prefersReducedMotion();
+  const preferredGuideMode = () =>
+    window.matchMedia("(pointer: coarse)").matches ? "app" : "web";
 
   function clearPendingClose() {
     if (closeTransitionEnd) {
@@ -111,7 +112,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     );
     if (guideOpen) {
       if (!guideMode) {
-        setGuideMode(window.matchMedia("(max-width: 520px)").matches ? "app" : "web");
+        setGuideMode(preferredGuideMode());
       }
       requestAnimationFrame(() => {
         (guideMode === "app" ? dom.patreonRssAppGuideTab : dom.patreonRssWebGuideTab).focus();
@@ -183,7 +184,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     setStatus("");
     setGuideOpen(false);
     if (!guideMode) {
-      setGuideMode(window.matchMedia("(max-width: 520px)").matches ? "app" : "web");
+      setGuideMode(preferredGuideMode());
     }
     dom.patreonRssTitle.textContent = hasConnection ? "Manage Patreon RSS" : "Connect Patreon RSS";
     dom.patreonRssSubmit.textContent = hasConnection ? "Replace" : "Connect";
@@ -382,6 +383,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
           : `${result.matched} PAYTCH episodes unlocked. ${result.unmatchedEpisodes} still need a match.`,
         "success",
       );
+      syncLaunchButton();
     } catch (error) {
       setStatus(error?.name === "PatreonRssConnectionError" ? error.message : "That link could not be connected. Double-check it and try again.", "error");
     } finally {
@@ -400,6 +402,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
       dom.patreonRssSubmit.textContent = "Connect";
       dom.patreonRssRemove.hidden = true;
       setStatus("Your link was removed from this device.", "success");
+      syncLaunchButton();
     } catch (error) {
       setStatus(error?.message || "The private RSS connection could not be removed.", "error");
     } finally {
@@ -420,6 +423,17 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
     dom.patreonRssStatus.textContent = message;
     dom.patreonRssStatus.classList.toggle("is-error", kind === "error");
     dom.patreonRssStatus.classList.toggle("is-success", kind === "success");
+  }
+
+  function syncLaunchButton() {
+    const linked = patreonSources.isConnected() || Boolean(patreonSources.getStoredUrl());
+    const label = dom.patreonRssLogoButton.querySelector(".launch__paytch-link__label");
+    dom.patreonRssLogoButton.classList.toggle("is-linked", linked);
+    dom.patreonRssLogoButton.setAttribute("aria-label", linked ? "Manage PAYTCH" : "Link PAYTCH");
+    if (label) {
+      label.textContent = linked ? "" : "Link PAYTCH";
+      label.hidden = linked;
+    }
   }
 
   function toggleGuide() {
@@ -486,5 +500,7 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
   window.addEventListener("pointercancel", onDragPointerUp);
   document.addEventListener("keydown", onKeydown);
 
-  return { close, open };
+  syncLaunchButton();
+
+  return { close, open, syncLaunchButton };
 }
