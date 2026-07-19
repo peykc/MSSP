@@ -182,6 +182,9 @@
 }
 
 .episode-row__menu-item {
+  display: flex;
+  gap: 10px;
+  align-items: center;
   width: 100%;
   padding: 10px 12px;
   color: var(--text);
@@ -196,10 +199,33 @@
   transition: background 150ms ease;
 }
 
+.episode-row__menu-icon {
+  display: grid;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  color: var(--muted);
+}
+
+.episode-row__menu-icon svg {
+  width: 16px;
+  height: 16px;
+}
+
+.episode-row__menu-label {
+  min-width: 0;
+}
+
 .episode-row__menu-item:hover,
 .episode-row__menu-item:focus-visible {
   background: rgba(255, 255, 255, 0.08);
   outline: none;
+}
+
+.episode-row__menu-item:hover .episode-row__menu-icon,
+.episode-row__menu-item:focus-visible .episode-row__menu-icon {
+  color: var(--text);
 }
 
 .episode-row__menu-item[hidden] {

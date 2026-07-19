@@ -34,10 +34,43 @@ const PLAY_ICON = `
   </svg>
 `;
 
+const MARK_LISTENED_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 19.5C16.1421 19.5 19.5 16.1421 19.5 12C19.5 7.85786 16.1421 4.5 12 4.5C7.85786 4.5 4.5 7.85786 4.5 12C4.5 16.1421 7.85786 19.5 12 19.5ZM12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="currentColor"/>
+  </svg>
+`;
+
+const UNMARK_LISTENED_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none">
+    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 19.5C16.1421 19.5 19.5 16.1421 19.5 12C19.5 7.85786 16.1421 4.5 12 4.5C7.85786 4.5 4.5 7.85786 4.5 12C4.5 16.1421 7.85786 19.5 12 19.5ZM12 21C16.9706 21 21 16.9706 21 12C21 7.02944 16.9706 3 12 3C7.02944 3 3 7.02944 3 12C3 16.9706 7.02944 21 12 21Z" fill="currentColor"/>
+    <circle cx="12" cy="12" r="5.25" fill="currentColor"/>
+  </svg>
+`;
+
+const SHARE_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="8 6 12 2 16 6"></polyline>
+    <line x1="12" y1="2" x2="12" y2="15"></line>
+    <path d="M16 10h2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h2"></path>
+  </svg>
+`;
+
+export const EPISODE_SHARE_PARAM = "episode";
+
 function buildShareText(episode) {
   const label = formatEpisodeLabel(episode);
   const title = episode.title || "Untitled episode";
   return `${label} — ${title}`;
+}
+
+export function buildEpisodeShareUrl(episode) {
+  const url = new URL(window.location.href);
+  url.search = "";
+  url.hash = "";
+  if (episode?.episodeKey) {
+    url.searchParams.set(EPISODE_SHARE_PARAM, episode.episodeKey);
+  }
+  return url.toString();
 }
 
 export function getEpisodeRowHTML({ includePlay = true, includeSignals = false } = {}) {
@@ -95,13 +128,16 @@ export function getEpisodeRowHTML({ includePlay = true, includeSignals = false }
           >${MENU_ICON}</button>
           <div class="episode-row__menu-panel" role="menu" hidden>
             <button class="episode-row__menu-item" type="button" role="menuitem" data-action="mark-listened" hidden>
-              Mark as listened
+              <span class="episode-row__menu-icon" aria-hidden="true">${MARK_LISTENED_ICON}</span>
+              <span class="episode-row__menu-label">Mark as listened</span>
             </button>
             <button class="episode-row__menu-item" type="button" role="menuitem" data-action="unmark-listened" hidden>
-              Unmark as listened
+              <span class="episode-row__menu-icon" aria-hidden="true">${UNMARK_LISTENED_ICON}</span>
+              <span class="episode-row__menu-label">Unmark as listened</span>
             </button>
             <button class="episode-row__menu-item" type="button" role="menuitem" data-action="share">
-              Share episode
+              <span class="episode-row__menu-icon" aria-hidden="true">${SHARE_ICON}</span>
+              <span class="episode-row__menu-label">Share episode</span>
             </button>
           </div>
         </div>
@@ -220,8 +256,15 @@ export function updateEpisodeRowMenuItems(row, episode, playbackProgressStore) {
   if (!menuRoot) return;
   const progress = playbackProgressStore?.getEpisodeProgress(episode.episodeKey) || { status: "none" };
   const isCompleted = progress.status === "completed";
-  menuRoot.querySelector('[data-action="mark-listened"]').hidden = isCompleted;
-  menuRoot.querySelector('[data-action="unmark-listened"]').hidden = !isCompleted;
+  const panel = menuRoot.querySelector(".episode-row__menu-panel")
+    || (menuRoot.classList.contains("is-open")
+      ? document.body.querySelector(".episode-row__menu-panel:not([hidden])")
+      : null);
+  if (!panel) return;
+  const markButton = panel.querySelector('[data-action="mark-listened"]');
+  const unmarkButton = panel.querySelector('[data-action="unmark-listened"]');
+  if (markButton) markButton.hidden = isCompleted;
+  if (unmarkButton) unmarkButton.hidden = !isCompleted;
 }
 
 export function refreshEpisodeRow(row, episode, {
@@ -400,10 +443,11 @@ export function createEpisodeRowMenuManager({ scrollRoot } = {}) {
 
 export async function shareEpisode(episode) {
   const text = buildShareText(episode);
+  const url = buildEpisodeShareUrl(episode);
   const shareData = {
     title: text,
     text,
-    url: window.location.href,
+    url,
   };
 
   if (navigator.share) {
@@ -417,7 +461,7 @@ export async function shareEpisode(episode) {
 
   if (navigator.clipboard?.writeText) {
     try {
-      await navigator.clipboard.writeText(`${text}\n${window.location.href}`);
+      await navigator.clipboard.writeText(`${text}\n${url}`);
     } catch (error) {
       console.warn("[MSSP] Could not copy episode share text.", error);
     }
@@ -496,18 +540,18 @@ export function bindEpisodeRow(row, episode, {
       return;
     }
     playbackProgressStore?.markCompleted(episode.episodeKey);
-    menuManager?.closeEpisodeMenu();
     updateEpisodeRowProgress(row, episode, playbackProgressStore);
     updateEpisodeRowMenuItems(row, episode, playbackProgressStore);
+    menuManager?.closeEpisodeMenu();
     onProgressChange?.();
   });
 
   panel?.querySelector('[data-action="unmark-listened"]')?.addEventListener("click", (event) => {
     event.stopPropagation();
     playbackProgressStore?.removePosition(episode.episodeKey);
-    menuManager?.closeEpisodeMenu();
     updateEpisodeRowProgress(row, episode, playbackProgressStore);
     updateEpisodeRowMenuItems(row, episode, playbackProgressStore);
+    menuManager?.closeEpisodeMenu();
     onProgressChange?.();
   });
 

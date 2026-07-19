@@ -10,6 +10,7 @@ import { createCommunitySignals } from "./community/communitySignals.js";
 import { dom } from "./dom.js?v=search-sort-controls-a";
 import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
+import { EPISODE_SHARE_PARAM } from "./episodeRow.js";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js?v=search-switcher-g";
@@ -28,6 +29,18 @@ import { createPatreonRssSources } from "./sources/patreonRssSources.js";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js?v=search-no-tip-a";
 import { dismissLaunchSplash } from "./launchSplash.js";
+
+function readSharedEpisodeKey() {
+  return new URLSearchParams(window.location.search).get(EPISODE_SHARE_PARAM)?.trim() || "";
+}
+
+function clearSharedEpisodeParam() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(EPISODE_SHARE_PARAM)) return;
+  url.searchParams.delete(EPISODE_SHARE_PARAM);
+  const next = `${url.pathname}${url.search}${url.hash}`;
+  window.history.replaceState({}, "", next);
+}
 
 function getApiClient() {
   if (!window.MsspApiClient) {
@@ -424,6 +437,21 @@ async function init() {
     console.error("[MSSP] Failed to start frontend.", error);
   } finally {
     dismissLaunchSplash();
+  }
+
+  const sharedEpisodeKey = readSharedEpisodeKey();
+  if (sharedEpisodeKey) {
+    clearSharedEpisodeParam();
+    const sharedEpisode = archiveEpisodes.find((episode) => episode.episodeKey === sharedEpisodeKey);
+    if (sharedEpisode) {
+      try {
+        await libraryView.openEpisode(sharedEpisode);
+      } catch (error) {
+        console.warn("[MSSP] Could not open shared episode.", error);
+      }
+    } else {
+      console.warn("[MSSP] Shared episode not found.", sharedEpisodeKey);
+    }
   }
 }
 
