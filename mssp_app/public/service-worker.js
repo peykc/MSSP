@@ -1,4 +1,4 @@
-const RELEASE_ID = "v328";
+const RELEASE_ID = "v329";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -27,7 +27,7 @@ const SHELL_PATHS = [
   "./css/player.css",
   "./css/pwa-update.css",
   "./css/patreon-rss.css",
-  "./css/transcript.css?v=scroll-hydrate-d",
+  "./css/transcript.css?v=cover-ambient-e",
   "./css/global-search.css?v=search-virtual-f",
   "./js/apiClient.js?v=static-first-data",
   "./js/main.js?v=search-ops-f",

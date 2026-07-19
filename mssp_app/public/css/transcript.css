@@ -332,7 +332,7 @@
 }
 
 .transcript-search.is-open {
-  background-color: rgb(31, 29, 28);
+  background: transparent;
   padding-bottom: 12px;
 }
 
@@ -363,9 +363,10 @@
   align-items: center;
   gap: 8px;
   padding: 7px 10px;
-  background: rgb(52, 49, 48);
-  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 10px;
+  backdrop-filter: blur(18px);
 }
 
 .transcript-search__field .transcript-search__icon {
