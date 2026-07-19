@@ -311,6 +311,18 @@ body.player-dragging {
   animation-play-state: paused;
 }
 
+.full-player[data-mode="transcript"] .full-player__ambient-blob,
+.full-player[data-mode="queue"] .full-player__ambient-blob {
+  animation-play-state: paused;
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .full-player[data-mode="transcript"] .full-player__ambient-blob {
+    filter: blur(24px);
+    opacity: 0.48;
+  }
+}
+
 .full-player__collapse,
 .full-player__now-playing-area,
 .full-player__queue-panel,

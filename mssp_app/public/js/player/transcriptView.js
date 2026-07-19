@@ -6,6 +6,9 @@ const OVERSCAN_DETACHED_UP = 18;
 const FOLLOW_PIN_UP = 3;
 const FOLLOW_PIN_DOWN = 12;
 const FOLLOW_PREFETCH_AHEAD = 5;
+/** Cap live sync below display refresh (esp. ProMotion 120Hz) — word highlights don't need it. */
+const SYNC_MIN_INTERVAL_MS = 50;
+const SILENCE_DOT_EPSILON = 0.05;
 const HYDRATE_BATCH_SIZE = 24;
 const LOCAL_HYDRATE_RADIUS = 48;
 const SCROLL_AHEAD_HYDRATE = 24;
@@ -45,12 +48,15 @@ export function createTranscriptView({
   let entryResizeObservers = new Map();
   let activeEntryIndex = -1;
   let activeWordIndex = -1;
+  let preparedFollowIndex = -1;
   let modeActive = false;
   let playbackActive = false;
   let following = true;
   let pendingCenterRestore = false;
   let restoreAttemptId = 0;
   let frameId = null;
+  let syncTimer = null;
+  let lastSyncTimestamp = 0;
   let renderFrameId = null;
   let programmaticScrollTimer = null;
   let searchScrollTimer = null;
@@ -209,6 +215,7 @@ export function createTranscriptView({
     const activeIndex = Math.max(0, findEntryIndex(timeline, getPlaybackTime()));
     activeEntryIndex = activeIndex;
     activeWordIndex = -1;
+    preparedFollowIndex = -1;
     renderVisibleEntriesNow(activeIndex);
     refreshPlaybackPinRange(activeIndex);
     maintainFollowScroll({ instant: true });
@@ -448,6 +455,13 @@ export function createTranscriptView({
       restoreScrollAnchor(anchor);
       repositionMountedEntries();
     }
+  }
+
+  function ensureFollowEntryPrepared(nextIndex) {
+    if (nextIndex < 0 || nextIndex >= timeline.length) return;
+    if (preparedFollowIndex === nextIndex) return;
+    prepareFollowEntryTransition(nextIndex);
+    preparedFollowIndex = nextIndex;
   }
 
   function commitMeasuredEntryHeight(index, measured) {
@@ -994,6 +1008,7 @@ export function createTranscriptView({
     disconnectEntryObservers();
     activeEntryIndex = -1;
     activeWordIndex = -1;
+    preparedFollowIndex = -1;
     following = true;
     pendingCenterRestore = false;
     forcedVisibleStart = -1;
@@ -1163,23 +1178,43 @@ export function createTranscriptView({
   }
 
   function syncAnimationLoop() {
-    if (modeActive && playbackActive && availability === AVAILABILITY.AVAILABLE) {
-      if (frameId === null) frameId = requestAnimationFrame(tick);
+    if (!(modeActive && playbackActive && availability === AVAILABILITY.AVAILABLE)) {
+      stopAnimationLoop();
       return;
     }
-    stopAnimationLoop();
+    if (frameId !== null || syncTimer !== null) return;
+
+    const elapsed = performance.now() - lastSyncTimestamp;
+    const delay = lastSyncTimestamp > 0 ? Math.max(0, SYNC_MIN_INTERVAL_MS - elapsed) : 0;
+    if (delay > 0) {
+      syncTimer = window.setTimeout(() => {
+        syncTimer = null;
+        if (modeActive && playbackActive && availability === AVAILABILITY.AVAILABLE) {
+          frameId = requestAnimationFrame(tick);
+        }
+      }, delay);
+      return;
+    }
+    frameId = requestAnimationFrame(tick);
   }
 
-  function tick() {
+  function tick(timestamp) {
     frameId = null;
+    lastSyncTimestamp = timestamp;
     update(audioController.getCurrentTime());
     syncAnimationLoop();
   }
 
   function stopAnimationLoop() {
-    if (frameId === null) return;
-    cancelAnimationFrame(frameId);
-    frameId = null;
+    if (syncTimer !== null) {
+      window.clearTimeout(syncTimer);
+      syncTimer = null;
+    }
+    if (frameId !== null) {
+      cancelAnimationFrame(frameId);
+      frameId = null;
+    }
+    lastSyncTimestamp = 0;
   }
 
   function update(currentTime, { forceCenter = false, scrubbing = false, instant = false } = {}) {
@@ -1199,12 +1234,9 @@ export function createTranscriptView({
     const intentionalJump = scrubbing || forceCenter;
     const shouldFollow = following && !scrubbing;
 
-    if (shouldFollow) {
+    if (shouldFollow && entryChanged) {
       refreshPlaybackPinRange(nextEntryIndex);
       ensureFollowRangeMeasured(nextEntryIndex);
-    }
-
-    if (entryChanged && shouldFollow) {
       armSmoothScrollProtection();
     }
 
@@ -1213,11 +1245,11 @@ export function createTranscriptView({
     }
 
     if (entryChanged && shouldFollow) {
-      prepareFollowEntryTransition(nextEntryIndex);
+      ensureFollowEntryPrepared(nextEntryIndex);
     } else if (shouldFollow && activeEntryIndex >= 0) {
       const activeEntry = timeline[activeEntryIndex];
       if (activeEntry && currentTime >= activeEntry.endTime - 5) {
-        prepareFollowEntryTransition(activeEntryIndex + 1);
+        ensureFollowEntryPrepared(activeEntryIndex + 1);
       }
     }
 
@@ -1270,6 +1302,7 @@ export function createTranscriptView({
     node.element.removeAttribute("aria-current");
     node.wordNodes.forEach((word) => word.classList.remove("is-spoken", "is-current-word"));
     node.dots.forEach((dot) => { dot.style.removeProperty("--dot-fill"); });
+    if (node.silenceFills) node.silenceFills = [-1, -1, -1];
   }
 
   function setActiveEntry(nextIndex, { mountForDom = true } = {}) {
@@ -1281,6 +1314,7 @@ export function createTranscriptView({
 
     activeEntryIndex = nextIndex;
     activeWordIndex = -1;
+    if (preparedFollowIndex !== nextIndex) preparedFollowIndex = -1;
     refreshPlaybackPinRange(nextIndex);
     if (!mountForDom) return;
 
@@ -1325,9 +1359,18 @@ export function createTranscriptView({
   function updateSilenceProgress(entry, node, currentTime) {
     const duration = entry.endTime - entry.startTime;
     const progress = duration > 0 ? clamp((currentTime - entry.startTime) / duration, 0, 1) : 1;
+    if (!node.silenceFills) node.silenceFills = [-1, -1, -1];
     node.dots.forEach((dot, index) => {
       const dotFill = clamp((progress * 3) - index, 0, 1);
-      dot.style.setProperty("--dot-fill", dotFill.toFixed(3));
+      if (
+        node.silenceFills[index] >= 0
+        && Math.abs(node.silenceFills[index] - dotFill) < SILENCE_DOT_EPSILON
+        && !(dotFill >= 1 && node.silenceFills[index] < 1)
+      ) {
+        return;
+      }
+      node.silenceFills[index] = dotFill;
+      dot.style.setProperty("--dot-fill", dotFill.toFixed(2));
     });
   }
 
@@ -1474,6 +1517,7 @@ export function createTranscriptView({
     following = true;
     notifyFollowingChange();
     refreshPlaybackPinRange(activeEntryIndex);
+    if (activeEntryIndex >= 0) ensureFollowRangeMeasured(activeEntryIndex);
     scheduleRenderVisibleEntries();
     if (scheduleScroll && modeActive && playbackActive && activeEntryIndex >= 0) {
       syncActiveEntryPlaybackDom(getPlaybackTime(), { forceWords: true });

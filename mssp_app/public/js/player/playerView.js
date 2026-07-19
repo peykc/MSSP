@@ -118,6 +118,9 @@ export function createPlayerView({
   let transcriptRestoreSynced = false;
   let transcriptRestoreEpisodeKey = "";
   let transcriptRestoreSeenTime = 0;
+  let lastFullRenderKey = "";
+  let lastMarqueeTitle = "";
+  let lastMarqueeWidth = 0;
   function isEpisodeCompleted(episode) {
     return playbackProgressStore?.getEpisodeProgress(episode.episodeKey)?.status === "completed";
   }
@@ -266,6 +269,35 @@ export function createPlayerView({
     }
   }
 
+  function getFullRenderKey(state) {
+    return [
+      state.selectedEpisode?.episodeKey || "",
+      state.collectionId || "",
+      state.queueVersion,
+      state.playbackStatus,
+      state.playbackRequested ? "1" : "0",
+      state.isExpanded ? "1" : "0",
+      state.fullPlayerMode || "",
+      state.playbackError || "",
+      state.sourceStatus?.id || "",
+      state.source?.url || "",
+      Number.isFinite(state.duration) ? Math.round(state.duration) : 0,
+    ].join("\0");
+  }
+
+  function renderTimelineOnly(state) {
+    renderTimeline(state);
+    dom.miniPlayer.style.setProperty("--mini-player-progress", `${getProgressPercent(state)}%`);
+    transcriptView.setPlaybackActive(state.playbackStatus === PLAYBACK_STATUSES.PLAYING);
+    if (
+      fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT
+      && state.isExpanded
+      && !transcriptRestoreSynced
+    ) {
+      renderTranscriptMode(state);
+    }
+  }
+
   function render(state) {
     syncFullPlayerModeFromState(state);
     const episode = state.selectedEpisode;
@@ -280,8 +312,17 @@ export function createPlayerView({
       void transcriptView.setSelectedEpisode(null);
       maybeResetBurstOnContextChange(state, null);
       setExpandedUi(false);
+      lastFullRenderKey = "";
+      lastMarqueeTitle = "";
       return;
     }
+
+    const renderKey = getFullRenderKey(state);
+    if (renderKey === lastFullRenderKey) {
+      renderTimelineOnly(state);
+      return;
+    }
+    lastFullRenderKey = renderKey;
 
     communitySignals?.setTrackedEpisodeKeys("player", [episode.episodeKey]);
 
@@ -343,6 +384,14 @@ export function createPlayerView({
   function updateFullPlayerTitleMarquee() {
     const viewport = dom.fullPlayerTitle.querySelector(".full-player__title-viewport");
     if (!viewport || !fullPlayerTitleText) return;
+
+    const title = fullPlayerTitleText.textContent || "";
+    const width = viewport.clientWidth;
+    if (title === lastMarqueeTitle && Math.abs(width - lastMarqueeWidth) <= 1) {
+      if (fullPlayerTitleText.getAnimations().length) return;
+    }
+    lastMarqueeTitle = title;
+    lastMarqueeWidth = width;
 
     fullPlayerTitleText.getAnimations().forEach((animation) => animation.cancel());
     fullPlayerTitleText.style.transform = "";
