@@ -7,9 +7,13 @@ const CURATED_PALETTES = Object.freeze({
 });
 
 export function createCoverAmbient({ root }) {
-  const layers = [...root.querySelectorAll(".full-player__ambient-layer")];
+  const layers = [
+    ...root.querySelectorAll(".full-player__ambient-layer, .transcript-search__ambient-layer"),
+  ];
+  const sheetLayers = layers.filter((layer) => layer.classList.contains("full-player__ambient-layer"));
+  const searchLayers = layers.filter((layer) => layer.classList.contains("transcript-search__ambient-layer"));
   const paletteCache = new Map();
-  let activeLayerIndex = Math.max(0, layers.findIndex((layer) => layer.classList.contains("is-active")));
+  let activeLayerIndex = Math.max(0, sheetLayers.findIndex((layer) => layer.classList.contains("is-active")));
   let activeCoverUrl = "";
   let requestVersion = 0;
 
@@ -37,22 +41,35 @@ export function createCoverAmbient({ root }) {
   }
 
   function applyPalette(palette) {
-    if (!layers.length) return;
+    if (!sheetLayers.length && !searchLayers.length) return;
 
-    const nextLayerIndex = layers.length > 1
-      ? (activeLayerIndex + 1) % layers.length
-      : activeLayerIndex;
-    const nextLayer = layers[nextLayerIndex];
+    const nextLayerIndex = sheetLayers.length > 1
+      ? (activeLayerIndex + 1) % sheetLayers.length
+      : Math.max(0, activeLayerIndex);
     const [first, second, third] = palette;
 
-    nextLayer.style.setProperty("--ambient-one", first);
-    nextLayer.style.setProperty("--ambient-two", second);
-    nextLayer.style.setProperty("--ambient-three", third);
+    paintLayer(sheetLayers[nextLayerIndex] || sheetLayers[activeLayerIndex], first, second, third);
+    paintLayer(searchLayers[nextLayerIndex] || searchLayers[0], first, second, third);
 
     if (nextLayerIndex === activeLayerIndex) return;
-    nextLayer.classList.add("is-active");
-    layers[activeLayerIndex].classList.remove("is-active");
+    activateLayer(sheetLayers, nextLayerIndex);
+    activateLayer(searchLayers, nextLayerIndex);
     activeLayerIndex = nextLayerIndex;
+  }
+
+  function paintLayer(layer, first, second, third) {
+    if (!layer) return;
+    layer.style.setProperty("--ambient-one", first);
+    layer.style.setProperty("--ambient-two", second);
+    layer.style.setProperty("--ambient-three", third);
+  }
+
+  function activateLayer(group, nextIndex) {
+    if (!group.length) return;
+    const nextLayer = group[nextIndex] || group[0];
+    const currentLayer = group[activeLayerIndex] || group.find((layer) => layer.classList.contains("is-active"));
+    nextLayer.classList.add("is-active");
+    if (currentLayer && currentLayer !== nextLayer) currentLayer.classList.remove("is-active");
   }
 
   return { setCover };

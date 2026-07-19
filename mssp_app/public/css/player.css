@@ -311,8 +311,7 @@ body.player-dragging {
   animation-play-state: paused;
 }
 
-.full-player[data-mode="transcript"] .full-player__ambient-blob,
-.full-player[data-mode="queue"] .full-player__ambient-blob {
+.full-player[data-mode="queue"] > .full-player__ambient .full-player__ambient-blob {
   animation-play-state: paused;
 }
 
@@ -1048,7 +1047,8 @@ body.player-expanded {
   .full-player__queue-panel,
   .full-player__transcript-panel,
   .full-player__transcript-list,
-  .full-player__ambient-layer {
+  .full-player__ambient-layer,
+  .transcript-search__ambient-layer {
     transition: none;
   }
 

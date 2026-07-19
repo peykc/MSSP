@@ -40,7 +40,7 @@
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/pwa-update.css">
     <link rel="stylesheet" href="./css/patreon-rss.css">
-    <link rel="stylesheet" href="./css/transcript.css?v=cover-ambient-e">
+    <link rel="stylesheet" href="./css/transcript.css?v=cover-ambient-f">
     <link rel="stylesheet" href="./css/global-search.css?v=search-virtual-f">
     <style>
       body.launch-loading .launch {
@@ -502,6 +502,18 @@
         <h3 class="full-player__transcript-title" id="fullPlayerTranscriptTitle">Transcript</h3>
         <div class="full-player__transcript-viewport-wrap">
           <div class="transcript-search" id="fullPlayerTranscriptSearch">
+            <div class="transcript-search__ambient" aria-hidden="true">
+              <div class="transcript-search__ambient-layer is-active">
+                <span class="full-player__ambient-blob full-player__ambient-blob--one"></span>
+                <span class="full-player__ambient-blob full-player__ambient-blob--two"></span>
+                <span class="full-player__ambient-blob full-player__ambient-blob--three"></span>
+              </div>
+              <div class="transcript-search__ambient-layer">
+                <span class="full-player__ambient-blob full-player__ambient-blob--one"></span>
+                <span class="full-player__ambient-blob full-player__ambient-blob--two"></span>
+                <span class="full-player__ambient-blob full-player__ambient-blob--three"></span>
+              </div>
+            </div>
             <button class="transcript-search__trigger" id="fullPlayerTranscriptSearchTrigger" type="button">
               <span class="transcript-search__icon" aria-hidden="true">
                 <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.5-3.5"></path></svg>
@@ -638,6 +650,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=share-deeplink-a"></script>
+    <script type="module" src="./js/main.js?v=cover-ambient-f"></script>
   </body>
 </html>

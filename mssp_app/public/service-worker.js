@@ -1,4 +1,4 @@
-const RELEASE_ID = "v329";
+const RELEASE_ID = "v330";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -27,10 +27,10 @@ const SHELL_PATHS = [
   "./css/player.css",
   "./css/pwa-update.css",
   "./css/patreon-rss.css",
-  "./css/transcript.css?v=cover-ambient-e",
+  "./css/transcript.css?v=cover-ambient-f",
   "./css/global-search.css?v=search-virtual-f",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=search-ops-f",
+  "./js/main.js?v=cover-ambient-f",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
@@ -52,10 +52,10 @@ const SHELL_PATHS = [
   "./js/libraryView.js?v=search-switcher-g",
   "./js/launchSplash.js",
   "./js/player/audioController.js",
-  "./js/player/coverAmbient.js?v=cover-ambient-d",
+  "./js/player/coverAmbient.js?v=cover-ambient-f",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js?v=search-ops-a",
+  "./js/player/playerView.js?v=cover-ambient-f",
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",
