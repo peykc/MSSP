@@ -1,4 +1,4 @@
-const RELEASE_ID = "v320";
+const RELEASE_ID = "v325";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -30,7 +30,7 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=scroll-hydrate-d",
   "./css/global-search.css?v=search-virtual-f",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=search-ops-a",
+  "./js/main.js?v=search-ops-f",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
@@ -46,7 +46,7 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js",
-  "./js/globalSearch.js?v=search-ops-a",
+  "./js/globalSearch.js?v=search-ops-f",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js?v=search-switcher-g",
@@ -66,7 +66,7 @@ const SHELL_PATHS = [
   "./js/sources/patreonRssSources.js",
   "./js/sources/patreonR2Sources.js",
   "./js/state.js",
-  "./js/tooltip.js",
+  "./js/tooltip.js?v=search-no-tip-a",
   "./js/utils.js",
   "./assets/covers/anthology-hover.webp",
   "./assets/covers/anthology.webp",

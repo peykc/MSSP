@@ -395,10 +395,13 @@ p {
 
 .collection-hero__open > span:last-child {
   margin-left: auto;
+  display: inline-flex;
+  align-items: center;
   color: rgba(28, 26, 23, 0.5);
   font-size: 28px;
   font-weight: 600;
   line-height: 1;
+  transform: translateY(-0.06em);
 }
 
 .collection-hero__open-icon {

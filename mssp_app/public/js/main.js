@@ -1,7 +1,7 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
-import { createGlobalSearch } from "./globalSearch.js?v=search-ops-a";
+import { createGlobalSearch } from "./globalSearch.js?v=search-ops-f";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { getCommunityClientId } from "./community/communityIdentity.js";
@@ -26,7 +26,7 @@ import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createPatreonRssSources } from "./sources/patreonRssSources.js";
 import { createAppState } from "./state.js";
-import { initGlobalTooltip } from "./tooltip.js";
+import { initGlobalTooltip } from "./tooltip.js?v=search-no-tip-a";
 import { dismissLaunchSplash } from "./launchSplash.js";
 
 function getApiClient() {

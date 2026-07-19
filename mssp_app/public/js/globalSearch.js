@@ -10,7 +10,6 @@ import { debounce, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
 
 const SEARCH_DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
-const EPISODE_RESULT_LIMIT = 24;
 const TRANSCRIPT_BATCH_SIZE = 8;
 const TRANSCRIPT_HYDRATE_CONCURRENCY = 4;
 const TRANSCRIPT_INITIAL_HEADERS = 16;
@@ -27,13 +26,6 @@ const SORT_RELEVANCE = "relevance";
 const SORT_DATE = "date";
 const SORT_FORWARD = "forward";
 const SORT_REVERSE = "reverse";
-
-const KIND_LABELS = {
-  old: "MSSPOT",
-  new: "MSSP",
-  paytch: "PAYTCH",
-  anthology: "MSSP",
-};
 
 const LOCK_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24">
@@ -87,11 +79,6 @@ function formatCountLabel(count, { capped = false } = {}) {
   if (count == null) return "";
   if (capped) return `${count}+`;
   return String(count);
-}
-
-function collectionKindLabel(episode) {
-  const kind = episode.coverKind || episode.collectionKind || "";
-  return KIND_LABELS[kind] || "";
 }
 
 function getEpisodeSortTime(episode) {
@@ -760,14 +747,6 @@ export function createGlobalSearch({
     epLabel.textContent = formatEpisodeLabel(episode);
     top.append(epLabel);
 
-    const kind = collectionKindLabel(episode);
-    if (kind) {
-      const kindEl = document.createElement("span");
-      kindEl.className = `launch-search__kind launch-search__kind--${episode.coverKind || episode.collectionKind || "anthology"}`;
-      kindEl.textContent = kind;
-      top.append(kindEl);
-    }
-
     const meta = document.createElement("span");
     meta.className = "launch-search__result-meta";
     meta.textContent = formatPlayerDate(episode.date);
@@ -874,10 +853,7 @@ export function createGlobalSearch({
     if (episodeResults.length) {
       const badge = document.createElement("span");
       badge.className = "launch-search__switch-count";
-      const shown = Math.min(episodeResults.length, EPISODE_RESULT_LIMIT);
-      badge.textContent = formatCountLabel(shown, {
-        capped: episodeResults.length > EPISODE_RESULT_LIMIT,
-      });
+      badge.textContent = formatCountLabel(episodeResults.length);
       switchEpisodesBtn.append(badge);
     }
 
@@ -913,6 +889,21 @@ export function createGlobalSearch({
     footerEl.textContent = "";
   }
 
+  function isGroupHeadSticky(group) {
+    if (!panelEl || !group) return false;
+    const panelRect = panelEl.getBoundingClientRect();
+    const groupRect = group.getBoundingClientRect();
+    // Sticky head is engaged once the group has scrolled above the panel top.
+    return groupRect.top < panelRect.top - 1;
+  }
+
+  function pinGroupToPanelTop(group) {
+    if (!panelEl || !group) return;
+    const panelRect = panelEl.getBoundingClientRect();
+    const groupRect = group.getBoundingClientRect();
+    panelEl.scrollTop += groupRect.top - panelRect.top;
+  }
+
   function toggleEpisodeCollapse(episodeKey) {
     if (collapsedEpisodeKeys.has(episodeKey)) collapsedEpisodeKeys.delete(episodeKey);
     else collapsedEpisodeKeys.add(episodeKey);
@@ -921,6 +912,7 @@ export function createGlobalSearch({
     if (!group) return;
 
     const collapsed = collapsedEpisodeKeys.has(episodeKey);
+    const wasSticky = collapsed && isGroupHeadSticky(group);
     group.classList.toggle("is-collapsed", collapsed);
 
     const toggle = group.querySelector(".launch-search__collapse");
@@ -941,6 +933,10 @@ export function createGlobalSearch({
     } else if (collapsed) {
       const slot = episodeSlots.find((entry) => entry.episodeKey === episodeKey);
       if (slot?.state === "ready") syncCollapsedMatchSummary(group, slot);
+      // Only re-anchor when the sticky header was already stuck (scrolled deep into matches).
+      if (wasSticky) {
+        requestAnimationFrame(() => pinGroupToPanelTop(group));
+      }
     }
   }
 
@@ -1021,7 +1017,7 @@ export function createGlobalSearch({
       panelEl.append(createStatusRow("No episode matches"));
       return;
     }
-    for (const episode of episodeResults.slice(0, EPISODE_RESULT_LIMIT)) {
+    for (const episode of episodeResults) {
       const row = document.createElement("div");
       row.className = "launch-search__episode-row";
 
