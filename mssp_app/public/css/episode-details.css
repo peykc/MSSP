@@ -62,7 +62,8 @@
 .hero-details .full-player__title {
   justify-content: flex-start;
   overflow: hidden;
-  font-size: clamp(1.1rem, 3.2vw, 1.65rem);
+  margin: 2px 0;
+  font-size: clamp(0.88rem, 2.4vw, 1rem);
 }
 
 .hero-details .full-player__title-viewport {
@@ -77,8 +78,12 @@
   min-width: 100%;
   overflow: visible;
   white-space: nowrap;
-  font-weight: 780;
   will-change: transform;
+}
+
+.hero-details .full-player__episode,
+.hero-details .full-player__title-text {
+  font-weight: 600;
 }
 
 .hero-details__stats {

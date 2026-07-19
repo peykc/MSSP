@@ -1,7 +1,7 @@
 .episode-list {
   position: relative;
   min-height: 0;
-  padding: 8px 0;
+  padding: 0;
   overflow: auto;
   overscroll-behavior: contain;
   scrollbar-color: rgba(255, 255, 255, 0.28) transparent;
@@ -19,25 +19,36 @@
 
 .episode-row {
   position: absolute;
-  left: 10px;
-  right: 10px;
+  left: 0;
+  right: 0;
   display: grid;
-  grid-template-columns: 46px 38px minmax(0, 1fr) auto;
+  grid-template-columns: 44px 36px minmax(0, 1fr) auto;
   height: var(--row);
-  align-items: center;
+  align-items: stretch;
   gap: 8px;
   padding: 0 10px 0 12px;
   color: var(--text);
   background: transparent;
-  border: 1px solid transparent;
-  border-radius: 8px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
   text-align: left;
-  transition: background 150ms ease, border-color 150ms ease;
+  transition: background 150ms ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .episode-row:hover {
+    background: rgba(255, 255, 255, 0.045);
+  }
 }
 
 .episode-row.is-selected {
   background: rgba(255, 255, 255, 0.075);
-  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.episode-row__cover,
+.episode-row__play {
+  align-self: center;
 }
 
 .episode-row__body {
@@ -45,14 +56,16 @@
   align-items: center;
   min-width: 0;
   height: 100%;
+  overflow: hidden;
 }
 
 .episode-row__select {
   display: block;
   width: 100%;
   min-width: 0;
-  height: 100%;
-  padding: 8px 0;
+  height: auto;
+  padding: 0;
+  overflow: hidden;
   color: var(--text);
   cursor: pointer;
   text-align: left;
@@ -67,18 +80,19 @@
   flex-direction: column;
   align-items: flex-end;
   justify-content: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 8px 0;
+  gap: 2px;
+  flex-shrink: 0;
+  min-width: 4rem;
+  padding: 0;
   pointer-events: auto;
 }
 
 .episode-row__date {
   padding: 0;
-  color: rgba(255, 255, 255, 0.78);
-  font-size: 0.92rem;
+  color: rgba(255, 255, 255, 0.56);
+  font-size: 0.68rem;
   font-weight: 500;
-  line-height: 1.15;
+  line-height: 1.1;
   text-align: right;
   white-space: nowrap;
   cursor: pointer;
@@ -204,8 +218,8 @@
 
 .episode-row__cover {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   place-items: center;
   padding: 0;
   cursor: pointer;
@@ -214,8 +228,8 @@
 }
 
 .episode-row__cover img {
-  width: 46px;
-  height: 46px;
+  width: 44px;
+  height: 44px;
   object-fit: cover;
   border-radius: 6px;
   box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
@@ -281,7 +295,6 @@
   display: none;
 }
 
-.episode-row__line,
 .episode-row__title,
 .episode-row__episode {
   min-width: 0;
@@ -293,9 +306,11 @@
 .episode-row__line {
   display: flex;
   flex: 1 1 auto;
-  align-items: baseline;
-  gap: 8px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 2px;
   min-width: 0;
+  white-space: normal;
 }
 
 .episode-row__meta {
@@ -303,6 +318,7 @@
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
+  width: 100%;
   min-width: 0;
 }
 
@@ -359,7 +375,10 @@
 .episode-row__title {
   color: var(--text);
   flex: 1 1 auto;
-  font-weight: 780;
+  width: 100%;
+  font-size: 0.84rem;
+  font-weight: 600;
+  line-height: 1.15;
   min-width: 0;
 }
 
@@ -374,13 +393,24 @@
   will-change: transform;
 }
 
+.episode-row:not(.is-selected) .episode-row__title-text {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .episode-row--no-play {
-  grid-template-columns: 46px minmax(0, 1fr) auto;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
 }
 
 .episode-row__episode {
   flex: 0 0 auto;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 0.94rem;
-  font-weight: 650;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
 }

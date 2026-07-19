@@ -3,9 +3,9 @@
   inset: 0;
   z-index: 90;
   display: grid;
-  grid-template-columns: minmax(230px, 35vw) minmax(0, 1fr);
+  grid-template-columns: minmax(250px, min(35vw, 520px)) minmax(0, 1fr);
   gap: 0;
-  padding: clamp(18px, 3vw, 40px);
+  padding: 0;
   background: var(--bg);
   box-shadow: -24px 0 60px rgba(0, 0, 0, 0.38);
   transform: translateX(0);
@@ -13,7 +13,7 @@
 }
 
 body.has-player .library {
-  padding-bottom: calc(clamp(18px, 3vw, 40px) + var(--mini-player-height));
+  padding-bottom: calc(var(--mini-player-height) + var(--mini-player-bottom-fill));
 }
 
 .library.is-entering,
@@ -25,8 +25,8 @@ body.has-player .library {
 .episode-panel {
   min-height: 0;
   background: var(--bg);
-  border: 1px solid var(--line);
-  border-radius: 8px;
+  border: 0;
+  border-radius: 0;
 }
 
 .library__hero {
@@ -38,8 +38,7 @@ body.has-player .library {
   row-gap: 0;
   padding: clamp(18px, 3vw, 34px);
   overflow: hidden;
-  border-right: 0;
-  border-radius: 8px 0 0 8px;
+  border-right: 1px solid var(--line);
 }
 
 .back-button {
@@ -112,7 +111,6 @@ body.has-player .library {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   overflow: visible;
-  border-radius: 0 8px 8px 0;
 }
 
 .panel-top {
@@ -122,7 +120,7 @@ body.has-player .library {
   gap: 18px;
   align-items: center;
   justify-content: space-between;
-  padding: 22px;
+  padding: 22px clamp(22px, 2.4vw, 34px);
   border-bottom: 1px solid var(--line);
 }
 

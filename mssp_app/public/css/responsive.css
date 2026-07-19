@@ -22,9 +22,8 @@
     padding: clamp(14px, 2.4vw, 20px) clamp(14px, 2.8vw, 22px);
     overflow: hidden;
     background: var(--bg);
-    border-right: 1px solid var(--line);
-    border-bottom: 0;
-    border-radius: 8px 8px 0 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
     box-shadow: none;
   }
 
@@ -34,10 +33,6 @@
     right: max(clamp(14px, 2.8vw, 22px), env(safe-area-inset-right, 0px));
     left: auto;
     z-index: 2;
-  }
-
-  .episode-panel {
-    border-radius: 0 0 8px 8px;
   }
 
   .hero-cover {
@@ -78,16 +73,6 @@
     display: block;
     grid-row: 3;
     margin: 0;
-  }
-
-  .hero-details .full-player__title {
-    margin: 2px 0;
-    font-size: clamp(0.88rem, 2.4vw, 1rem);
-  }
-
-  .hero-details .full-player__episode,
-  .hero-details .full-player__title-text {
-    font-weight: 600;
   }
 
   .hero-details__stats {
@@ -140,66 +125,9 @@
     margin-left: 0;
     margin-right: 0;
   }
-
-  .episode-row {
-    left: 8px;
-    right: 8px;
-    grid-template-columns: 44px 36px minmax(0, 1fr) auto;
-    gap: 7px;
-    padding: 0 8px 0 10px;
-  }
-
-  .episode-row__select {
-    display: block;
-    width: 100%;
-    padding: 0;
-  }
-
-  .episode-row__aside {
-    align-self: stretch;
-    justify-content: center;
-    gap: 4px;
-    padding: 8px 0;
-    min-width: 4rem;
-  }
-
-  .episode-row__date {
-    font-size: 0.68rem;
-    color: rgba(255, 255, 255, 0.56);
-  }
-
-  .episode-row__menu-toggle {
-    width: 26px;
-    height: 26px;
-  }
-
-  .episode-row__cover,
-  .episode-row__cover img {
-    width: 44px;
-    height: 44px;
-  }
-
-  .episode-row__play {
-    width: 34px;
-    height: 34px;
-  }
 }
 
 @media (max-width: 560px) {
-  :root {
-    --row: 84px;
-  }
-
-  .hero-details .full-player__title {
-    margin: 2px 0;
-    font-size: clamp(0.88rem, 2.4vw, 1rem);
-  }
-
-  .hero-details .full-player__episode,
-  .hero-details .full-player__title-text {
-    font-weight: 600;
-  }
-
   .hero-details__stat {
     gap: 1px;
   }
@@ -207,81 +135,6 @@
   .hero-details__stat-value {
     font-size: 0.88rem;
     font-weight: 500;
-  }
-
-  .episode-row {
-    left: 0;
-    right: 0;
-    grid-template-columns: 44px 36px minmax(0, 1fr) auto;
-    height: var(--row);
-    align-items: stretch;
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    border-radius: 0;
-  }
-
-  .episode-row__cover,
-  .episode-row__play {
-    align-self: center;
-  }
-
-  .episode-row__body {
-    display: flex;
-    align-items: center;
-    min-width: 0;
-    height: 100%;
-    overflow: hidden;
-  }
-
-  .episode-row__select {
-    width: 100%;
-    height: auto;
-    padding: 0;
-    overflow: hidden;
-  }
-
-  .episode-row__line {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 2px;
-    white-space: normal;
-  }
-
-  .episode-row__aside {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: flex-end;
-    gap: 2px;
-    flex-shrink: 0;
-    padding: 0;
-  }
-
-  .episode-row__date {
-    padding: 0;
-    font-size: 0.68rem;
-    line-height: 1.1;
-    color: rgba(255, 255, 255, 0.56);
-  }
-
-  .episode-row__title {
-    width: 100%;
-    min-width: 0;
-    overflow: hidden;
-    font-size: 0.84rem;
-    font-weight: 600;
-    line-height: 1.15;
-  }
-
-  .episode-row__episode {
-    font-size: 0.72rem;
-    font-weight: 600;
-    line-height: 1.1;
-    letter-spacing: 0.02em;
-  }
-
-  .episode-row__meta {
-    width: 100%;
   }
 
   .episode-row__progress {
@@ -296,24 +149,6 @@
   .episode-row__signals {
     gap: 7px;
     font-size: 0.66rem;
-  }
-
-  .episode-row.is-selected .episode-row__title {
-    overflow: hidden;
-  }
-
-  .episode-row.is-selected .episode-row__title-text {
-    width: max-content;
-    min-width: 100%;
-  }
-
-  .episode-row:not(.is-selected) .episode-row__title-text {
-    width: 100%;
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .full-player__compact .episode-row .episode-row__line,
@@ -351,16 +186,6 @@
   .full-player__compact .episode-row.is-selected {
     background: transparent;
     border-color: transparent;
-  }
-
-  .episode-row.is-selected {
-    border: 0;
-    border-bottom: 1px solid var(--line);
-    border-radius: 0;
-  }
-
-  .episode-list {
-    padding: 0;
   }
 
   .mini-player__episode {

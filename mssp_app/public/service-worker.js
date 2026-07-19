@@ -1,4 +1,4 @@
-const RELEASE_ID = "v325";
+const RELEASE_ID = "v328";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -12,17 +12,17 @@ const SHELL_PATHS = [
   "./",
   "./index.html",
   "./site.webmanifest",
-  "./css/base.css",
+  "./css/base.css?v=list-unify-a",
   "./css/layout.css?v=search-scroll-lock-b",
   "./css/launch.css",
   "./css/archive.css",
   "./css/sealed-stone.css",
-  "./css/library.css",
-  "./css/episode-list.css",
-  "./css/episode-details.css",
+  "./css/library.css?v=archive-fullbleed-a",
+  "./css/episode-list.css?v=list-unify-b",
+  "./css/episode-details.css?v=hero-title-a",
   "./css/filters.css",
   "./css/tooltip.css",
-  "./css/responsive.css",
+  "./css/responsive.css?v=list-unify-c",
   "./css/utilities.css",
   "./css/player.css",
   "./css/pwa-update.css",
