@@ -1,7 +1,7 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js";
-import { createGlobalSearch } from "./globalSearch.js?v=search-virtual-b";
+import { createGlobalSearch } from "./globalSearch.js?v=search-ops-a";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js";
 import { getCommunityClientId } from "./community/communityIdentity.js";
@@ -19,7 +19,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=search-multi-mark";
+import { createPlayerView } from "./player/playerView.js?v=search-ops-a";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=search-scroll-lock-a";
 import { initSearch } from "./search.js";
@@ -112,12 +112,17 @@ async function init() {
     });
   }
 
-  async function playEpisodeAtTime(episode, seconds) {
+  async function playEpisodeAtTime(episode, seconds, options = {}) {
+    if (options.timeline) {
+      playerView.primeTranscript(episode.episodeKey, options.timeline);
+    }
+
     const snapshot = playerState.getState();
     const alreadyLoaded = snapshot.selectedEpisode?.episodeKey === episode.episodeKey && snapshot.duration > 0;
     if (alreadyLoaded) {
       audioController.seek(seconds);
       await requestPlay(episode);
+      if (options.openTranscript) playerView.openTranscript();
       return;
     }
 
@@ -142,6 +147,7 @@ async function init() {
       });
     }
     await requestPlay(episode);
+    if (options.openTranscript) playerView.openTranscript();
   }
 
   async function loadEpisodeForPlayer(episode, { collectionId: requestedCollectionId, preserveExpanded = false, playbackIntent = false } = {}) {
@@ -253,7 +259,7 @@ async function init() {
     }),
   });
   createMediaSessionController({ playerState, audioController });
-  createPlayerView({
+  const playerView = createPlayerView({
     dom,
     playerState,
     audioController,

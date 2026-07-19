@@ -1,7 +1,8 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createTranscriptView } from "./transcriptView.js?v=r2-transcripts-a";
-import { createTranscriptSearch } from "./transcriptSearch.js?v=search-multi-mark";
+import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-d";
+import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-m";
+import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";
 import { formatCommunityCount, formatListeningSignal } from "../community/communitySignals.js";
 import {
@@ -89,6 +90,7 @@ export function createPlayerView({
   let queueReindexAnimationActive = false;
   let queueRenderLocked = false;
   let compactQueueRow = null;
+  const coverAmbient = createCoverAmbient({ root: dom.fullPlayer });
   const queueMenuManager = createEpisodeRowMenuManager({ scrollRoot: dom.fullPlayerQueueList });
   const transcriptView = createTranscriptView({
     dom,
@@ -296,6 +298,7 @@ export function createPlayerView({
       void audioController.loadSelected({ playbackIntent: false });
     }
 
+    void coverAmbient.setCover(episode.coverUrl);
     dom.miniPlayerCover.src = episode.coverUrl;
     dom.miniPlayerCover.alt = "";
     miniPlayerEpisode.textContent = episodeLabel;
@@ -809,6 +812,18 @@ export function createPlayerView({
     );
   }
 
+  function openTranscript() {
+    if (transcriptView.getAvailability() === "unavailable") return;
+    setFullPlayerMode(FULL_PLAYER_MODES.TRANSCRIPT);
+    if (!playerState.getState().isExpanded) {
+      expand();
+    }
+  }
+
+  function primeTranscript(episodeKey, model) {
+    transcriptView.primeTranscript(episodeKey, model);
+  }
+
   function collapse() {
     if (!playerState.getState().isExpanded) return;
     setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
@@ -1235,6 +1250,8 @@ export function createPlayerView({
   return {
     collapse,
     expand,
+    openTranscript,
+    primeTranscript,
   };
 }
 

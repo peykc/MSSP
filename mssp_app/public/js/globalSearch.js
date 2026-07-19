@@ -1,4 +1,9 @@
-import { normalizeSearchText, buildSearchIndex } from "./player/transcriptSearch.js?v=search-multi-mark";
+import {
+  normalizeSearchText,
+  buildSearchIndex,
+  parseSearchQuery,
+  episodeMatchesSearchQuery,
+} from "./player/transcriptSearch.js?v=search-ops-a";
 import { buildTranscriptTimeline } from "./player/transcriptView.js";
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { debounce, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
@@ -9,7 +14,6 @@ const EPISODE_RESULT_LIMIT = 24;
 const TRANSCRIPT_BATCH_SIZE = 8;
 const TRANSCRIPT_HYDRATE_CONCURRENCY = 4;
 const TRANSCRIPT_INITIAL_HEADERS = 16;
-const MAX_HITS_PER_EPISODE = 25;
 const PREFIX_EXPANSION_LIMIT = 50;
 const TIMELINE_CACHE_LIMIT = 48;
 const SNIPPET_WORDS_BEFORE = 6;
@@ -102,7 +106,8 @@ function getEpisodeSortTime(episode) {
 }
 
 function scoreEpisodeRelevance(episode, query) {
-  const normalizedQuery = normalizeSearchText(query);
+  const parsed = typeof query === "string" ? parseSearchQuery(query) : query;
+  const normalizedQuery = parsed.allIncludeTokens.join(" ");
   if (!normalizedQuery) return 0;
 
   const title = normalizeSearchText(episode.title || "");
@@ -131,12 +136,27 @@ function scoreEpisodeRelevance(episode, query) {
     score += 80;
   }
 
-  for (const token of normalizedQuery.split(" ").filter(Boolean)) {
+  for (const token of parsed.allIncludeTokens) {
     if (title.includes(token)) score += 45;
     else if (haystack.includes(token)) score += 12;
   }
 
+  for (const branch of parsed.includeBranches) {
+    for (const clause of branch) {
+      if (!clause.exact) continue;
+      if (title === clause.text) score += 200;
+      else if (` ${title} `.includes(` ${clause.text} `)) score += 120;
+    }
+  }
+
   return score;
+}
+
+function episodeApiSeedQueries(parsed) {
+  const seeds = parsed.includeBranches
+    .map((branch) => branch.map((clause) => clause.text).join(" ").trim())
+    .filter(Boolean);
+  return seeds.length ? [...new Set(seeds)] : [];
 }
 
 async function mapConcurrent(items, limit, worker) {
@@ -175,6 +195,7 @@ export function createGlobalSearch({
   let sortMode = SORT_RELEVANCE;
   let sortDirection = SORT_FORWARD;
   let activeQuery = "";
+  let activeParsedQuery = null;
   let episodeResults = [];
   let episodeSlots = [];
   let transcriptCandidates = [];
@@ -189,6 +210,8 @@ export function createGlobalSearch({
   const shardCache = new Map();
   const timelineCache = new Map();
   let optionCounter = 0;
+  let appScrollLockTop = 0;
+  let searchTouchLockBound = false;
   let switchEpisodesBtn = null;
   let switchTranscriptsBtn = null;
   let panelEl = null;
@@ -241,8 +264,9 @@ export function createGlobalSearch({
     return request;
   }
 
-  async function findCandidateEpisodes(tokens, manifest) {
+  async function findCandidateEpisodesForTokens(tokens, manifest) {
     const uniqueTokens = [...new Set(tokens)];
+    if (!uniqueTokens.length) return [];
     const expandToken = tokens[tokens.length - 1];
     const perTokenPostings = await Promise.all(uniqueTokens.map(async (token) => {
       const isLast = token === expandToken;
@@ -290,6 +314,25 @@ export function createGlobalSearch({
       episodeKey: manifest.episodeKeys[ordinal],
       hitCount,
     }));
+  }
+
+  async function findCandidateEpisodes(parsed, manifest) {
+    const tokenGroups = (parsed.indexTokenGroups || [])
+      .map((tokens) => tokens.filter((token) => token.length >= (manifest.minTokenLength || MIN_QUERY_LENGTH)))
+      .filter((tokens) => tokens.length);
+    if (!tokenGroups.length) return [];
+
+    const groupHits = await Promise.all(
+      tokenGroups.map((tokens) => findCandidateEpisodesForTokens(tokens, manifest)),
+    );
+
+    const merged = new Map();
+    for (const hits of groupHits) {
+      for (const hit of hits) {
+        merged.set(hit.episodeKey, (merged.get(hit.episodeKey) || 0) + hit.hitCount);
+      }
+    }
+    return [...merged.entries()].map(([episodeKey, hitCount]) => ({ episodeKey, hitCount }));
   }
 
   function sortEpisodeResults(episodes, query) {
@@ -351,7 +394,7 @@ export function createGlobalSearch({
   }
 
   async function reloadTranscriptResultsForSort() {
-    if (!activeQuery || normalizeSearchText(activeQuery).length < MIN_QUERY_LENGTH) return;
+    if (!activeParsedQuery || activeParsedQuery.normalizedLength < MIN_QUERY_LENGTH) return;
     syncTranscriptCandidatesFromMeta();
     episodeSlots = transcriptCandidateMeta.map((entry) => ({
       episodeKey: entry.episodeKey,
@@ -371,7 +414,7 @@ export function createGlobalSearch({
     transcriptStatus = "loading";
     paintActiveMode();
     const token = queryToken;
-    await loadTranscriptBatch(activeQuery, () => token !== queryToken);
+    await loadTranscriptBatch(activeParsedQuery, () => token !== queryToken);
     if (token !== queryToken) return;
     syncTranscriptStatusAfterHydration();
     paintActiveMode();
@@ -381,9 +424,9 @@ export function createGlobalSearch({
     sortMode = sortMode === SORT_RELEVANCE ? SORT_DATE : SORT_RELEVANCE;
     sortDirection = SORT_FORWARD;
     updateSortButton();
-    if (!activeQuery || normalizeSearchText(activeQuery).length < MIN_QUERY_LENGTH) return;
+    if (!activeParsedQuery || activeParsedQuery.normalizedLength < MIN_QUERY_LENGTH) return;
 
-    episodeResults = sortEpisodeResults(episodeResults, activeQuery);
+    episodeResults = sortEpisodeResults(episodeResults, activeParsedQuery);
     paintActiveMode();
     if (transcriptCandidateMeta.length) {
       void reloadTranscriptResultsForSort();
@@ -393,9 +436,9 @@ export function createGlobalSearch({
   function flipSortDirection() {
     sortDirection = sortDirection === SORT_FORWARD ? SORT_REVERSE : SORT_FORWARD;
     updateSortButton();
-    if (!activeQuery || normalizeSearchText(activeQuery).length < MIN_QUERY_LENGTH) return;
+    if (!activeParsedQuery || activeParsedQuery.normalizedLength < MIN_QUERY_LENGTH) return;
 
-    episodeResults = sortEpisodeResults(episodeResults, activeQuery);
+    episodeResults = sortEpisodeResults(episodeResults, activeParsedQuery);
     paintActiveMode();
     if (transcriptCandidateMeta.length) {
       void reloadTranscriptResultsForSort();
@@ -456,23 +499,34 @@ export function createGlobalSearch({
 
   function appendHitsToGroup(group, slot) {
     if (!slot.matches?.length) return;
-    const visibleMatches = slot.matches.slice(0, MAX_HITS_PER_EPISODE);
-    for (const match of visibleMatches) {
+    for (const match of slot.matches) {
       const startTime = slot.timeline[match.entryIndex].words[match.wordIndex].startTime;
       const episode = getEpisodeByKey(slot.episodeKey);
       const hit = createResultButton(
-        () => onPlayEpisodeAtTime(episode, Math.max(0, startTime - PLAY_PRE_ROLL_SECONDS)),
+        () => onPlayEpisodeAtTime(episode, Math.max(0, startTime - PLAY_PRE_ROLL_SECONDS), {
+          timeline: slot.timeline,
+          openTranscript: true,
+        }),
         "launch-search__result launch-search__hit",
       );
       hit.append(createSnippet(slot.timeline, match));
       group.append(hit);
     }
-    if (slot.matches.length > MAX_HITS_PER_EPISODE) {
-      const overflow = document.createElement("div");
-      overflow.className = "launch-search__hit-overflow";
-      overflow.textContent = `+${slot.matches.length - MAX_HITS_PER_EPISODE} more matches in this episode`;
-      group.append(overflow);
+  }
+
+  function syncCollapsedMatchSummary(group, slot) {
+    let summary = group.querySelector(".launch-search__hit-overflow");
+    const count = slot?.matches?.length || 0;
+    if (!count) {
+      summary?.remove();
+      return;
     }
+    if (!summary) {
+      summary = document.createElement("div");
+      summary.className = "launch-search__hit-overflow";
+      group.append(summary);
+    }
+    summary.textContent = `+${count} matches in this episode`;
   }
 
   function createTranscriptGroupFromSlot(slot) {
@@ -516,6 +570,7 @@ export function createGlobalSearch({
       appendHitsToGroup(group, slot);
       group.dataset.hitsRendered = "true";
     }
+    if (slot.state === "ready") syncCollapsedMatchSummary(group, slot);
 
     return group;
   }
@@ -539,6 +594,7 @@ export function createGlobalSearch({
       appendHitsToGroup(group, slot);
       group.dataset.hitsRendered = "true";
     }
+    if (slot.state === "ready") syncCollapsedMatchSummary(group, slot);
   }
 
   async function hydrateEpisodeSlot(slot, query) {
@@ -609,10 +665,37 @@ export function createGlobalSearch({
     }
   }
 
+  function onSearchTouchMove(event) {
+    if (!document.body.classList.contains("search-results-open")) return;
+    if (event.target.closest?.(".launch-search__panel")) return;
+    event.preventDefault();
+  }
+
+  function bindSearchTouchLock() {
+    if (searchTouchLockBound) return;
+    searchTouchLockBound = true;
+    document.addEventListener("touchmove", onSearchTouchMove, { passive: false });
+  }
+
+  function unbindSearchTouchLock() {
+    if (!searchTouchLockBound) return;
+    searchTouchLockBound = false;
+    document.removeEventListener("touchmove", onSearchTouchMove);
+  }
+
   function setExpanded(expanded) {
+    if (expanded) {
+      appScrollLockTop = dom.app?.scrollTop || 0;
+      bindSearchTouchLock();
+    } else {
+      unbindSearchTouchLock();
+    }
     dom.globalSearchResults.classList.toggle("is-hidden", !expanded);
     dom.globalSearchInput.setAttribute("aria-expanded", expanded ? "true" : "false");
     document.body.classList.toggle("search-results-open", expanded);
+    if (expanded && dom.app) {
+      dom.app.scrollTop = appScrollLockTop;
+    }
     if (!expanded) setActiveIndex(-1);
   }
 
@@ -791,7 +874,10 @@ export function createGlobalSearch({
     if (episodeResults.length) {
       const badge = document.createElement("span");
       badge.className = "launch-search__switch-count";
-      badge.textContent = formatCountLabel(episodeResults.length);
+      const shown = Math.min(episodeResults.length, EPISODE_RESULT_LIMIT);
+      badge.textContent = formatCountLabel(shown, {
+        capped: episodeResults.length > EPISODE_RESULT_LIMIT,
+      });
       switchEpisodesBtn.append(badge);
     }
 
@@ -850,28 +936,40 @@ export function createGlobalSearch({
       if (slot?.state === "ready") {
         appendHitsToGroup(group, slot);
         group.dataset.hitsRendered = "true";
+        syncCollapsedMatchSummary(group, slot);
       }
+    } else if (collapsed) {
+      const slot = episodeSlots.find((entry) => entry.episodeKey === episodeKey);
+      if (slot?.state === "ready") syncCollapsedMatchSummary(group, slot);
     }
+  }
+
+  function clearPanelForModeSwitch() {
+    if (!panelEl) return;
+    panelEl.replaceChildren();
+    renderedTranscriptKeys.clear();
   }
 
   function renderTranscriptResults() {
     if (!panelEl) return;
 
+    // Episode rows must not linger under transcript groups after a tab switch.
+    if (panelEl.querySelector(".launch-search__episode-row")) {
+      clearPanelForModeSwitch();
+    }
+
     if (transcriptStatus === "loading" && !getDisplaySlots().length) {
-      panelEl.replaceChildren();
-      renderedTranscriptKeys.clear();
+      clearPanelForModeSwitch();
       panelEl.append(createStatusRow("Searching transcripts…"));
       return;
     }
     if (transcriptStatus === "error") {
-      panelEl.replaceChildren();
-      renderedTranscriptKeys.clear();
+      clearPanelForModeSwitch();
       panelEl.append(createStatusRow("Transcript search unavailable", { error: true }));
       return;
     }
     if (!getDisplaySlots().length && transcriptHydrateCursor >= transcriptCandidates.length) {
-      panelEl.replaceChildren();
-      renderedTranscriptKeys.clear();
+      clearPanelForModeSwitch();
       panelEl.append(createStatusRow("No transcript matches"));
       return;
     }
@@ -955,6 +1053,8 @@ export function createGlobalSearch({
     if (mode !== MODE_EPISODES && mode !== MODE_TRANSCRIPTS) return;
     if (activeMode === mode) return;
     activeMode = mode;
+    clearPanelForModeSwitch();
+    if (panelEl) panelEl.scrollTop = 0;
     paintActiveMode();
   }
 
@@ -965,7 +1065,7 @@ export function createGlobalSearch({
     const remaining = panelEl.scrollHeight - panelEl.scrollTop - panelEl.clientHeight;
     if (remaining > 120) return;
     const token = queryToken;
-    await loadTranscriptBatch(activeQuery, () => token !== queryToken);
+    await loadTranscriptBatch(activeParsedQuery || activeQuery, () => token !== queryToken);
   }
 
   function buildShell() {
@@ -1014,9 +1114,9 @@ export function createGlobalSearch({
     const token = ++queryToken;
     const isStale = () => token !== queryToken;
     const query = rawQuery.trim();
-    const normalized = normalizeSearchText(query);
+    const parsed = parseSearchQuery(query);
 
-    if (normalized.length < MIN_QUERY_LENGTH) {
+    if (parsed.normalizedLength < MIN_QUERY_LENGTH || !parsed.includeBranches.some((branch) => branch.length)) {
       setExpanded(false);
       dom.globalSearchResults.replaceChildren();
       panelEl = null;
@@ -1028,6 +1128,7 @@ export function createGlobalSearch({
 
     activeMode = MODE_EPISODES;
     activeQuery = query;
+    activeParsedQuery = parsed;
     episodeResults = [];
     episodeSlots = [];
     transcriptCandidates = [];
@@ -1046,9 +1147,19 @@ export function createGlobalSearch({
     paintActiveMode();
 
     try {
-      const payload = await searchEpisodes(query);
+      const seeds = episodeApiSeedQueries(parsed);
+      const payloads = await Promise.all(seeds.map((seed) => searchEpisodes(seed)));
       if (isStale()) return;
-      episodeResults = sortEpisodeResults(payload?.episodes || [], query);
+      const byKey = new Map();
+      for (const payload of payloads) {
+        for (const episode of payload?.episodes || []) {
+          byKey.set(episode.episodeKey || episode.id, episode);
+        }
+      }
+      episodeResults = sortEpisodeResults(
+        [...byKey.values()].filter((episode) => episodeMatchesSearchQuery(episode, parsed)),
+        parsed,
+      );
     } catch {
       if (isStale()) return;
       episodeResults = [];
@@ -1071,14 +1182,8 @@ export function createGlobalSearch({
       episodesTotal: undefined,
     };
 
-    const tokens = normalized.split(" ").filter((t) => t.length >= (manifest.minTokenLength || MIN_QUERY_LENGTH));
     try {
-      if (!tokens.length) {
-        transcriptStatus = "empty";
-        paintActiveMode();
-        return;
-      }
-      const candidates = await findCandidateEpisodes(tokens, manifest);
+      const candidates = await findCandidateEpisodes(parsed, manifest);
       if (isStale()) return;
       transcriptCandidateMeta = candidates.map((candidate) => {
         const episode = getEpisodeByKey(candidate.episodeKey);
@@ -1097,7 +1202,7 @@ export function createGlobalSearch({
       }
       updateSwitcherLabels();
       transcriptStatus = "loading";
-      void loadTranscriptBatch(query, isStale);
+      void loadTranscriptBatch(parsed, isStale);
     } catch {
       if (isStale()) return;
       transcriptStatus = "error";
@@ -1112,6 +1217,8 @@ export function createGlobalSearch({
   function clear() {
     dom.globalSearchInput.value = "";
     queryToken += 1;
+    activeQuery = "";
+    activeParsedQuery = null;
     episodeResults = [];
     episodeSlots = [];
     transcriptCandidates = [];
@@ -1123,6 +1230,7 @@ export function createGlobalSearch({
     collapsedEpisodeKeys.clear();
     renderedTranscriptKeys.clear();
     optionCounter = 0;
+    unbindSearchTouchLock();
     document.body.classList.remove("search-results-open");
     dom.globalSearchResults.replaceChildren();
     panelEl = null;

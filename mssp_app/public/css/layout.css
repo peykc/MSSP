@@ -27,6 +27,16 @@ body:is(.calendar-open, .patreon-rss-open, .player-expanded, .search-results-ope
   overscroll-behavior: none;
 }
 
+body.search-results-open #app {
+  touch-action: none;
+}
+
+body.search-results-open .launch-search,
+body.search-results-open .launch-search__results,
+body.search-results-open .launch-search__panel {
+  touch-action: pan-y;
+}
+
 body.library-open .app,
 body.stats-open .app {
   overflow: hidden;

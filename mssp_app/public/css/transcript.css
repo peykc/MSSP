@@ -53,39 +53,6 @@
   overflow: hidden;
 }
 
-.full-player__transcript-viewport-wrap::before,
-.full-player__transcript-viewport-wrap::after {
-  position: absolute;
-  right: 0;
-  left: 0;
-  z-index: 2;
-  height: var(--transcript-vignette-size);
-  pointer-events: none;
-  content: "";
-}
-
-.full-player__transcript-viewport-wrap::before {
-  top: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(31, 29, 28, 0.99),
-    rgba(31, 29, 28, 0.92) 28%,
-    rgba(31, 29, 28, 0)
-  );
-}
-
-.full-player__transcript-viewport-wrap::after {
-  bottom: 0;
-  height: var(--transcript-vignette-bottom-size);
-  background: linear-gradient(
-    to bottom,
-    rgba(31, 29, 28, 0),
-    rgba(31, 29, 28, 0.88) 32%,
-    rgba(31, 29, 28, 0.97) 62%,
-    rgb(31, 29, 28) 100%
-  );
-}
-
 .full-player__transcript-viewport {
   min-width: 0;
   min-height: 0;
@@ -98,6 +65,20 @@
   transform: scale(0.92);
   transform-origin: center center;
   transition: transform 220ms ease, opacity 220ms ease;
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--transcript-vignette-size),
+    #000 calc(100% - var(--transcript-vignette-bottom-size)),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 var(--transcript-vignette-size),
+    #000 calc(100% - var(--transcript-vignette-bottom-size)),
+    transparent
+  );
 }
 
 .full-player__transcript-viewport::-webkit-scrollbar {

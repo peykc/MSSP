@@ -224,6 +224,10 @@
   display: none;
 }
 
+.launch-search__group:not(.is-collapsed) .launch-search__hit-overflow {
+  display: none;
+}
+
 .launch-search__group.is-collapsed .launch-search__collapse {
   transform: rotate(-90deg);
 }

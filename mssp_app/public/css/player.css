@@ -231,13 +231,95 @@ body.player-dragging {
   overflow: hidden;
   overscroll-behavior: contain;
   color: var(--text);
-  background: rgba(31, 29, 28, 0.99);
+  background: #1f1d1c;
   border: 0;
   border-radius: 16px 16px 0 0;
   box-shadow: 0 -22px 70px rgba(0, 0, 0, 0.5);
   transform: translateY(100%);
   transition: transform 420ms cubic-bezier(0.32, 0.72, 0, 1);
   will-change: transform;
+  isolation: isolate;
+}
+
+.full-player__ambient {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  background: #1f1d1c;
+}
+
+.full-player__ambient::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(12, 11, 11, 0.28), rgba(12, 11, 11, 0.58)),
+    radial-gradient(circle at 50% 48%, transparent 20%, rgba(12, 11, 11, 0.3) 100%);
+}
+
+.full-player__ambient-layer {
+  --ambient-one: #64748b;
+  --ambient-two: #855f76;
+  --ambient-three: #6a8067;
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1100ms ease-in-out;
+}
+
+.full-player__ambient-layer.is-active {
+  opacity: 1;
+}
+
+.full-player__ambient-blob {
+  position: absolute;
+  display: block;
+  width: 72vmax;
+  height: 72vmax;
+  border-radius: 48%;
+  filter: blur(56px);
+  opacity: 0.72;
+  will-change: transform;
+}
+
+.full-player__ambient-blob--one {
+  top: -34vmax;
+  left: -26vmax;
+  background: var(--ambient-one);
+  animation: player-ambient-one 29s ease-in-out infinite alternate;
+}
+
+.full-player__ambient-blob--two {
+  right: -34vmax;
+  bottom: -40vmax;
+  background: var(--ambient-two);
+  animation: player-ambient-two 36s ease-in-out infinite alternate;
+}
+
+.full-player__ambient-blob--three {
+  top: 20%;
+  left: 22%;
+  width: 62vmax;
+  height: 62vmax;
+  background: var(--ambient-three);
+  animation: player-ambient-three 32s ease-in-out infinite alternate;
+}
+
+.full-player:not(.is-open) .full-player__ambient-blob {
+  animation-play-state: paused;
+}
+
+.full-player__collapse,
+.full-player__now-playing-area,
+.full-player__queue-panel,
+.full-player__transcript-panel,
+.full-player__playback,
+.full-player__controls,
+.full-player__utility-row {
+  position: relative;
+  z-index: 1;
 }
 
 .full-player[data-mode="queue"],
@@ -592,23 +674,6 @@ body.player-dragging .full-player__collapse {
   grid-row: 3;
 }
 
-.full-player__queue-panel::after {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 2;
-  height: 54px;
-  pointer-events: none;
-  content: "";
-  background: linear-gradient(
-    to bottom,
-    rgba(31, 29, 28, 0),
-    rgba(31, 29, 28, 0.92) 72%,
-    rgba(31, 29, 28, 0.99)
-  );
-}
-
 .full-player[data-mode="queue"] .full-player__queue-panel {
   opacity: 1;
   visibility: visible;
@@ -648,6 +713,8 @@ body.player-dragging .full-player__collapse {
   overflow: auto;
   list-style: none;
   overscroll-behavior: contain;
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 54px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 54px), transparent);
 }
 
 .full-player__queue-item {
@@ -975,14 +1042,49 @@ body.player-expanded {
   .full-player__compact,
   .full-player__queue-panel,
   .full-player__transcript-panel,
-  .full-player__transcript-list {
+  .full-player__transcript-list,
+  .full-player__ambient-layer {
     transition: none;
+  }
+
+  .full-player__ambient-blob {
+    animation: none;
   }
 }
 
 @keyframes player-spinner {
   to {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes player-ambient-one {
+  from {
+    transform: translate3d(-8%, -5%, 0) rotate(0deg) scale(0.96);
+  }
+
+  to {
+    transform: translate3d(24%, 18%, 0) rotate(62deg) scale(1.16);
+  }
+}
+
+@keyframes player-ambient-two {
+  from {
+    transform: translate3d(8%, 10%, 0) rotate(0deg) scale(1.04);
+  }
+
+  to {
+    transform: translate3d(-24%, -18%, 0) rotate(-58deg) scale(0.92);
+  }
+}
+
+@keyframes player-ambient-three {
+  from {
+    transform: translate3d(-12%, 8%, 0) rotate(0deg) scale(0.9);
+  }
+
+  to {
+    transform: translate3d(14%, -18%, 0) rotate(46deg) scale(1.14);
   }
 }
 

@@ -6,7 +6,8 @@ const OVERSCAN_DETACHED_UP = 18;
 const FOLLOW_PIN_UP = 3;
 const FOLLOW_PIN_DOWN = 12;
 const FOLLOW_PREFETCH_AHEAD = 5;
-const HYDRATE_BATCH_SIZE = 48;
+const HYDRATE_BATCH_SIZE = 24;
+const LOCAL_HYDRATE_RADIUS = 48;
 const SCROLL_AHEAD_HYDRATE = 24;
 const ESTIMATE_HEIGHT_MARGIN = 1.2;
 const WIDTH_EPSILON = 2;
@@ -70,6 +71,7 @@ export function createTranscriptView({
   let hydrateForward = 0;
   let hydrateBackward = -1;
   let hydratePhase = "forward";
+  let hydrateOrigin = 0;
   let passageTouchStartY = null;
   let playbackPinStart = -1;
   let playbackPinEnd = -1;
@@ -210,15 +212,14 @@ export function createTranscriptView({
     renderVisibleEntriesNow(activeIndex);
     refreshPlaybackPinRange(activeIndex);
     maintainFollowScroll({ instant: true });
-    resetHeightHydration(activeIndex);
-    scheduleHeightHydration(activeIndex);
-
-    setAvailability(AVAILABILITY.AVAILABLE);
     if (modeActive) {
+      resetHeightHydration(activeIndex);
+      scheduleHeightHydration(activeIndex);
       scheduleCenterRestore();
     } else {
       syncToPlaybackPosition({ forceCenter: false });
     }
+    setAvailability(AVAILABILITY.AVAILABLE);
     syncAnimationLoop();
   }
 
@@ -307,14 +308,18 @@ export function createTranscriptView({
   function resetHeightHydration(startIndex = 0) {
     hydrateToken += 1;
     hydrateFrameActive = false;
-    hydrateForward = Math.max(0, startIndex);
-    hydrateBackward = Math.max(0, startIndex) - 1;
+    hydrateOrigin = Math.max(0, startIndex);
+    hydrateForward = hydrateOrigin;
+    hydrateBackward = hydrateOrigin - 1;
     hydratePhase = "forward";
   }
 
   function nextUnmeasuredHydrateIndex() {
+    const minIndex = Math.max(0, hydrateOrigin - LOCAL_HYDRATE_RADIUS);
+    const maxIndex = Math.min(timeline.length - 1, hydrateOrigin + LOCAL_HYDRATE_RADIUS);
+
     if (hydratePhase === "forward") {
-      while (hydrateForward < timeline.length) {
+      while (hydrateForward <= maxIndex) {
         const index = hydrateForward;
         hydrateForward += 1;
         if (!entryMeasured[index]) return index;
@@ -322,7 +327,7 @@ export function createTranscriptView({
       hydratePhase = "backward";
     }
 
-    while (hydrateBackward >= 0) {
+    while (hydrateBackward >= minIndex) {
       const index = hydrateBackward;
       hydrateBackward -= 1;
       if (!entryMeasured[index]) return index;
@@ -332,7 +337,7 @@ export function createTranscriptView({
 
   function runHeightHydrationBatch() {
     const token = hydrateToken;
-    if (!timeline.length) {
+    if (!modeActive || !timeline.length || availability !== AVAILABILITY.AVAILABLE) {
       hydrateFrameActive = false;
       return;
     }
@@ -359,7 +364,7 @@ export function createTranscriptView({
       scheduleRenderVisibleEntries();
     }
 
-    if (finished || token !== hydrateToken) {
+    if (finished || token !== hydrateToken || !modeActive) {
       hydrateFrameActive = false;
       return;
     }
@@ -369,7 +374,7 @@ export function createTranscriptView({
       : (callback) => window.requestAnimationFrame(callback);
 
     scheduleNext(() => {
-      if (token !== hydrateToken) {
+      if (token !== hydrateToken || !modeActive) {
         hydrateFrameActive = false;
         return;
       }
@@ -378,11 +383,18 @@ export function createTranscriptView({
   }
 
   function scheduleHeightHydration(priorityIndex = 0) {
-    if (!timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
+    if (!modeActive || !timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
 
     const priority = Math.max(0, priorityIndex);
+    hydrateOrigin = priority;
     if (hydratePhase === "forward" && priority < hydrateForward) {
       hydrateForward = priority;
+    }
+    if (hydratePhase === "backward" || priority > hydrateBackward) {
+      // Keep scanning around the new priority window.
+      hydrateForward = Math.min(hydrateForward, priority);
+      hydrateBackward = Math.max(hydrateBackward, priority - 1);
+      hydratePhase = "forward";
     }
 
     if (hydrateFrameActive) return;
@@ -468,7 +480,7 @@ export function createTranscriptView({
   }
 
   function hydrateScrollAhead() {
-    if (following || !timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
+    if (!modeActive || following || !timeline.length || availability !== AVAILABILITY.AVAILABLE) return;
 
     const viewport = dom.fullPlayerTranscriptViewport;
     const visibleIndex = findFirstVisibleIndex(viewport.scrollTop);
@@ -508,7 +520,7 @@ export function createTranscriptView({
   }
 
   function scheduleScrollAheadHydration() {
-    if (following || scrollHydrateFrameId !== null) return;
+    if (!modeActive || following || scrollHydrateFrameId !== null) return;
     scrollHydrateFrameId = requestAnimationFrame(() => {
       scrollHydrateFrameId = null;
       hydrateScrollAhead();
@@ -518,7 +530,7 @@ export function createTranscriptView({
   }
 
   function ensureFollowRangeMeasured(fromIndex) {
-    if (fromIndex < 0 || fromIndex >= timeline.length) return;
+    if (!modeActive || fromIndex < 0 || fromIndex >= timeline.length) return;
     const viewport = dom.fullPlayerTranscriptViewport;
     if (viewport.classList.contains("is-auto-scrolling")) return;
 
@@ -1099,12 +1111,46 @@ export function createTranscriptView({
     modeActive = nextActive;
     if (!modeActive) {
       restoreAttemptId += 1;
+      stopBackgroundWork();
+      clearVirtualDom();
     } else {
       resumeFollowing();
       void loadTranscript();
+      if (availability === AVAILABILITY.AVAILABLE && timeline.length) {
+        renderVisibleEntriesNow(Math.max(0, activeEntryIndex));
+        resetHeightHydration(Math.max(0, activeEntryIndex));
+        scheduleHeightHydration(Math.max(0, activeEntryIndex));
+      }
       scheduleCenterRestore();
     }
     syncAnimationLoop();
+  }
+
+  function stopBackgroundWork() {
+    resetHeightHydration(0);
+    if (scrollHydrateFrameId !== null) {
+      cancelAnimationFrame(scrollHydrateFrameId);
+      scrollHydrateFrameId = null;
+    }
+    if (renderFrameId !== null) {
+      cancelAnimationFrame(renderFrameId);
+      renderFrameId = null;
+    }
+    if (followScrollFrameId !== null) {
+      cancelAnimationFrame(followScrollFrameId);
+      followScrollFrameId = null;
+    }
+    deferredHeightUpdates.clear();
+    stopAnimationLoop();
+  }
+
+  function primeTranscript(episodeKey, model) {
+    if (!episodeKey || !Array.isArray(model) || !model.length) return;
+    cache.set(episodeKey, model);
+    if (episodeKey !== selectedEpisodeKey) return;
+    if (availability === AVAILABILITY.AVAILABLE && timeline.length) return;
+    if (availability === AVAILABILITY.LOADING) return;
+    applyTranscript(model);
   }
 
   function setPlaybackActive(active) {
@@ -1661,6 +1707,7 @@ export function createTranscriptView({
     setScrubbing,
     setSelectedEpisode,
     loadTranscript,
+    primeTranscript,
     syncToPlaybackPosition,
     scheduleCenterRestore,
     update,
