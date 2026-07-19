@@ -8,6 +8,92 @@ const COLLECTION_GLYPH_VIEWBOXES = {
   paytch: "8 1 20 18",
   new: "12 2 17 16",
 };
+const COLLECTION_ACCENTS = {
+  old: "#8da1b8",
+  paytch: "#db855f",
+  new: "#c79457",
+};
+const HEAT_PREVIEW_COLORS = [
+  "rgb(54, 69, 79)",
+  "rgb(47, 111, 106)",
+  "rgb(58, 128, 102)",
+  "rgb(104, 165, 92)",
+  "rgb(160, 164, 74)",
+  "rgb(216, 162, 60)",
+  "rgb(226, 81, 47)",
+];
+
+function renderExploreCalendarPreview() {
+  const weekdays = ["S", "M", "T", "W", "T", "F", "S"]
+    .map((day) => `<span class="explore-preview__weekday">${day}</span>`)
+    .join("");
+
+  const cells = [
+    { blank: true },
+    { blank: true },
+    { num: "1" },
+    { num: "2", kind: "old" },
+    { num: "3" },
+    { num: "4", kind: "paytch" },
+    { num: "5" },
+    { num: "6" },
+    { num: "7", kind: "new" },
+    { num: "8" },
+    { num: "9", kind: "old" },
+    { num: "10" },
+    { num: "11" },
+    { num: "12", kind: "new" },
+  ].map((cell) => {
+    if (cell.blank) {
+      return '<span class="explore-preview__cell explore-preview__cell--blank"></span>';
+    }
+    if (!cell.kind) {
+      return `<span class="explore-preview__cell"><span class="explore-preview__num">${cell.num}</span></span>`;
+    }
+    const accent = COLLECTION_ACCENTS[cell.kind];
+    return `
+      <span class="explore-preview__cell explore-preview__cell--release" style="--cell-accent: ${accent}">
+        <span class="explore-preview__num">${cell.num}</span>
+        <span class="explore-preview__glyph" style="--glyph-color: ${accent}">
+          ${renderCollectionGlyphSvg(cell.kind, "explore-preview__glyph-svg")}
+        </span>
+      </span>
+    `;
+  }).join("");
+
+  return `
+    <span class="explore-preview explore-preview--calendar">
+      <span class="explore-preview__weekdays">${weekdays}</span>
+      <span class="explore-preview__grid">${cells}</span>
+    </span>
+  `;
+}
+
+function renderExploreHeatmapPreview() {
+  const pattern = [
+    0.08, 0.18, 0.32, 0.55, 0.72, 0.42, 0.22,
+    0.15, 0.48, 0.78, 0.95, 0.68, 0.38, 0.12,
+    0.22, 0.35, 0.58, 0.82, 0.9, 0.62, 0.28,
+  ];
+  const cells = pattern.map((intensity) => {
+    const index = Math.min(
+      HEAT_PREVIEW_COLORS.length - 1,
+      Math.round(intensity * (HEAT_PREVIEW_COLORS.length - 1)),
+    );
+    return `<span class="explore-preview__heat" style="--day-color: ${HEAT_PREVIEW_COLORS[index]}"></span>`;
+  }).join("");
+
+  return `
+    <span class="explore-preview explore-preview--heatmap">
+      <span class="explore-preview__heat-grid">${cells}</span>
+      <span class="explore-preview__legend">
+        <span>Fewer</span>
+        <span class="explore-preview__scale"></span>
+        <span>More</span>
+      </span>
+    </span>
+  `;
+}
 
 export function createCollectionsView({
   dom,
@@ -178,9 +264,29 @@ export function createCollectionsView({
       .map((segment) => `${segment.name}: ${segment.hours} hours`)
       .join(", ");
 
+    const exploreRule = `
+      <span class="explore-button__rule-edge explore-button__rule-edge--start" aria-hidden="true"></span>
+      <span class="collection-card__seal-tip explore-button__rule-tip explore-button__rule-tip--start" aria-hidden="true"></span>
+      <span class="explore-button__rule-mid" aria-hidden="true"></span>
+      <span class="collection-card__seal-tip explore-button__rule-tip explore-button__rule-tip--end" aria-hidden="true"></span>
+      <span class="explore-button__rule-edge explore-button__rule-edge--end" aria-hidden="true"></span>
+    `;
+    const exploreDisabled = state.archiveEpisodes.length ? "" : "disabled";
     dom.exploreGrid.innerHTML = `
-      <button class="explore-button" type="button" data-explore-action="calendar" ${state.archiveEpisodes.length ? "" : "disabled"}>Calendar</button>
-      <button class="explore-button" type="button" data-explore-action="heatmap" ${state.archiveEpisodes.length ? "" : "disabled"}>Heatmap</button>
+      <button class="explore-button explore-button--calendar" type="button" data-explore-action="calendar" ${exploreDisabled}>
+        <span class="explore-button__copy">
+          <strong class="explore-button__title">Calendar</strong>
+          ${exploreRule}
+        </span>
+        <span class="explore-button__stage" aria-hidden="true">${renderExploreCalendarPreview()}</span>
+      </button>
+      <button class="explore-button explore-button--heatmap" type="button" data-explore-action="heatmap" ${exploreDisabled}>
+        <span class="explore-button__copy">
+          <strong class="explore-button__title">Heatmap</strong>
+          ${exploreRule}
+        </span>
+        <span class="explore-button__stage" aria-hidden="true">${renderExploreHeatmapPreview()}</span>
+      </button>
     `;
 
     dom.hoursSummary.innerHTML = `
