@@ -5,12 +5,12 @@ const COLLECTION_ORDER = ["old", "paytch", "new"];
 const COLLECTION_NUMERALS = { old: "I", paytch: "II", new: "III" };
 const COLLECTION_GLYPH_VIEWBOXES = {
   old: "7 2 17 16",
-  paytch: "8 1 20 18",
+  paytch: "11.5 3.5 13 13",
   new: "12 2 17 16",
 };
 const COLLECTION_ACCENTS = {
   old: "#8da1b8",
-  paytch: "#db855f",
+  paytch: "#f96854",
   new: "#c79457",
   cancelled: "#a98bd4",
 };
@@ -236,7 +236,10 @@ export function createCollectionsView({
         </div>
         <div class="collection-hero__legend">
           <div class="collection-hero__legend-public"><i></i><strong>${publicCount.toLocaleString()}</strong><span>public</span></div>
-          <div class="collection-hero__legend-paytch"><i></i><strong>${paytchCount.toLocaleString()}</strong><span>paytch</span></div>
+          <div class="collection-hero__legend-paytch">
+            ${renderCollectionGlyphSvg("paytch", "collection-hero__legend-paytch-logo", "11.5 3.5 13 13")}
+            <strong>${paytchCount.toLocaleString()}</strong><span>paytch</span>
+          </div>
         </div>
       </section>
     `;

@@ -399,7 +399,7 @@
 }
 
 .launch-search__kind--paytch {
-  background: #db855f;
+  background: var(--paytch);
 }
 
 .launch-search__kind--anthology {
@@ -455,7 +455,7 @@
 }
 
 .launch-search__group--paytch {
-  --kind-accent: #db855f;
+  --kind-accent: var(--paytch);
 }
 
 .launch-search__group--anthology {

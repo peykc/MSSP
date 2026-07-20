@@ -17,6 +17,7 @@
 }
 
 .patreon-rss-dialog {
+  --accent: var(--paytch);
   width: min(100%, 600px);
   max-height: calc(100dvh - 16px);
   overflow: auto;
@@ -409,7 +410,7 @@ body.patreon-rss-dragging .patreon-rss-dialog__drag {
 
 .patreon-rss-field__control:focus-within {
   border-color: var(--accent);
-  box-shadow: 0 0 0 1px rgba(211, 138, 83, 0.28);
+  box-shadow: 0 0 0 1px rgba(249, 104, 84, 0.28);
 }
 
 .patreon-rss-field input {

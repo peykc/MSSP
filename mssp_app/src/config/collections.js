@@ -36,7 +36,7 @@ const COLLECTIONS = [
     shortName: "PAYTCH",
     coverKind: "paytch",
     filter: (episode) => episode.isPaytch,
-    accent: "#db855f",
+    accent: "#f96854",
   },
 ];
 

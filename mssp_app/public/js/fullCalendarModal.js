@@ -14,7 +14,7 @@ const WEEKDAY_ROW_HTML = WEEKDAY_INITIALS.map((initial, index) =>
 const COLLECTION_META = {
   old: { label: "Old", accent: "#8da1b8" },
   new: { label: "New", accent: "#c79457" },
-  paytch: { label: "PAYTCH", accent: "#db855f" },
+  paytch: { label: "PAYTCH", accent: "#f96854" },
 };
 const COLLECTION_ORDER = ["old", "paytch", "new"];
 

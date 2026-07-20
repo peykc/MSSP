@@ -146,7 +146,7 @@ body.launch-loading .launch {
   color: #e3dac9;
   gap: 0;
   padding: 9px 11px;
-  background: linear-gradient(180deg, #ff7a67, #f96854);
+  background: linear-gradient(180deg, #ff7a67, var(--paytch));
 }
 
 .launch__paytch-link.is-linked:hover,
@@ -159,7 +159,7 @@ body.launch-loading .launch {
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
-  color: #f96854;
+  color: var(--paytch);
   transition: color 160ms ease;
 }
 
@@ -497,7 +497,7 @@ p {
 
 .collection-hero__proportion-paytch {
   width: var(--paytch-share);
-  background: #f96854;
+  background: var(--paytch);
 }
 
 .collection-hero__legend {
@@ -522,6 +522,14 @@ p {
   width: var(--paytch-share);
 }
 
+.collection-hero__legend-paytch-logo {
+  display: block;
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  color: var(--paytch);
+}
+
 .collection-hero__legend i {
   width: 9px;
   height: 9px;
@@ -544,12 +552,8 @@ p {
   letter-spacing: 0.2em;
 }
 
-.collection-hero__legend-paytch i {
-  background: #f96854;
-}
-
 .collection-hero__legend-paytch strong {
-  color: #f96854;
+  color: var(--paytch);
 }
 
 @media (min-width: 900px) {
@@ -1202,7 +1206,7 @@ p {
 }
 
 .launch-footer__icon--heart {
-  color: #f96854;
+  color: var(--paytch);
 }
 
 .launch-footer__icon--shield,

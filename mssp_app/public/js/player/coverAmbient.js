@@ -2,7 +2,7 @@ const CURATED_PALETTES = Object.freeze({
   anthology: ["#6e9b8f", "#5d7895", "#a08f6f"],
   old: ["#6c94a6", "#718495", "#a89779"],
   new: ["#bd8355", "#956957", "#867651"],
-  paytch: ["#58748c", "#a18054", "#765f4f"],
+  paytch: ["#f96854", "#c45a48", "#765f4f"],
   default: ["#64748b", "#855f76", "#6a8067"],
 });
 

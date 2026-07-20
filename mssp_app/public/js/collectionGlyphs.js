@@ -1,24 +1,7 @@
 const COLLECTION_GLYPH_MARKUP = {
   old: `<g transform="rotate(25 18 10)"><path fill="currentColor" d="M15 6 A 5.5 5.5 0 1 1 15 14 A 4 4 0 1 0 15 6 Z"></path></g>`,
-  paytch: `<g fill="currentColor" stroke="none">
-    <circle cx="18" cy="10" r="3.1"></circle>
-    <g transform="translate(18 10)">
-      <rect x="-0.8" y="-7.9" width="1.6" height="4.1" rx="0.35"></rect>
-      <rect x="-0.8" y="3.8" width="1.6" height="4.1" rx="0.35"></rect>
-      <g transform="rotate(45)">
-        <rect x="-0.8" y="-7.9" width="1.6" height="4.1" rx="0.35"></rect>
-        <rect x="-0.8" y="3.8" width="1.6" height="4.1" rx="0.35"></rect>
-      </g>
-      <g transform="rotate(90)">
-        <rect x="-0.8" y="-7.9" width="1.6" height="4.1" rx="0.35"></rect>
-        <rect x="-0.8" y="3.8" width="1.6" height="4.1" rx="0.35"></rect>
-      </g>
-      <g transform="rotate(135)">
-        <rect x="-0.8" y="-7.9" width="1.6" height="4.1" rx="0.35"></rect>
-        <rect x="-0.8" y="3.8" width="1.6" height="4.1" rx="0.35"></rect>
-      </g>
-    </g>
-  </g>`,
+  // Official Patreon mark path (1080 canvas), scaled into the shared 36×20 glyph box.
+  paytch: `<g transform="translate(18 10) scale(0.0122) translate(-540 -540)" fill="currentColor"><path fill-rule="nonzero" d="M1033.05 324.45c-.19-137.9-107.59-250.92-233.6-291.7-156.48-50.64-362.86-43.3-512.28 27.2-181.1 85.46-237.99 272.66-240.11 459.36-1.74 153.5 13.58 557.79 241.62 560.67 169.44 2.15 194.67-216.18 273.07-321.33 55.78-74.81 127.6-95.94 216.01-117.82 151.95-37.61 255.51-157.53 255.29-316.38z"/></g>`,
   new: `<g transform="rotate(-25 18 10)"><path fill="currentColor" d="M21 6 A 5.5 5.5 0 1 0 21 14 A 4 4 0 1 1 21 6 Z"></path></g>`,
   cancelled: `<image href="./assets/icons/hand-from-ground.svg" x="6" y="0" width="24" height="20" preserveAspectRatio="xMidYMid meet"></image>`,
 };
