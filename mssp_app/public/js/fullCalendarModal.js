@@ -69,6 +69,8 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
   let relayoutFrame = null;
   let scrollFrame = null;
   let relayoutEndTimer = null;
+  let openBottomPinTimer = null;
+  let pinOpenToBottom = false;
   let spotlightDateKey = null;
   let activeTooltipDate = null;
   let suppressScrollDismiss = false;
@@ -244,17 +246,37 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
     }
   }
 
+  function clearOpenBottomPin() {
+    pinOpenToBottom = false;
+    if (openBottomPinTimer !== null) {
+      clearTimeout(openBottomPinTimer);
+      openBottomPinTimer = null;
+    }
+  }
+
+  function clearScheduledRelayout() {
+    if (relayoutFrame !== null) cancelAnimationFrame(relayoutFrame);
+    if (relayoutEndTimer !== null) clearTimeout(relayoutEndTimer);
+    relayoutFrame = null;
+    relayoutEndTimer = null;
+    activeRelayoutAnchor = null;
+  }
+
   function open(episodes, trigger, { focusDate } = {}) {
     restoreFocusTo = trigger;
     render(episodes);
     clearPendingClose();
+    clearOpenBottomPin();
+    clearScheduledRelayout();
     dom.fullCalendarModal.classList.remove("is-leaving");
     dom.fullCalendarModal.hidden = false;
     dom.fullCalendarModal.setAttribute("aria-hidden", "false");
     dom.app.inert = true;
     document.body.classList.add("calendar-open");
     isOpen = true;
-    resizeObserver?.observe(dom.fullCalendarBody);
+    // Observe after the first bottom pin so ResizeObserver doesn't capture a
+    // top-of-list anchor and restoreViewportAnchor us away from the bottom.
+    pinOpenToBottom = !focusDate;
 
     if (!prefersReducedMotion()) {
       dom.fullCalendarModal.classList.add("is-entering");
@@ -272,18 +294,34 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
       relayoutCalendar({ preserveScroll: false, deferVisible: true });
 
       if (focusDate) {
+        clearOpenBottomPin();
         scrollToDate(focusDate, { center: true });
         showTooltipForDate(focusDate);
-        dom.fullCalendarClose.focus();
+        dom.fullCalendarClose.focus({ preventScroll: true });
         viewportAnchor = captureViewportAnchor();
+        resizeObserver?.observe(dom.fullCalendarBody);
         return;
       }
 
-      dom.fullCalendarClose.focus();
+      dom.fullCalendarClose.focus({ preventScroll: true });
       dom.fullCalendarBody.scrollLeft = 0;
       scrollToMonthsBottom();
       renderVisibleMonths();
+      scrollToMonthsBottom();
       viewportAnchor = captureViewportAnchor();
+      resizeObserver?.observe(dom.fullCalendarBody);
+
+      // Keep pinOpenToBottom through the RO settle window (rAF + 140ms timer)
+      // so preserveScroll relayouts re-pin to bottom instead of a stale anchor.
+      if (openBottomPinTimer !== null) clearTimeout(openBottomPinTimer);
+      openBottomPinTimer = setTimeout(() => {
+        openBottomPinTimer = null;
+        if (!isOpen || !pinOpenToBottom) return;
+        scrollToMonthsBottom();
+        renderVisibleMonths();
+        viewportAnchor = captureViewportAnchor();
+        pinOpenToBottom = false;
+      }, 160);
     });
   }
 
@@ -325,6 +363,7 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
     hoverCell = null;
     hideTooltip();
     isOpen = false;
+    clearOpenBottomPin();
     viewportAnchor = null;
     activeRelayoutAnchor = null;
     mountedStart = -1;
@@ -578,7 +617,10 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
   }
 
   function scrollToMonthsBottom() {
-    dom.fullCalendarBody.scrollTop = Math.max(0, scrollTopForMonthsY(totalHeight - getVisibleMonthsHeight()));
+    // Use the scroller's true max — totalHeight math omits padding-bottom
+    // (especially the mini-player clearance), which left open scrolled up a bit.
+    const el = dom.fullCalendarBody;
+    el.scrollTop = Math.max(0, el.scrollHeight - el.clientHeight);
   }
 
   function renderVisibleMonths() {
@@ -664,12 +706,23 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
   function relayoutCalendar({ preserveScroll = true, deferVisible = false } = {}) {
     if (!monthIndex.length || !yearBlocks.length) return;
 
-    const anchor = preserveScroll ? (activeRelayoutAnchor || viewportAnchor || captureViewportAnchor()) : null;
+    const pinBottom = pinOpenToBottom;
+    const anchor = !pinBottom && preserveScroll
+      ? (activeRelayoutAnchor || viewportAnchor || captureViewportAnchor())
+      : null;
     computeColumnLayout();
     measureMonthHeights();
     computeOffsets();
     mountedStart = -1;
     mountedEnd = -1;
+
+    if (pinBottom) {
+      scrollToMonthsBottom();
+      renderVisibleMonths();
+      scrollToMonthsBottom();
+      viewportAnchor = captureViewportAnchor();
+      return;
+    }
 
     if (!deferVisible) {
       renderVisibleMonths();
@@ -687,7 +740,11 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
   function scheduleCalendarRelayout() {
     if (!isOpen) return;
 
-    activeRelayoutAnchor ||= viewportAnchor || captureViewportAnchor();
+    if (!pinOpenToBottom) {
+      activeRelayoutAnchor ||= viewportAnchor || captureViewportAnchor();
+    } else {
+      activeRelayoutAnchor = null;
+    }
     setPinnedCell(null);
     hoverCell = null;
     hideTooltip();
@@ -818,7 +875,7 @@ export function createFullCalendarModal({ dom, onSelectEpisode }) {
     if (!anchor?.date) return;
 
     const monthIdx = getMonthIndexForDate(anchor.date);
-    if (monthIdx < 0 || !offsets[monthIdx]) return;
+    if (monthIdx < 0 || offsets[monthIdx] == null) return;
 
     mountedStart = -1;
     mountedEnd = -1;

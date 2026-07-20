@@ -35,6 +35,7 @@ export const dom = {
   launchView: getRequiredElement("launchView"),
   globalSearch: getRequiredElement("globalSearch"),
   globalSearchInput: getRequiredElement("globalSearchInput"),
+  globalSearchSortControls: getRequiredElement("globalSearchSortControls"),
   globalSearchSort: getRequiredElement("globalSearchSort"),
   globalSearchSortLabel: getRequiredElement("globalSearchSortLabel"),
   globalSearchSortDirection: getRequiredElement("globalSearchSortDirection"),

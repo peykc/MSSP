@@ -1,13 +1,13 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
-import { createFullCalendarModal } from "./fullCalendarModal.js?v=tip-nav-c";
-import { createGlobalSearch } from "./globalSearch.js?v=search-ops-f";
+import { createFullCalendarModal } from "./fullCalendarModal.js?v=scroll-bottom-b";
+import { createGlobalSearch } from "./globalSearch.js?v=sort-reveal-a";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
 import { createCommunitySignals } from "./community/communitySignals.js";
-import { dom } from "./dom.js?v=search-sort-controls-a";
+import { dom } from "./dom.js?v=sort-reveal-a";
 import { createEpisodeDetails } from "./episodeDetails.js";
 import { createEpisodeList } from "./episodeList.js";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js";

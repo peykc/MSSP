@@ -13,8 +13,13 @@ const COLLECTIONS = [
 ];
 
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const WEEKDAY_FULL = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTH_FULL = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
 
 function emptySpread() {
   return { old: 0, new: 0, paytch: 0 };
@@ -235,7 +240,8 @@ export function createCalendarModal({ dom }) {
     dom.calendarWeekdays.innerHTML = counts.map((count, index) => {
       const intensity = relativeIntensity(count, counts);
       const name = WEEKDAYS[index];
-      const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
+      const fullName = WEEKDAY_FULL[index];
+      const label = `${fullName}s, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
       return `
         <button type="button" class="calendar-day" aria-label="${label}" style="--day-color: ${colorForIntensity(intensity)}">
           <strong class="calendar-day__num">${name}</strong>
@@ -245,14 +251,15 @@ export function createCalendarModal({ dom }) {
     }).join("");
 
     const cells = [...dom.calendarWeekdays.querySelectorAll(".calendar-day")];
-    cells.forEach((cell, index) => bindCell(cell, `${WEEKDAYS[index]}s`, breakdown[index]));
+    cells.forEach((cell, index) => bindCell(cell, `${WEEKDAY_FULL[index]}s`, breakdown[index]));
   }
 
   function renderMonthRow(counts, breakdown) {
     dom.calendarMonths.innerHTML = counts.map((count, index) => {
       const intensity = relativeIntensity(count, counts);
       const name = MONTHS[index];
-      const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
+      const fullName = MONTH_FULL[index];
+      const label = `${fullName}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
       return `
         <button type="button" class="calendar-day" aria-label="${label}" style="--day-color: ${colorForIntensity(intensity)}">
           <strong class="calendar-day__num">${name}</strong>
@@ -262,7 +269,7 @@ export function createCalendarModal({ dom }) {
     }).join("");
 
     const cells = [...dom.calendarMonths.querySelectorAll(".calendar-day")];
-    cells.forEach((cell, index) => bindCell(cell, MONTHS[index], breakdown[index]));
+    cells.forEach((cell, index) => bindCell(cell, MONTH_FULL[index], breakdown[index]));
   }
 
   function renderMonthGrid(counts, breakdown) {

@@ -1,4 +1,4 @@
-const RELEASE_ID = "v349";
+const RELEASE_ID = "v352";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -28,25 +28,25 @@ const SHELL_PATHS = [
   "./css/pwa-update.css",
   "./css/patreon-rss.css",
   "./css/transcript.css?v=cover-ambient-g",
-  "./css/global-search.css?v=search-virtual-f",
+  "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=tip-nav-c",
+  "./js/main.js?v=scroll-bottom-b",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
   "./js/patreonRssModal.js",
   "./js/archiveStats.js",
-  "./js/calendarModal.js?v=heatmap-relative-a",
+  "./js/calendarModal.js?v=heatmap-full-labels-a",
   "./js/collectionGlyphs.js",
   "./js/collectionsView.js?v=cal-preview-b",
-  "./js/dom.js?v=search-sort-controls-a",
+  "./js/dom.js?v=sort-reveal-a",
   "./js/episodeDetails.js",
   "./js/episodeRow.js",
   "./js/episodeList.js",
   "./js/filters.js",
   "./js/favoritesStore.js",
-  "./js/fullCalendarModal.js?v=tip-nav-c",
-  "./js/globalSearch.js?v=search-ops-f",
+  "./js/fullCalendarModal.js?v=scroll-bottom-b",
+  "./js/globalSearch.js?v=sort-reveal-a",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js?v=search-switcher-g",

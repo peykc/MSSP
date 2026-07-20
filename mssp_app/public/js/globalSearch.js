@@ -670,6 +670,17 @@ export function createGlobalSearch({
     document.removeEventListener("touchmove", onSearchTouchMove);
   }
 
+  function syncSortControlsVisibility() {
+    const hasQuery = Boolean(dom.globalSearchInput.value.trim());
+    const resultsOpen = !dom.globalSearchResults.classList.contains("is-hidden");
+    const show = hasQuery || resultsOpen;
+    dom.globalSearch.classList.toggle("has-sort-controls", show);
+    dom.globalSearchSortControls.setAttribute("aria-hidden", show ? "false" : "true");
+    const tabIndex = show ? "0" : "-1";
+    dom.globalSearchSort.tabIndex = Number(tabIndex);
+    dom.globalSearchSortDirection.tabIndex = Number(tabIndex);
+  }
+
   function setExpanded(expanded) {
     if (expanded) {
       appScrollLockTop = dom.app?.scrollTop || 0;
@@ -684,6 +695,7 @@ export function createGlobalSearch({
       dom.app.scrollTop = appScrollLockTop;
     }
     if (!expanded) setActiveIndex(-1);
+    syncSortControlsVisibility();
   }
 
   function getOptionButtons() {
@@ -1241,6 +1253,7 @@ export function createGlobalSearch({
   }, SEARCH_DEBOUNCE_MS);
 
   updateSortButton();
+  syncSortControlsVisibility();
   dom.globalSearchSort.addEventListener("click", (event) => {
     event.preventDefault();
     cycleSortMode();
@@ -1251,6 +1264,7 @@ export function createGlobalSearch({
   });
 
   dom.globalSearchInput.addEventListener("input", () => {
+    syncSortControlsVisibility();
     scheduleQuery(dom.globalSearchInput.value);
   });
 

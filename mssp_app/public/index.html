@@ -41,7 +41,7 @@
     <link rel="stylesheet" href="./css/pwa-update.css">
     <link rel="stylesheet" href="./css/patreon-rss.css?v=paytch-coral-a">
     <link rel="stylesheet" href="./css/transcript.css?v=cover-ambient-g">
-    <link rel="stylesheet" href="./css/global-search.css?v=paytch-coral-a">
+    <link rel="stylesheet" href="./css/global-search.css?v=sort-reveal-a">
     <style>
       body.launch-loading .launch {
         visibility: hidden;
@@ -115,14 +115,14 @@
               <span class="search__icon">⌕</span>
               <input id="globalSearchInput" type="search" autocomplete="off" placeholder="Search episodes &amp; transcripts" aria-label="Search episodes and transcripts" role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="globalSearchResults">
             </label>
-            <div class="launch-search__sort-controls" aria-label="Sort results">
-              <button class="launch-search__sort-direction" id="globalSearchSortDirection" type="button" aria-label="Reverse result order" data-direction="forward">
+            <div class="launch-search__sort-controls" id="globalSearchSortControls" aria-label="Sort results" aria-hidden="true">
+              <button class="launch-search__sort-direction" id="globalSearchSortDirection" type="button" tabindex="-1" aria-label="Reverse result order" data-direction="forward">
                 <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M4 7h9M4 12h6M4 17h3"></path>
                   <path d="M18 5v14m0 0-4-4m4 4 4-4"></path>
                 </svg>
               </button>
-              <button class="launch-search__sort-mode" id="globalSearchSort" type="button" aria-label="Sort results by relevance" data-sort="relevance">
+              <button class="launch-search__sort-mode" id="globalSearchSort" type="button" tabindex="-1" aria-label="Sort results by relevance" data-sort="relevance">
                 <span class="launch-search__sort-label" id="globalSearchSortLabel">Relevance</span>
               </button>
             </div>
@@ -672,6 +672,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=paytch-logo-b"></script>
+    <script type="module" src="./js/main.js?v=scroll-bottom-b"></script>
   </body>
 </html>
