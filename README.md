@@ -16,7 +16,8 @@ The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by r
 - `MSSP` (The New Testament), 
 - `PAYTCH` (Patreon).
 
-##  The Ten Commandments <img width="23" height="23" alt="command" src="https://github.com/user-attachments/assets/b9a2ccdc-dcc4-45c6-8cf1-d3895ba70fb4" />
+##  The Ten Commandments <img width="25" height="25" alt="command" src="https://github.com/user-attachments/assets/1a0344c8-7393-41d8-92c3-b00df06d196e" />
+
 1. Preserve the listening order.
 2. Use official numbers when they exist.
 3. Infer missing numbers only from supported continuity.
@@ -28,7 +29,8 @@ The Holy Trinity is an index for Matt and Shane's Secret Podcast, organized by r
 9. Use `EX` for standalone/off-cycle releases.
 10. Keep the archive reproducible, auditable, and ready for metadata/player use.
 
-## Playback Sources <img width="25" height="25" alt="source" src="https://github.com/user-attachments/assets/ad2d6f01-82f7-4f11-85c1-ad0183cbea9c" />
+## Playback Sources <img width="25" height="25" alt="source" src="https://github.com/user-attachments/assets/f419f47b-2946-42b3-a11d-d20bbdc9857e" />
+
 
 The public player source map is intentionally split by collection:
 
