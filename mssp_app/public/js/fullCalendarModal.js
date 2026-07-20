@@ -7,6 +7,10 @@ const MONTH_NAMES = [
   "July", "August", "September", "October", "November", "December",
 ];
 
+const WEEKDAY_ROW_HTML = WEEKDAY_INITIALS.map((initial, index) =>
+  `<span title="${WEEKDAY_NAMES[index]}">${initial}</span>`,
+).join("");
+
 const COLLECTION_META = {
   old: { label: "Old", accent: "#8da1b8" },
   new: { label: "New", accent: "#c79457" },
@@ -17,9 +21,14 @@ const COLLECTION_ORDER = ["old", "paytch", "new"];
 const CANCELLED_DATE = "2019-09-16";
 const CANCELLED_ACCENT = "#a98bd4";
 const MONTH_GAP = 28;
+/* Space below a year's months before the next year's sticky head. */
+const YEAR_GAP = 20;
 const MONTH_OVERSCAN = 2;
-const MONTHS_PADDING_TOP = 14;
+const MONTHS_PADDING_TOP = 10;
 const PROBE_ROW_COUNTS = [4, 5, 6];
+/* One month grid stays at phone width (~450px dialog including padding);
+   wider viewports fit additional side-by-side columns of this same unit. */
+const MONTH_COLUMN_WIDTH = 390;
 
 function escapeHtml(value) {
   return String(value ?? "")
@@ -63,8 +72,15 @@ export function createFullCalendarModal({ dom }) {
   let spotlightDateKey = null;
   let activeTooltipDate = null;
   let suppressScrollDismiss = false;
-  let monthsSpacer = null;
-  let monthsWindow = null;
+  let yearBlocks = [];
+  let localOffsets = [];
+  let yearHeadHeight = 0;
+  let columnCount = 1;
+  let columnWidth = 0;
+  let columnGap = 28;
+  let columnOfMonth = [];
+  let rowStartOfMonth = [];
+  let rowEndOfMonth = [];
 
   const tooltip = document.createElement("div");
   tooltip.className = "full-calendar-tooltip";
@@ -73,8 +89,6 @@ export function createFullCalendarModal({ dom }) {
   dom.fullCalendarModal.appendChild(tooltip);
 
   renderLegend();
-  renderWeekdayHeader();
-  ensureVirtualShell();
   bindDelegatedEvents();
 
   const resizeObserver = typeof ResizeObserver !== "undefined"
@@ -97,25 +111,104 @@ export function createFullCalendarModal({ dom }) {
     }).join("");
   }
 
-  function renderWeekdayHeader() {
-    dom.fullCalendarWeekdays.innerHTML = WEEKDAY_INITIALS.map((initial, index) =>
-      `<span class="full-calendar__weekday" title="${WEEKDAY_NAMES[index]}">${initial}</span>`,
-    ).join("");
+  function computeColumnLayout() {
+    const modalWidth = dom.fullCalendarModal.clientWidth;
+    if (modalWidth <= 0) return;
+
+    const dialogStyles = getComputedStyle(dom.fullCalendarDialog);
+    const scrollerStyles = getComputedStyle(dom.fullCalendarBody);
+    columnGap = parseFloat(scrollerStyles.getPropertyValue("--cal-col-gap")) || 28;
+    // Everything around the month grid: dialog + scroller padding and the
+    // scrollbar gutter. None of it depends on the width we are about to set,
+    // so the fit count below has a stable fixpoint.
+    const chromeWidth =
+      (parseFloat(dialogStyles.paddingLeft) || 0)
+      + (parseFloat(dialogStyles.paddingRight) || 0)
+      + (parseFloat(scrollerStyles.paddingLeft) || 0)
+      + (parseFloat(scrollerStyles.paddingRight) || 0)
+      + Math.max(0, dom.fullCalendarBody.offsetWidth - dom.fullCalendarBody.clientWidth);
+
+    const available = modalWidth - chromeWidth;
+    const nextCount = Math.max(1, Math.floor((available + columnGap) / (MONTH_COLUMN_WIDTH + columnGap)));
+    const contentWidth = nextCount * MONTH_COLUMN_WIDTH + (nextCount - 1) * columnGap;
+    const nextMax = `${Math.round(contentWidth + chromeWidth)}px`;
+    if (dom.fullCalendarDialog.style.getPropertyValue("--cal-max") !== nextMax) {
+      dom.fullCalendarDialog.style.setProperty("--cal-max", nextMax);
+    }
+
+    const width = dom.fullCalendarMonths.getBoundingClientRect().width;
+    if (width > 0) {
+      columnWidth = (width - columnGap * (nextCount - 1)) / nextCount;
+    }
+    columnCount = nextCount;
   }
 
-  function ensureVirtualShell() {
-    monthsSpacer = dom.fullCalendarMonths.querySelector(".full-calendar__months-spacer");
-    monthsWindow = dom.fullCalendarMonths.querySelector(".full-calendar__months-window");
-    if (monthsSpacer && monthsWindow) return;
+  function renderYearHeadHtml(year) {
+    return `
+      <div class="full-calendar__year-head">
+        <span class="full-calendar__year-arm" aria-hidden="true">
+          <span class="full-calendar__year-arm-line"></span>
+          <span class="full-calendar__year-arm-tip"></span>
+        </span>
+        <span class="full-calendar__year-label">${year}</span>
+        <span class="full-calendar__year-arm" aria-hidden="true">
+          <span class="full-calendar__year-arm-tip"></span>
+          <span class="full-calendar__year-arm-line"></span>
+        </span>
+      </div>
+    `;
+  }
 
-    dom.fullCalendarMonths.innerHTML = "";
-    monthsSpacer = document.createElement("div");
-    monthsSpacer.className = "full-calendar__months-spacer";
-    monthsSpacer.setAttribute("aria-hidden", "true");
-    monthsWindow = document.createElement("div");
-    monthsWindow.className = "full-calendar__months-window";
-    dom.fullCalendarMonths.appendChild(monthsSpacer);
-    dom.fullCalendarMonths.appendChild(monthsWindow);
+  function measureYearHeadHeight() {
+    const head = yearBlocks[0]?.head;
+    if (!head) {
+      yearHeadHeight = 0;
+      return;
+    }
+    yearHeadHeight = head.getBoundingClientRect().height;
+  }
+
+  function rebuildYearShell() {
+    yearBlocks = [];
+    dom.fullCalendarMonths.replaceChildren();
+
+    if (!monthIndex.length) return;
+
+    let start = 0;
+    while (start < monthIndex.length) {
+      const year = monthIndex[start].year;
+      let end = start;
+      while (end < monthIndex.length && monthIndex[end].year === year) end += 1;
+
+      const block = document.createElement("section");
+      block.className = "full-calendar__year-block";
+      block.dataset.year = String(year);
+      block.innerHTML = `
+        ${renderYearHeadHtml(year)}
+        <div class="full-calendar__year-body">
+          <div class="full-calendar__year-spacer" aria-hidden="true"></div>
+          <div class="full-calendar__year-window"></div>
+        </div>
+      `;
+
+      const entry = {
+        year,
+        startIndex: start,
+        endIndex: end - 1,
+        el: block,
+        head: block.querySelector(".full-calendar__year-head"),
+        body: block.querySelector(".full-calendar__year-body"),
+        spacer: block.querySelector(".full-calendar__year-spacer"),
+        window: block.querySelector(".full-calendar__year-window"),
+        bodyHeight: 0,
+        blockTop: 0,
+      };
+      yearBlocks.push(entry);
+      dom.fullCalendarMonths.appendChild(block);
+      start = end;
+    }
+
+    measureYearHeadHeight();
   }
 
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -228,7 +321,9 @@ export function createFullCalendarModal({ dom }) {
     relayoutFrame = null;
     scrollFrame = null;
     relayoutEndTimer = null;
-    if (monthsWindow) monthsWindow.replaceChildren();
+    for (const block of yearBlocks) {
+      block.window.replaceChildren();
+    }
 
     if (prefersReducedMotion()) {
       finishClose();
@@ -253,7 +348,6 @@ export function createFullCalendarModal({ dom }) {
     hoverCell = null;
     clearSpotlight();
     hideTooltip();
-    ensureVirtualShell();
 
     if (episodes === renderedEpisodes && monthIndex.length) return;
 
@@ -277,19 +371,19 @@ export function createFullCalendarModal({ dom }) {
     }
 
     if (min === null || max === null) {
+      yearBlocks = [];
       dom.fullCalendarMonths.innerHTML = '<p class="full-calendar__empty">No release dates available.</p>';
-      monthsSpacer = null;
-      monthsWindow = null;
       return;
     }
 
-    ensureVirtualShell();
     for (let ordinal = min; ordinal <= max; ordinal += 1) {
       const year = Math.floor(ordinal / 12);
       const month = ordinal % 12;
       const meta = buildMonthMeta(year, month);
       monthIndex.push(meta);
     }
+
+    rebuildYearShell();
   }
 
   function buildMonthMeta(year, month) {
@@ -315,23 +409,34 @@ export function createFullCalendarModal({ dom }) {
     }
     return `
       <section class="cal-month" data-rows="${rowCount}">
-        <h3 class="cal-month__title">
-          <span class="cal-month__name">${MONTH_NAMES[0]}</span>
-          <span class="cal-month__year">2000</span>
-        </h3>
+        ${renderMonthHeader(MONTH_NAMES[0], 2000)}
         <div class="cal-month__grid">${cells.join("")}</div>
       </section>
     `;
   }
 
+  function renderMonthHeader(monthName, year) {
+    return `
+      <h3 class="cal-month__title" aria-label="${monthName} ${year}">
+        <span class="cal-month__name">${monthName}</span>
+        <span class="cal-month__arm" aria-hidden="true">
+          <span class="cal-month__arm-line"></span>
+        </span>
+      </h3>
+      <div class="cal-month__weekdays" aria-hidden="true">${WEEKDAY_ROW_HTML}</div>
+    `;
+  }
+
   function measureMonthHeights() {
     monthHeightByRows = new Map();
-    if (!monthsWindow || monthIndex.length === 0) return;
+    if (!yearBlocks.length || monthIndex.length === 0) return;
 
+    const probeHost = yearBlocks[0].window;
     const probe = document.createElement("div");
     probe.className = "full-calendar__measure-probe";
     probe.setAttribute("aria-hidden", "true");
-    monthsWindow.appendChild(probe);
+    if (columnWidth > 0) probe.style.width = `${columnWidth}px`;
+    probeHost.appendChild(probe);
 
     for (const rowCount of PROBE_ROW_COUNTS) {
       probe.innerHTML = renderProbeMonth(rowCount);
@@ -346,19 +451,52 @@ export function createFullCalendarModal({ dom }) {
 
   function computeOffsets() {
     offsets = new Array(monthIndex.length);
-    let y = MONTHS_PADDING_TOP;
-    for (let index = 0; index < monthIndex.length; index += 1) {
-      offsets[index] = y;
-      const height = monthHeightByRows.get(monthIndex[index].rowCount) || 0;
-      y += height + (index < monthIndex.length - 1 ? MONTH_GAP : 0);
-    }
-    totalHeight = y;
-  }
+    localOffsets = new Array(monthIndex.length);
+    columnOfMonth = new Array(monthIndex.length);
+    rowStartOfMonth = new Array(monthIndex.length);
+    rowEndOfMonth = new Array(monthIndex.length);
 
-  function updateSpacerHeight() {
-    if (!monthsSpacer) return;
-    monthsSpacer.style.setProperty("--calendar-total-height", `${totalHeight}px`);
-    monthsSpacer.style.height = `${totalHeight}px`;
+    measureYearHeadHeight();
+    let blockTop = 0;
+
+    for (const block of yearBlocks) {
+      block.blockTop = blockTop;
+      const bodyStart = blockTop + yearHeadHeight;
+      let y = MONTHS_PADDING_TOP;
+      let start = block.startIndex;
+
+      while (start <= block.endIndex) {
+        let end = start;
+        while (
+          end <= block.endIndex
+          && end - start < columnCount
+        ) end += 1;
+
+        let rowHeight = 0;
+        for (let index = start; index < end; index += 1) {
+          offsets[index] = bodyStart + y;
+          localOffsets[index] = y;
+          columnOfMonth[index] = index - start;
+          rowStartOfMonth[index] = start;
+          rowEndOfMonth[index] = end - 1;
+          rowHeight = Math.max(rowHeight, monthHeightByRows.get(monthIndex[index].rowCount) || 0);
+        }
+
+        y += rowHeight;
+        if (end <= block.endIndex) y += MONTH_GAP;
+        start = end;
+      }
+
+      block.bodyHeight = y;
+      if (block.spacer) {
+        block.spacer.style.height = `${block.bodyHeight}px`;
+      }
+      const isLast = block === yearBlocks[yearBlocks.length - 1];
+      block.el.style.marginBottom = isLast ? "0px" : `${YEAR_GAP}px`;
+      blockTop = bodyStart + block.bodyHeight + (isLast ? 0 : YEAR_GAP);
+    }
+
+    totalHeight = blockTop;
   }
 
   function getMonthIndexForDate(dateKey) {
@@ -399,9 +537,11 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function getStickyOffset() {
-    const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
-    const weekdayRect = dom.fullCalendarWeekdays.getBoundingClientRect();
-    return Math.max(0, weekdayRect.bottom - bodyRect.top);
+    if (yearHeadHeight > 0) return yearHeadHeight;
+    const head = yearBlocks[0]?.head;
+    if (!head) return 0;
+    yearHeadHeight = head.getBoundingClientRect().height;
+    return yearHeadHeight;
   }
 
   function getMonthsOffsetTop() {
@@ -425,7 +565,7 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function renderVisibleMonths() {
-    if (!monthsWindow || !monthIndex.length) return;
+    if (!yearBlocks.length || !monthIndex.length) return;
 
     syncTooltipWithMountedRange();
 
@@ -434,39 +574,66 @@ export function createFullCalendarModal({ dom }) {
     const firstVisible = findMonthIndexAtOffset(monthScrollY);
     const lastVisible = findMonthIndexAtOffset(monthScrollY + viewportHeight);
 
-    const nextStart = Math.max(0, firstVisible - MONTH_OVERSCAN);
-    const nextEnd = Math.min(monthIndex.length - 1, lastVisible + MONTH_OVERSCAN);
+    const overscan = MONTH_OVERSCAN * columnCount;
+    const nextStart = Math.max(0, (rowStartOfMonth[firstVisible] ?? firstVisible) - overscan);
+    const nextEnd = Math.min(
+      monthIndex.length - 1,
+      (rowEndOfMonth[lastVisible] ?? lastVisible) + overscan,
+    );
 
     if (nextStart === mountedStart && nextEnd === mountedEnd) return;
 
     mountedStart = nextStart;
     mountedEnd = nextEnd;
 
-    const fragment = document.createDocumentFragment();
+    const fragments = new Map();
+    for (const block of yearBlocks) {
+      fragments.set(block.year, document.createDocumentFragment());
+    }
+
     for (let index = nextStart; index <= nextEnd; index += 1) {
+      const meta = monthIndex[index];
+      const fragment = fragments.get(meta.year);
+      if (!fragment) continue;
+
       const wrapper = document.createElement("div");
       wrapper.className = "cal-month-mount";
-      wrapper.style.transform = `translateY(${offsets[index]}px)`;
-      wrapper.innerHTML = monthIndex[index].html;
+      const column = columnOfMonth[index] || 0;
+      wrapper.style.transform = `translate(${column * (columnWidth + columnGap)}px, ${localOffsets[index]}px)`;
+      if (columnCount > 1) wrapper.style.width = `${columnWidth}px`;
+      wrapper.innerHTML = meta.html;
       fragment.appendChild(wrapper);
     }
 
-    monthsWindow.replaceChildren(fragment);
+    for (const block of yearBlocks) {
+      block.window.replaceChildren(fragments.get(block.year));
+    }
+
     syncTooltipWithMountedRange();
 
-    if (pinnedCell && !monthsWindow.contains(pinnedCell)) {
-      pinnedCell = null;
+    let pinnedStillMounted = false;
+    let hoverStillMounted = false;
+    for (const block of yearBlocks) {
+      if (pinnedCell && block.window.contains(pinnedCell)) pinnedStillMounted = true;
+      if (hoverCell && block.window.contains(hoverCell)) hoverStillMounted = true;
     }
-    if (hoverCell && !monthsWindow.contains(hoverCell)) {
-      hoverCell = null;
-    }
+    if (pinnedCell && !pinnedStillMounted) pinnedCell = null;
+    if (hoverCell && !hoverStillMounted) hoverCell = null;
 
     if (activeTooltipDate && isDateInMountedRange(activeTooltipDate)) {
-      const cell = monthsWindow.querySelector(`.cal-cell[data-date="${activeTooltipDate}"]`);
+      const cell = queryMountedCell(activeTooltipDate);
       if (cell && !tooltip.hidden) {
         positionTooltip(cell);
       }
     }
+  }
+
+  function queryMountedCell(dateKey) {
+    for (const block of yearBlocks) {
+      const cell = block.window.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+      if (cell) return cell;
+    }
+    return null;
   }
 
   function scheduleVisibleMonths() {
@@ -478,12 +645,12 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function relayoutCalendar({ preserveScroll = true, deferVisible = false } = {}) {
-    if (!monthIndex.length || !monthsWindow) return;
+    if (!monthIndex.length || !yearBlocks.length) return;
 
     const anchor = preserveScroll ? (activeRelayoutAnchor || viewportAnchor || captureViewportAnchor()) : null;
+    computeColumnLayout();
     measureMonthHeights();
     computeOffsets();
-    updateSpacerHeight();
     mountedStart = -1;
     mountedEnd = -1;
 
@@ -581,10 +748,7 @@ export function createFullCalendarModal({ dom }) {
 
     return `
       <section class="cal-month" data-rows="${rowCount}">
-        <h3 class="cal-month__title">
-          <span class="cal-month__name">${MONTH_NAMES[month]}</span>
-          <span class="cal-month__year">${year}</span>
-        </h3>
+        ${renderMonthHeader(MONTH_NAMES[month], year)}
         <div class="cal-month__grid">${cells.join("")}</div>
       </section>
     `;
@@ -643,7 +807,7 @@ export function createFullCalendarModal({ dom }) {
     mountedEnd = -1;
     renderVisibleMonths();
 
-    const cell = monthsWindow?.querySelector(`.cal-cell[data-date="${anchor.date}"]`);
+    const cell = queryMountedCell(anchor.date);
     if (cell) {
       const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
       const rect = cell.getBoundingClientRect();
@@ -676,7 +840,7 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function scrollToDate(dateKey, { center = true } = {}) {
-    if (!monthsWindow || getMonthIndexForDate(dateKey) < 0) return null;
+    if (!yearBlocks.length || getMonthIndexForDate(dateKey) < 0) return null;
 
     suppressScrollDismiss = true;
     dom.fullCalendarBody.scrollLeft = 0;
@@ -685,7 +849,7 @@ export function createFullCalendarModal({ dom }) {
     mountedEnd = -1;
     renderVisibleMonths();
 
-    const cell = monthsWindow.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+    const cell = queryMountedCell(dateKey);
     if (cell && center) {
       const bodyRect = dom.fullCalendarBody.getBoundingClientRect();
       const stickyOffset = getStickyOffset();
@@ -707,7 +871,7 @@ export function createFullCalendarModal({ dom }) {
       });
     });
 
-    return monthsWindow.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+    return queryMountedCell(dateKey);
   }
 
   function clearSpotlight() {
@@ -741,8 +905,7 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function showTooltipForDate(dateKey) {
-    if (!monthsWindow) return;
-    const cell = monthsWindow.querySelector(`.cal-cell[data-date="${dateKey}"]`);
+    const cell = queryMountedCell(dateKey);
     if (!cell) return;
     pinnedCell = cell;
     showTooltip(cell);

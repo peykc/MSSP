@@ -669,9 +669,18 @@ body.has-player.calendar-open .calendar-modal {
   padding-bottom: calc(var(--mini-player-height) + var(--mini-player-bottom-fill) + clamp(12px, 3vw, 32px));
 }
 
+/* The archive calendar is a fullscreen takeover at every size. The opaque
+   backdrop means the page behind never shows through, so it skips the
+   backdrop blur entirely (live blur is the expensive part of the overlay). */
+#fullCalendarModal {
+  place-items: stretch;
+  padding: 0;
+  background: var(--bg);
+  backdrop-filter: none;
+}
+
 @media (min-width: 561px) {
-  body.calendar-open #calendarModal,
-  body.calendar-open #fullCalendarModal {
+  body.calendar-open #calendarModal {
     place-items: center;
   }
 
@@ -689,13 +698,7 @@ body.has-player.calendar-open .calendar-modal {
     grid-template-rows: auto minmax(0, 1fr) minmax(0, 2fr) minmax(0, 5fr) auto;
   }
 
-  body.calendar-open #fullCalendarModal .full-calendar-dialog {
-    height: min(92dvh, 920px);
-    max-height: min(92dvh, 920px);
-  }
-
-  body.has-player.calendar-open #calendarModal .calendar-dialog,
-  body.has-player.calendar-open #fullCalendarModal .full-calendar-dialog {
+  body.has-player.calendar-open #calendarModal .calendar-dialog {
     height: min(88dvh, 860px);
     max-height: min(88dvh, 860px);
   }
@@ -1080,14 +1083,31 @@ body.calendar-open {
   height: 100%;
 }
 
+/* Fullscreen at every size: the calendar keeps the mobile column treatment
+   and floats centered. --cal-max is a single-column fallback; while open, the
+   JS layout overrides it to fit as many mobile-width month columns as the
+   viewport allows. */
 .full-calendar-dialog {
   --cal-pad: clamp(18px, 3vw, 30px);
-  width: min(100%, 640px);
-  max-height: min(92dvh, 920px);
+  --cal-max: 450px;
+  --cal-col-gap: 28px;
+  width: min(100%, var(--cal-max));
+  height: 100%;
+  max-height: none;
+  margin-inline: auto;
   overflow: hidden;
   grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   padding-inline: 0;
+  padding-bottom: 0;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
+}
+
+#fullCalendarModal .full-calendar-tooltip {
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
 }
 
 .full-calendar-dialog .calendar-dialog__header {
@@ -1107,26 +1127,89 @@ body.calendar-open {
   scrollbar-gutter: stable;
 }
 
-.full-calendar__weekdays {
+body.has-player.calendar-open #fullCalendarModal .full-calendar {
+  padding-bottom: calc(14px + var(--mini-player-height) + var(--mini-player-bottom-fill));
+}
+
+/* Per-year sticky heads live in the calendar flow (like transcript search
+   group heads): each year label sits above that year's months, sticks while
+   you scroll the year, then yields to the next year head. */
+.full-calendar__year-block {
+  position: relative;
+  width: 100%;
+}
+
+.full-calendar__year-block:last-child {
+  margin-bottom: 0;
+}
+
+.full-calendar__year-head {
   position: sticky;
   top: 0;
   z-index: 5;
-  display: grid;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   width: 100%;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 4px;
-  min-width: 0;
-  max-width: 100%;
-  padding: 6px 0 10px;
+  padding: 10px 0 12px;
   background: var(--bg);
 }
 
-.full-calendar__weekday {
-  color: var(--muted);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-align: center;
+.full-calendar__year-arm {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
+}
+
+.full-calendar__year-arm-line {
+  flex: 1;
+  min-width: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(227, 217, 195, 0.28) 18%,
+    rgba(227, 217, 195, 0.28) 82%,
+    transparent
+  );
+}
+
+.full-calendar__year-arm-tip {
+  flex: 0 0 auto;
+  width: 5px;
+  height: 5px;
+  border: 1px solid rgba(227, 217, 195, 0.28);
+  background: transparent;
+  transform: rotate(45deg);
+}
+
+.full-calendar__year-label {
+  flex: 0 0 auto;
+  color: #e3d9c3;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  line-height: 1;
+}
+
+.full-calendar__year-body {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.full-calendar__year-spacer {
+  width: 100%;
+  pointer-events: none;
+}
+
+.full-calendar__year-window {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
 }
 
 .full-calendar__months {
@@ -1135,28 +1218,19 @@ body.calendar-open {
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  padding-block: 14px 0;
+  padding-block: 0;
   padding-inline: 0;
 }
 
-.full-calendar__months-spacer {
-  width: 100%;
-  height: var(--calendar-total-height, 0px);
-  pointer-events: none;
-}
-
-.full-calendar__months-window {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-}
-
+/* Mounts are replaced wholesale by the virtualizer and never animated, so
+   containment beats layer promotion here (will-change would pin a compositor
+   layer per mounted month). */
 .cal-month-mount {
   position: absolute;
+  top: 0;
   left: 0;
   width: 100%;
-  will-change: transform;
+  contain: layout paint style;
 }
 
 .full-calendar__measure-probe {
@@ -1193,17 +1267,41 @@ body.calendar-open {
   text-transform: uppercase;
 }
 
-.cal-month__year {
-  color: var(--muted);
-  font-weight: 600;
+.cal-month__arm {
+  display: flex;
+  align-items: center;
+  align-self: center;
+  flex: 1;
+  min-width: 0;
+  gap: 6px;
 }
 
-.cal-month__title::after {
-  content: "";
+.cal-month__arm-line {
   flex: 1;
-  align-self: center;
+  min-width: 0;
   height: 1px;
-  background: linear-gradient(90deg, var(--line), transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--line) 18%,
+    var(--line) 82%,
+    transparent
+  );
+}
+
+.cal-month__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+  min-width: 0;
+}
+
+.cal-month__weekdays span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-align: center;
 }
 
 .cal-month__grid {
@@ -1269,10 +1367,10 @@ body.calendar-open {
 
 .cal-cell--split {
   background: linear-gradient(
-    to bottom right,
-    color-mix(in srgb, var(--accent-a, #888) 30%, var(--bg)) 0 calc(50% - 1.5px),
+    to right,
+    color-mix(in srgb, var(--accent-a, #888) 30%, rgba(255, 255, 255, 0.03)) 0 calc(50% - 1.5px),
     rgba(0, 0, 0, 0.42) calc(50% - 1.5px) calc(50% + 1.5px),
-    color-mix(in srgb, var(--accent-b, #888) 30%, var(--bg)) calc(50% + 1.5px) 100%
+    color-mix(in srgb, var(--accent-b, #888) 30%, rgba(255, 255, 255, 0.03)) calc(50% + 1.5px) 100%
   );
   box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.16);
 }
@@ -1311,13 +1409,13 @@ body.calendar-open {
 }
 
 .cal-cell__glyph--tl {
-  left: 33%;
-  top: 33%;
+  left: 25%;
+  top: 50%;
 }
 
 .cal-cell__glyph--br {
-  left: 67%;
-  top: 67%;
+  left: 75%;
+  top: 50%;
 }
 
 .full-calendar-tooltip {
@@ -1416,13 +1514,11 @@ body.calendar-open {
     padding: 8px;
   }
 
-  #fullCalendarModal,
   #calendarModal {
     place-items: stretch;
     padding: 0;
   }
 
-  body.has-player.calendar-open #fullCalendarModal,
   body.has-player.calendar-open #calendarModal {
     padding: 0;
   }
@@ -1445,38 +1541,6 @@ body.calendar-open {
 
   .full-calendar-dialog {
     --cal-pad: 12px;
-    width: 100%;
-    height: 100%;
-    max-height: none;
     padding-block: 14px 0;
-    border: 0;
-    border-radius: 0;
-  }
-
-  body.has-player.calendar-open #fullCalendarModal .full-calendar-dialog {
-    max-height: none;
-  }
-
-  body.has-player.calendar-open #fullCalendarModal .full-calendar {
-    padding-bottom: calc(14px + var(--mini-player-height) + var(--mini-player-bottom-fill));
-  }
-
-  .cal-cell--split {
-    background: linear-gradient(
-      to right,
-      color-mix(in srgb, var(--accent-a, #888) 30%, rgba(255, 255, 255, 0.03)) 0 calc(50% - 1.5px),
-      rgba(0, 0, 0, 0.42) calc(50% - 1.5px) calc(50% + 1.5px),
-      color-mix(in srgb, var(--accent-b, #888) 30%, rgba(255, 255, 255, 0.03)) calc(50% + 1.5px) 100%
-    );
-  }
-
-  .cal-cell__glyph--tl {
-    left: 25%;
-    top: 50%;
-  }
-
-  .cal-cell__glyph--br {
-    left: 75%;
-    top: 50%;
   }
 }

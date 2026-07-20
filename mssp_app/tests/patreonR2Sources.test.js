@@ -19,7 +19,7 @@ test("adds the gated UFC R2 source after Patreon validation", async () => {
 
   assert.equal(addPatreonR2Sources([UFC_EPISODE], sources), 1);
   assert.equal(sources[UFC_EPISODE.episodeKey].sourceType, "patreon_r2_audio");
-  assert.match(sources[UFC_EPISODE.episodeKey].url, /\/paytch\/.*UFC%20GAMING%20TOURNAMENT\.mp3$/);
+  assert.match(sources[UFC_EPISODE.episodeKey].url, /\/paytch\/.*UFC%20GAMING%20TOURNAMENT\.m4a$/);
 });
 
 test("does not expose the fallback for unrelated or non-PAYTCH entries", async () => {

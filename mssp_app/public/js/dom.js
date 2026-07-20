@@ -55,7 +55,6 @@ export const dom = {
   fullCalendarDialog: getRequiredElement("fullCalendarDialog"),
   fullCalendarClose: getRequiredElement("fullCalendarClose"),
   fullCalendarLegend: getRequiredElement("fullCalendarLegend"),
-  fullCalendarWeekdays: getRequiredElement("fullCalendarWeekdays"),
   fullCalendarBody: getRequiredElement("fullCalendarBody"),
   fullCalendarMonths: getRequiredElement("fullCalendarMonths"),
   sealedStoneCard: getRequiredElement("sealedStoneCard"),

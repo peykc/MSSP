@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>cal harness</title>
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/archive.css">
+</head>
+<body>
+<div id="app"></div>
+<div id="launchHero" hidden></div>
+<div class="calendar-modal" id="fullCalendarModal" aria-hidden="true" hidden>
+  <section class="calendar-dialog full-calendar-dialog" id="fullCalendarDialog" role="dialog" aria-modal="true" tabindex="-1">
+    <header class="calendar-dialog__header">
+      <div class="calendar-dialog__heading">
+        <h2 id="fullCalendarTitle">Archive Calendar</h2>
+        <div class="full-calendar__legend" id="fullCalendarLegend" role="group" aria-label="Collections"></div>
+      </div>
+      <button class="calendar-dialog__close" id="fullCalendarClose" type="button" aria-label="Close">
+        <span aria-hidden="true"></span>
+      </button>
+    </header>
+    <div class="full-calendar" id="fullCalendarBody">
+      <div class="full-calendar__months" id="fullCalendarMonths"></div>
+    </div>
+  </section>
+</div>
+<script type="module">
+window.requestAnimationFrame = (fn) => setTimeout(() => fn(performance.now()), 16);
+window.cancelAnimationFrame = (id) => clearTimeout(id);
+
+import { createFullCalendarModal } from "./js/fullCalendarModal.js";
+
+const $ = (id) => document.getElementById(id);
+const dom = {
+  app: $("app"),
+  launchHero: $("launchHero"),
+  fullCalendarModal: $("fullCalendarModal"),
+  fullCalendarDialog: $("fullCalendarDialog"),
+  fullCalendarClose: $("fullCalendarClose"),
+  fullCalendarLegend: $("fullCalendarLegend"),
+  fullCalendarBody: $("fullCalendarBody"),
+  fullCalendarMonths: $("fullCalendarMonths"),
+};
+
+const modal = createFullCalendarModal({ dom });
+
+const episodes = [];
+const kinds = ["old", "new", "paytch"];
+let n = 0;
+for (let y = 2016; y <= 2026; y += 1) {
+  const mStart = y === 2016 ? 7 : 0;
+  const mEnd = y === 2026 ? 4 : 11;
+  for (let m = mStart; m <= mEnd; m += 1) {
+    for (const d of [3, 10, 17, 24]) {
+      n += 1;
+      episodes.push({
+        date: `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
+        collectionKind: kinds[n % 3],
+        episode: String(n),
+        title: `Ep ${n}`,
+        coverUrl: "",
+      });
+    }
+  }
+}
+
+window.__cal = {
+  modal,
+  episodes,
+  open: () => modal.open(episodes, null),
+};
+</script>
+</body>
+</html>
