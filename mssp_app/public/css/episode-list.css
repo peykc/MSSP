@@ -334,8 +334,16 @@
   white-space: nowrap;
 }
 
-.episode-row__signal--listeners {
+.episode-row__signal--views {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   color: rgba(255, 255, 255, 0.78);
+}
+
+.episode-row__signal-icon svg {
+  width: 12px;
+  height: 12px;
 }
 
 .episode-row__signal[hidden] {

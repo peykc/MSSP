@@ -599,6 +599,18 @@ body.player-dragging .full-player__collapse {
   display: none;
 }
 
+.full-player__views {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(255, 255, 255, 0.84);
+}
+
+.full-player__views-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
 .full-player__title {
   display: flex;
   min-width: 0;

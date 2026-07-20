@@ -27,12 +27,12 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="stylesheet" href="./css/base.css?v=paytch-coral-a">
     <link rel="stylesheet" href="./css/layout.css?v=a2hs-a">
-    <link rel="stylesheet" href="./css/launch.css?v=a2hs-a">
+    <link rel="stylesheet" href="./css/launch.css?v=dawgs-twitch-a">
     <link rel="stylesheet" href="./css/archive.css?v=tip-nav-c">
     <link rel="stylesheet" href="./css/sealed-stone.css">
-    <link rel="stylesheet" href="./css/library.css?v=archive-fullbleed-a">
-    <link rel="stylesheet" href="./css/episode-list.css?v=fav-empty-a">
-    <link rel="stylesheet" href="./css/episode-details.css?v=fav-empty-b">
+    <link rel="stylesheet" href="./css/library.css?v=dawgs-footer-a">
+    <link rel="stylesheet" href="./css/episode-list.css?v=views-rows-b">
+    <link rel="stylesheet" href="./css/episode-details.css?v=views-rows-b">
     <link rel="stylesheet" href="./css/filters.css">
     <link rel="stylesheet" href="./css/tooltip.css">
     <link rel="stylesheet" href="./css/responsive.css?v=fav-empty-a">
@@ -232,6 +232,19 @@
             <span>Unofficial archive</span>
             <span class="launch-footer__meta-sep" aria-hidden="true"></span>
             <span>Not affiliated with the show</span>
+            <span class="dawgs-online" id="dawgsOnline" hidden aria-live="polite">
+              <span class="dawgs-online__icon" aria-hidden="true">
+                <svg viewBox="0 0 36 36" fill="currentColor" preserveAspectRatio="xMidYMid meet">
+                  <path d="M12,16.14q-.43,0-.87,0a8.67,8.67,0,0,0-6.43,2.52l-.24.28v8.28H8.54v-4.7l.55-.62.25-.29a11,11,0,0,1,4.71-2.86A6.59,6.59,0,0,1,12,16.14Z"></path>
+                  <path d="M31.34,18.63a8.67,8.67,0,0,0-6.43-2.52,10.47,10.47,0,0,0-1.09.06,6.59,6.59,0,0,1-2,2.45,10.91,10.91,0,0,1,5,3l.25.28.54.62v4.71h3.94V18.91Z"></path>
+                  <path d="M11.1,14.19c.11,0,.2,0,.31,0a6.45,6.45,0,0,1,3.11-6.29,4.09,4.09,0,1,0-3.42,6.33Z"></path>
+                  <path d="M24.43,13.44a6.54,6.54,0,0,1,0,.69,4.09,4.09,0,0,0,.58.05h.19A4.09,4.09,0,1,0,21.47,8,6.53,6.53,0,0,1,24.43,13.44Z"></path>
+                  <circle cx="17.87" cy="13.45" r="4.47"></circle>
+                  <path d="M18.11,20.3A9.69,9.69,0,0,0,11,23l-.25.28v6.33a1.57,1.57,0,0,0,1.6,1.54H23.84a1.57,1.57,0,0,0,1.6-1.54V23.3L25.2,23A9.58,9.58,0,0,0,18.11,20.3Z"></path>
+                </svg>
+              </span>
+              <span class="dawgs-online__count" data-dawgs-online-count>—</span>
+            </span>
           </div>
         </footer>
       </section>
@@ -660,7 +673,7 @@
             <p class="full-player__meta" id="fullPlayerMeta"></p>
             <p class="full-player__signals" id="fullPlayerSignals" aria-label="Community activity">
               <span id="fullPlayerStars">★ —</span>
-              <span id="fullPlayerListeners" hidden></span>
+              <span id="fullPlayerViews" class="full-player__views"></span>
             </p>
           </div>
           <div class="full-player__timeline" aria-label="Playback timeline">
@@ -747,6 +760,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=pull-overscroll-a"></script>
+    <script type="module" src="./js/main.js?v=dawgs-full-a"></script>
   </body>
 </html>

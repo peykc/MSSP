@@ -6,11 +6,12 @@ import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
-import { createCommunitySignals } from "./community/communitySignals.js";
-import { dom } from "./dom.js?v=a2hs-a";
-import { createEpisodeDetails } from "./episodeDetails.js?v=fav-empty-a";
-import { createEpisodeList } from "./episodeList.js?v=fav-empty-a";
-import { EPISODE_SHARE_PARAM } from "./episodeRow.js";
+import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=eye-icon-b";
+import { createViewProgress } from "./community/viewProgress.js";
+import { dom } from "./dom.js?v=dawgs-footer-a";
+import { createEpisodeDetails } from "./episodeDetails.js?v=views-rows-b";
+import { createEpisodeList } from "./episodeList.js?v=views-rows-b";
+import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=views-rows-b";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js?v=fav-empty-a";
@@ -20,7 +21,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=cover-ambient-g";
+import { createPlayerView } from "./player/playerView.js?v=views-compact-a";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-a";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=pull-overscroll-a";
@@ -64,6 +65,18 @@ async function init() {
     getClientId: getCommunityClientId,
   });
   communitySignals.start();
+  const communityPresence = createCommunityPresence({ communitySignals });
+  communityPresence.start();
+
+  function renderDawgsOnline(count) {
+    const show = Number.isFinite(count) && count > 0;
+    const label = show ? `${formatCommunityCount(count)} dawgs online` : "Dawgs online";
+    dom.dawgsOnline.hidden = !show;
+    dom.dawgsOnline.setAttribute("aria-label", label);
+    const countElement = dom.dawgsOnline.querySelector("[data-dawgs-online-count]");
+    if (countElement) countElement.textContent = show ? formatCommunityCount(count) : "—";
+  }
+  communitySignals.subscribeOnline(renderDawgsOnline);
   const calendarModal = createCalendarModal({ dom });
   const statsPageView = createStatsPageView({ dom });
   createSealedStoneModal({ dom });
@@ -74,8 +87,8 @@ async function init() {
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
-  const communityPresence = createCommunityPresence({ playerState, communitySignals });
-  communityPresence.start();
+  const viewProgress = createViewProgress({ playerState, communitySignals });
+  viewProgress.start();
   void serviceWorkerRegistration.then((registration) => {
     if (!registration) return;
     initPwaUpdates(registration, {

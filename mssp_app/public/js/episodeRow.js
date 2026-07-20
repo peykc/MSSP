@@ -1,6 +1,6 @@
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { formatEpisodeLabel, formatTimeRemaining } from "./utils.js";
-import { formatCommunityCount, formatListeningSignal } from "./community/communitySignals.js";
+import { formatViewSignal, VIEW_EYE_ICON } from "./community/communitySignals.js?v=eye-icon-b";
 
 export const COMPLETED_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -78,9 +78,11 @@ export function getEpisodeRowHTML({ includePlay = true, includeSignals = false }
     ? `<button class="episode-row__play" type="button"></button>`
     : "";
   const signals = includeSignals
-    ? `<span class="episode-row__signals" aria-label="Community activity">
-        <span class="episode-row__signal episode-row__signal--stars" data-signal="stars">★ —</span>
-        <span class="episode-row__signal episode-row__signal--listeners" data-signal="listeners" hidden></span>
+    ? `<span class="episode-row__signals" aria-label="Episode views">
+        <span class="episode-row__signal episode-row__signal--views" data-signal="views">
+          <span class="episode-row__signal-icon" aria-hidden="true">${VIEW_EYE_ICON}</span>
+          <span class="episode-row__signal-count" data-views-count>0</span>
+        </span>
       </span>`
     : "";
 
@@ -238,17 +240,15 @@ export function updateEpisodeRowFavorite(row, episode, favoritesStore) {
 }
 
 export function updateEpisodeRowSignals(row, episode, communitySignals) {
-  const starsElement = row.querySelector('[data-signal="stars"]');
-  const listenersElement = row.querySelector('[data-signal="listeners"]');
-  if (!starsElement || !listenersElement) return;
+  const viewsElement = row.querySelector('[data-signal="views"] [data-views-count]');
+  if (!viewsElement) return;
   const signals = communitySignals?.getEpisodeSignals(episode.episodeKey) || {
     stars: null,
-    listeners: null,
+    views: null,
   };
-  starsElement.textContent = `★ ${formatCommunityCount(signals.stars, { compact: true })}`;
-  const listeningLabel = formatListeningSignal(signals.listeners, { compact: true });
-  listenersElement.hidden = !listeningLabel;
-  listenersElement.textContent = listeningLabel;
+  // Match stars: show 0 once known; treat unloaded null as 0 so the row never sticks on "—"
+  const views = Number.isFinite(signals.views) ? signals.views : 0;
+  viewsElement.textContent = formatViewSignal(views, { compact: true });
 }
 
 export function updateEpisodeRowMenuItems(row, episode, playbackProgressStore) {

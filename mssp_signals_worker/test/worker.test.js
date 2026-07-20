@@ -4,7 +4,7 @@ import test from "node:test";
 
 import worker, { hashClientId } from "../src/index.js";
 import { EPISODE_KEYS } from "../src/generated/episodeCatalog.js";
-import { PresenceRoom, PRESENCE_TTL_MS } from "../src/presenceRoom.js";
+import { GLOBAL_PRESENCE_ROOM, PresenceRoom, PRESENCE_TTL_MS } from "../src/presenceRoom.js";
 
 const API_ORIGIN = "https://peykc.github.io";
 const API_BASE = "https://mssp-signals.example.workers.dev";
@@ -49,7 +49,7 @@ test("errors retain no-store JSON headers without granting disallowed CORS", asy
 
 test("JSON content type is required only on body routes", async () => {
   const env = createEnv();
-  const counts = await callWorker(env, `/v1/presence/counts?episode=${encodeURIComponent(EPISODE_ONE)}`);
+  const counts = await callWorker(env, `/v1/views/counts?episode=${encodeURIComponent(EPISODE_ONE)}`);
   assert.equal(counts.status, 200);
 
   const toggle = await callWorker(env, "/v1/stars/toggle", {
@@ -97,25 +97,64 @@ test("body validation rejects malformed, oversized, unexpected, and invalid valu
   assert.equal(oversized.status, 413);
 });
 
+test("view records are idempotent and counts reconcile from the final batch query", async () => {
+  const env = createEnv();
+  const record = (clientId) => postJson(env, "/v1/views/record", {
+    clientId,
+    episodeKey: EPISODE_ONE,
+  });
+
+  assert.deepEqual(await (await record(CLIENT_ONE)).json(), {
+    episodeKey: EPISODE_ONE,
+    counted: true,
+    views: 1,
+  });
+  assert.deepEqual(await (await record(CLIENT_ONE)).json(), {
+    episodeKey: EPISODE_ONE,
+    counted: false,
+    views: 1,
+  });
+  assert.deepEqual(await (await record(CLIENT_TWO)).json(), {
+    episodeKey: EPISODE_ONE,
+    counted: true,
+    views: 2,
+  });
+
+  const counts = new URLSearchParams({ episode: EPISODE_ONE });
+  const response = await callWorker(env, `/v1/views/counts?${counts}`);
+  assert.deepEqual(await response.json(), { episodes: { [EPISODE_ONE]: { views: 2 } } });
+});
+
+test("view writes fail before mutation when the D1 catalog is not seeded", async () => {
+  const env = createEnv();
+  env.DB.catalog.delete(EPISODE_ONE);
+  const response = await postJson(env, "/v1/views/record", {
+    clientId: CLIENT_ONE,
+    episodeKey: EPISODE_ONE,
+  });
+  assert.equal(response.status, 409);
+  assert.equal((await response.json()).error.code, "CATALOG_NOT_SEEDED");
+  assert.equal(env.DB.viewEdges.size, 0);
+});
+
 test("count queries allow repeated parameters, dedupe values, and reject unsupported input", async () => {
   const env = createEnv();
   const repeated = new URLSearchParams();
   repeated.append("episode", EPISODE_ONE);
   repeated.append("episode", EPISODE_ONE);
   repeated.append("episode", EPISODE_TWO);
-  const response = await callWorker(env, `/v1/presence/counts?${repeated}`);
+  const response = await callWorker(env, `/v1/views/counts?${repeated}`);
   assert.equal(response.status, 200);
   assert.deepEqual(Object.keys((await response.json()).episodes), [EPISODE_ONE, EPISODE_TWO]);
-  assert.deepEqual(env.PRESENCE.requestedNames, [EPISODE_ONE, EPISODE_TWO]);
 
-  const unsupported = await callWorker(env, `/v1/presence/counts?episodes=${encodeURIComponent(EPISODE_ONE)}`);
+  const unsupported = await callWorker(env, `/v1/views/counts?episodes=${encodeURIComponent(EPISODE_ONE)}`);
   assert.equal(unsupported.status, 400);
   assert.equal((await unsupported.json()).error.code, "UNSUPPORTED_QUERY_PARAMETER");
 
   const tooMany = new URLSearchParams();
   [EPISODE_ONE, EPISODE_TWO, ...OTHER_EPISODES.slice(0, 19)]
     .forEach((episodeKey) => tooMany.append("episode", episodeKey));
-  const oversizedBatch = await callWorker(env, `/v1/presence/counts?${tooMany}`);
+  const oversizedBatch = await callWorker(env, `/v1/views/counts?${tooMany}`);
   assert.equal(oversizedBatch.status, 400);
   assert.equal((await oversizedBatch.json()).error.code, "BATCH_TOO_LARGE");
 });
@@ -139,11 +178,11 @@ test("client hashing is deterministic and raw IDs never enter persistent binding
 
   await postJson(env, "/v1/presence/heartbeat", {
     clientId: CLIENT_ONE,
-    episodeKey: EPISODE_ONE,
-    playing: true,
+    online: true,
   });
   assert.equal(JSON.stringify(env.PRESENCE.payloads).includes(CLIENT_ONE), false);
   assert.equal(env.PRESENCE.payloads[0].clientHash, expected);
+  assert.equal(env.PRESENCE.requestedNames.at(-1), GLOBAL_PRESENCE_ROOM);
 });
 
 test("favorite mutations are idempotent and counts reconcile from the final batch query", async () => {
@@ -180,36 +219,16 @@ test("favorite writes fail before mutation when the D1 catalog is not seeded", a
   assert.equal(env.DB.edges.size, 0);
 });
 
-test("presence count fan-out isolates failed rooms and logs no request identifiers", async () => {
-  const env = createEnv({ environment: "development" });
-  env.PRESENCE.rooms.set(EPISODE_ONE, new Map([["hash", true]]));
-  env.PRESENCE.failedNames.add(EPISODE_TWO);
-  const query = new URLSearchParams();
-  query.append("episode", EPISODE_ONE);
-  query.append("episode", EPISODE_TWO);
-
-  const messages = [];
-  const originalError = console.error;
-  console.error = (...values) => messages.push(values);
-  try {
-    const response = await callWorker(env, `/v1/presence/counts?${query}`);
-    assert.deepEqual(await response.json(), {
-      episodes: {
-        [EPISODE_ONE]: { listeners: 1 },
-        [EPISODE_TWO]: { listeners: 0 },
-      },
-    });
-  } finally {
-    console.error = originalError;
-  }
-
-  assert.deepEqual(messages, [["[MSSP Signals]", "PRESENCE_ROOM_COUNT_FAILED", "Error"]]);
-  const serialized = JSON.stringify(messages);
-  assert.equal(serialized.includes(EPISODE_TWO), false);
-  assert.equal(serialized.includes(CLIENT_ONE), false);
+test("global online count reads from the shared presence room", async () => {
+  const env = createEnv();
+  env.PRESENCE.rooms.set(GLOBAL_PRESENCE_ROOM, new Map([["hash", true]]));
+  const response = await callWorker(env, "/v1/presence/online");
+  assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { online: 1 });
+  assert.deepEqual(env.PRESENCE.requestedNames, [GLOBAL_PRESENCE_ROOM]);
 });
 
-test("PresenceRoom dedupes clients, clears stops, and expires stale listeners", async () => {
+test("PresenceRoom dedupes clients, clears stops, and expires stale online users", async () => {
   const sql = new MockSqlStorage();
   const room = new PresenceRoom({
     storage: { sql },
@@ -233,12 +252,14 @@ test("PresenceRoom dedupes clients, clears stops, and expires stale listeners", 
   }
 });
 
-test("D1 migration contains idempotent trigger-maintained favorite counts", async () => {
-  const migration = await readFile(new URL("../migrations/0001_initial.sql", import.meta.url), "utf8");
-  assert.match(migration, /PRIMARY KEY \(episode_key, client_hash\)/);
-  assert.match(migration, /CREATE TRIGGER IF NOT EXISTS favorite_edges_after_insert/);
-  assert.match(migration, /CREATE TRIGGER IF NOT EXISTS favorite_edges_after_delete/);
-  assert.match(migration, /MAX\(count - 1, 0\)/);
+test("D1 migrations contain idempotent trigger-maintained favorite and view counts", async () => {
+  const initial = await readFile(new URL("../migrations/0001_initial.sql", import.meta.url), "utf8");
+  const views = await readFile(new URL("../migrations/0002_views.sql", import.meta.url), "utf8");
+  assert.match(initial, /PRIMARY KEY \(episode_key, client_hash\)/);
+  assert.match(initial, /CREATE TRIGGER IF NOT EXISTS favorite_edges_after_insert/);
+  assert.match(initial, /CREATE TRIGGER IF NOT EXISTS favorite_edges_after_delete/);
+  assert.match(initial, /MAX\(count - 1, 0\)/);
+  assert.match(views, /CREATE TRIGGER IF NOT EXISTS view_edges_after_insert/);
 });
 
 function createEnv({ environment = "production" } = {}) {
@@ -271,25 +292,27 @@ function assertPublicHeaders(response, allowedOrigin) {
   if (allowedOrigin) assert.equal(response.headers.get("Access-Control-Allow-Origin"), allowedOrigin);
 }
 
-async function roomHeartbeat(room, clientHash, playing) {
+async function roomHeartbeat(room, clientHash, online) {
   const response = await room.fetch(new Request("https://presence.internal/heartbeat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ clientHash, playing }),
+    body: JSON.stringify({ clientHash, online }),
   }));
-  return (await response.json()).listeners;
+  return (await response.json()).online;
 }
 
 async function roomCount(room) {
   const response = await room.fetch(new Request("https://presence.internal/count"));
-  return (await response.json()).listeners;
+  return (await response.json()).online;
 }
 
 class MockD1 {
   constructor() {
     this.catalog = new Set(EPISODE_KEYS);
     this.edges = new Set();
+    this.viewEdges = new Set();
     this.counts = new Map();
+    this.viewCounts = new Map();
     this.boundValues = [];
   }
 
@@ -308,6 +331,15 @@ class MockD1 {
         }
         return { success: true, meta: { changes: this.edges.has(edge) ? 1 : 0 }, results: [] };
       }
+      if (statement.sql.startsWith("INSERT OR IGNORE INTO view_edges")) {
+        const edge = `${episodeKey}\u0000${clientHash}`;
+        const inserted = !this.viewEdges.has(edge);
+        if (inserted) {
+          this.viewEdges.add(edge);
+          this.viewCounts.set(episodeKey, (this.viewCounts.get(episodeKey) || 0) + 1);
+        }
+        return { success: true, meta: { changes: inserted ? 1 : 0 }, results: [] };
+      }
       if (statement.sql.startsWith("DELETE FROM favorite_edges")) {
         const edge = `${episodeKey}\u0000${clientHash}`;
         if (this.edges.delete(edge)) {
@@ -315,8 +347,11 @@ class MockD1 {
         }
         return { success: true, results: [] };
       }
-      if (statement.sql.startsWith("SELECT COALESCE")) {
+      if (statement.sql.startsWith("SELECT COALESCE((SELECT count FROM favorite_counts")) {
         return { success: true, results: [{ count: this.counts.get(episodeKey) || 0 }] };
+      }
+      if (statement.sql.startsWith("SELECT COALESCE((SELECT count FROM view_counts")) {
+        return { success: true, results: [{ count: this.viewCounts.get(episodeKey) || 0 }] };
       }
       throw new Error("Unexpected batch statement");
     });
@@ -347,6 +382,13 @@ class MockD1Statement {
           .map((episode_key) => ({ episode_key, count: this.db.counts.get(episode_key) })),
       };
     }
+    if (this.sql.startsWith("SELECT episode_key, count FROM view_counts")) {
+      return {
+        results: this.values
+          .filter((key) => this.db.viewCounts.has(key))
+          .map((episode_key) => ({ episode_key, count: this.db.viewCounts.get(episode_key) })),
+      };
+    }
     throw new Error("Unexpected D1 query");
   }
 }
@@ -368,40 +410,39 @@ class MockPresenceNamespace {
         if (url.pathname === "/heartbeat") {
           const payload = await request.json();
           this.payloads.push(payload);
-          if (payload.playing) room.set(payload.clientHash, true);
+          if (payload.online) room.set(payload.clientHash, true);
           else room.delete(payload.clientHash);
         }
-        return Response.json({ listeners: room.size });
+        return Response.json({ online: room.size });
       },
     };
   }
 }
 
 class MockSqlStorage {
-  listeners = new Map();
+  clients = new Map();
 
   exec(sql, ...values) {
     const normalized = sql.trim();
-    if (normalized.startsWith("CREATE TABLE")) return cursor([]);
-    if (normalized.startsWith("DELETE FROM listeners WHERE last_seen")) {
+    if (normalized.startsWith("CREATE TABLE") || normalized.startsWith("CREATE INDEX")) return cursor([]);
+    if (normalized.startsWith("DELETE FROM online_clients WHERE last_seen")) {
       const [cutoff] = values;
-      for (const [key, listener] of this.listeners) {
-        if (listener.lastSeen <= cutoff) this.listeners.delete(key);
+      for (const [key, client] of this.clients) {
+        if (client.lastSeen <= cutoff) this.clients.delete(key);
       }
       return cursor([]);
     }
-    if (normalized.startsWith("INSERT INTO listeners")) {
+    if (normalized.startsWith("INSERT INTO online_clients")) {
       const [clientHash, lastSeen] = values;
-      this.listeners.set(clientHash, { playing: 1, lastSeen });
+      this.clients.set(clientHash, { lastSeen });
       return cursor([]);
     }
-    if (normalized.startsWith("DELETE FROM listeners WHERE client_hash")) {
-      this.listeners.delete(values[0]);
+    if (normalized.startsWith("DELETE FROM online_clients WHERE client_hash")) {
+      this.clients.delete(values[0]);
       return cursor([]);
     }
     if (normalized.startsWith("SELECT COUNT(*)")) {
-      const count = [...this.listeners.values()].filter((listener) => listener.playing === 1).length;
-      return cursor([{ count }]);
+      return cursor([{ count: this.clients.size }]);
     }
     throw new Error("Unexpected SQL statement");
   }

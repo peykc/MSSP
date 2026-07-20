@@ -4,7 +4,7 @@ import test from "node:test";
 import {
   createCommunitySignals,
   formatCommunityCount,
-  formatListeningSignal,
+  formatViewSignal,
 } from "../public/js/community/communitySignals.js";
 
 const API_BASE = "https://msspsignal.pkcollection.net";
@@ -17,8 +17,11 @@ test("count loading deduplicates keys, splits at 20, and merges endpoints indepe
     fetchImpl: async (url, options) => {
       requests.push({ url: String(url), options });
       const parsed = new URL(url);
+      if (parsed.pathname.endsWith("/presence/online")) {
+        return Response.json({ online: 3 });
+      }
       const episodeKeys = parsed.searchParams.getAll("episode");
-      const field = parsed.pathname.includes("stars") ? "stars" : "listeners";
+      const field = parsed.pathname.includes("stars") ? "stars" : "views";
       return Response.json({
         episodes: Object.fromEntries(episodeKeys.map((key, index) => [key, { [field]: index + 1 }])),
       });
@@ -29,8 +32,11 @@ test("count loading deduplicates keys, splits at 20, and merges endpoints indepe
 
   assert.equal(requests.length, 6);
   assert.ok(requests.every(({ options }) => options.cache === "no-store" && options.credentials === "omit"));
-  assert.ok(requests.every(({ url }) => new URL(url).searchParams.getAll("episode").length <= 20));
-  assert.deepEqual(signals.getEpisodeSignals(keys[0]), { stars: 1, listeners: 1 });
+  assert.ok(requests.every(({ url }) => {
+    const parsed = new URL(url);
+    return parsed.pathname.endsWith("/presence/online") || parsed.searchParams.getAll("episode").length <= 20;
+  }));
+  assert.deepEqual(signals.getEpisodeSignals(keys[0]), { stars: 1, views: 1 });
 });
 
 test("archive tracking replaces the virtual window instead of accumulating keys", async () => {
@@ -40,7 +46,10 @@ test("archive tracking replaces the virtual window instead of accumulating keys"
     fetchImpl: async (url) => {
       requests.push(String(url));
       const parsed = new URL(url);
-      const field = parsed.pathname.includes("stars") ? "stars" : "listeners";
+      if (parsed.pathname.endsWith("/presence/online")) {
+        return Response.json({ online: 0 });
+      }
+      const field = parsed.pathname.includes("stars") ? "stars" : "views";
       return Response.json({ episodes: Object.fromEntries(parsed.searchParams.getAll("episode").map((key) => [key, { [field]: 0 }])) });
     },
   });
@@ -61,12 +70,15 @@ test("favorite retry does not apply a second optimistic increment", async () => 
     retryDelaysMs: [5],
     fetchImpl: async (url, options) => {
       const parsed = new URL(url);
+      if (parsed.pathname.endsWith("/presence/online")) {
+        return Response.json({ online: 0 });
+      }
       if (parsed.pathname.endsWith("/stars/toggle")) {
         toggleAttempts += 1;
         if (toggleAttempts === 1) throw new Error("offline");
         return Response.json({ episodeKey: "paytch", favorite: true, count: 11 });
       }
-      const field = parsed.pathname.includes("stars") ? "stars" : "listeners";
+      const field = parsed.pathname.includes("stars") ? "stars" : "views";
       return Response.json({ episodes: { paytch: { [field]: field === "stars" ? 10 : 0 } } });
     },
   });
@@ -143,7 +155,10 @@ test("PAYTCH mutations send only the permitted privacy fields", async () => {
         return Response.json({ episodeKey: "paytch-key", favorite: true, count: 1 });
       }
       if (parsed.pathname.endsWith("/presence/heartbeat")) {
-        return Response.json({ episodeKey: "paytch-key", playing: true, listeners: 1 });
+        return Response.json({ online: 1 });
+      }
+      if (parsed.pathname.endsWith("/views/record")) {
+        return Response.json({ episodeKey: "paytch-key", counted: true, views: 1 });
       }
       return Response.json({ episodes: {} });
     },
@@ -151,24 +166,44 @@ test("PAYTCH mutations send only the permitted privacy fields", async () => {
   signals.setKnownEpisodeKeys(["paytch-key"]);
   signals.start();
   signals.setFavorite("paytch-key", { previousFavorite: false, favorite: true });
-  await signals.sendPresenceHeartbeat({ episodeKey: "paytch-key", playing: true, keepalive: true });
+  await signals.sendOnlineHeartbeat({ online: true, keepalive: true });
+  await signals.recordView("paytch-key");
   await wait(5);
   signals.stop();
 
   assert.deepEqual(Object.keys(bodies.find((body) => "favorite" in body)).sort(), ["clientId", "episodeKey", "favorite"]);
-  assert.deepEqual(Object.keys(bodies.find((body) => "playing" in body)).sort(), ["clientId", "episodeKey", "playing"]);
+  assert.deepEqual(Object.keys(bodies.find((body) => "online" in body)).sort(), ["clientId", "online"]);
+  assert.deepEqual(Object.keys(bodies.find((body) => !("favorite" in body) && !("online" in body))).sort(), ["clientId", "episodeKey"]);
   assert.equal(JSON.stringify(bodies).includes("rss"), false);
   assert.equal(JSON.stringify(bodies).includes("audio"), false);
-  assert.equal(requestOptions.find((options) => JSON.parse(options.body).playing === true)?.keepalive, false);
+  assert.equal(requestOptions.find((options) => JSON.parse(options.body).online === true)?.keepalive, false);
 });
 
-test("community formatting hides nonpositive listeners and keeps listening wording", () => {
+test("online count subscribers receive global presence updates", async () => {
+  const signals = createSignals({
+    fetchImpl: async (url) => {
+      const parsed = new URL(url);
+      if (parsed.pathname.endsWith("/presence/online")) {
+        return Response.json({ online: 7 });
+      }
+      return Response.json({ episodes: {} });
+    },
+  });
+  const values = [];
+  signals.subscribeOnline((count) => values.push(count));
+  signals.start();
+  await wait(10);
+  assert.deepEqual(values, [null, 7]);
+  signals.stop();
+});
+
+test("community formatting keeps view counts readable", () => {
   assert.equal(formatCommunityCount(null), "—");
   assert.equal(formatCommunityCount(1200, { compact: true }), "1.2K");
-  assert.equal(formatListeningSignal(null), "");
-  assert.equal(formatListeningSignal(0), "");
-  assert.equal(formatListeningSignal(1), "● 1 listening");
-  assert.equal(formatListeningSignal(2), "● 2 listening");
+  assert.equal(formatViewSignal(null), "—");
+  assert.equal(formatViewSignal(0), "0");
+  assert.equal(formatViewSignal(1), "1");
+  assert.equal(formatViewSignal(1200, { compact: true }), "1.2K");
 });
 
 function createSignals(overrides = {}) {

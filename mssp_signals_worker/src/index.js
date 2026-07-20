@@ -1,5 +1,5 @@
 import { EPISODE_KEYS } from "./generated/episodeCatalog.js";
-import { PresenceRoom } from "./presenceRoom.js";
+import { GLOBAL_PRESENCE_ROOM, PresenceRoom } from "./presenceRoom.js";
 
 export { PresenceRoom } from "./presenceRoom.js";
 
@@ -14,8 +14,10 @@ const ROUTES = new Map([
   ["/v1/health", { methods: ["GET"], handler: handleHealth }],
   ["/v1/stars/toggle", { methods: ["POST"], handler: handleStarToggle }],
   ["/v1/stars/counts", { methods: ["GET"], handler: handleStarCounts }],
+  ["/v1/views/record", { methods: ["POST"], handler: handleViewRecord }],
+  ["/v1/views/counts", { methods: ["GET"], handler: handleViewCounts }],
   ["/v1/presence/heartbeat", { methods: ["POST"], handler: handlePresenceHeartbeat }],
-  ["/v1/presence/counts", { methods: ["GET"], handler: handlePresenceCounts }],
+  ["/v1/presence/online", { methods: ["GET"], handler: handlePresenceOnline }],
 ]);
 
 export default {
@@ -107,52 +109,76 @@ async function handleStarCounts(_request, env, origin, url) {
   return jsonResponse({ episodes }, 200, origin);
 }
 
-async function handlePresenceHeartbeat(request, env, origin, url) {
+async function handleViewRecord(request, env, origin, url) {
   rejectAnyQuery(url);
-  const payload = await readJsonBody(request, ["clientId", "episodeKey", "playing"]);
+  const payload = await readJsonBody(request, ["clientId", "episodeKey"]);
   validateClientId(payload.clientId);
   validateEpisodeKey(payload.episodeKey);
-  if (typeof payload.playing !== "boolean") {
-    throw new HttpError(400, "INVALID_PAYLOAD", "playing must be a boolean");
+
+  await requireSeededEpisodes(env, [payload.episodeKey]);
+  const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
+  const mutation = env.DB.prepare(
+    "INSERT OR IGNORE INTO view_edges (episode_key, client_hash, created_at) VALUES (?1, ?2, ?3)",
+  ).bind(payload.episodeKey, clientHash, Math.floor(Date.now() / 1000));
+  const countQuery = env.DB.prepare(
+    "SELECT COALESCE((SELECT count FROM view_counts WHERE episode_key = ?1), 0) AS count",
+  ).bind(payload.episodeKey);
+  const results = await env.DB.batch([mutation, countQuery]);
+  const insertResult = results[0];
+  const count = normalizeCount(results.at(-1)?.results?.[0]?.count);
+  const counted = Number(insertResult?.meta?.changes) > 0;
+
+  return jsonResponse({
+    episodeKey: payload.episodeKey,
+    counted,
+    views: count,
+  }, 200, origin);
+}
+
+async function handleViewCounts(_request, env, origin, url) {
+  const episodeKeys = parseEpisodeQuery(url);
+  await requireSeededEpisodes(env, episodeKeys);
+  const placeholders = episodeKeys.map((_, index) => `?${index + 1}`).join(", ");
+  const result = await env.DB.prepare(
+    `SELECT episode_key, count FROM view_counts WHERE episode_key IN (${placeholders})`,
+  ).bind(...episodeKeys).all();
+  const counts = new Map((result.results || []).map((row) => [row.episode_key, normalizeCount(row.count)]));
+  const episodes = Object.fromEntries(episodeKeys.map((episodeKey) => [
+    episodeKey,
+    { views: counts.get(episodeKey) || 0 },
+  ]));
+  return jsonResponse({ episodes }, 200, origin);
+}
+
+async function handlePresenceHeartbeat(request, env, origin, url) {
+  rejectAnyQuery(url);
+  const payload = await readJsonBody(request, ["clientId", "online"]);
+  validateClientId(payload.clientId);
+  if (typeof payload.online !== "boolean") {
+    throw new HttpError(400, "INVALID_PAYLOAD", "online must be a boolean");
   }
 
   const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
-  const response = await presenceStub(env, payload.episodeKey).fetch(
+  const response = await globalPresenceStub(env).fetch(
     new Request("https://presence.internal/heartbeat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ clientHash, playing: payload.playing }),
+      body: JSON.stringify({ clientHash, online: payload.online }),
     }),
   );
   const roomResult = await readRoomResponse(response);
   return jsonResponse({
-    episodeKey: payload.episodeKey,
-    playing: payload.playing,
-    listeners: normalizeCount(roomResult.listeners),
+    online: normalizeCount(roomResult.online),
   }, 200, origin);
 }
 
-async function handlePresenceCounts(_request, env, origin, url) {
-  const episodeKeys = parseEpisodeQuery(url);
-  const settled = await Promise.allSettled(episodeKeys.map(async (episodeKey) => {
-    const response = await presenceStub(env, episodeKey).fetch(
-      new Request("https://presence.internal/count"),
-    );
-    const roomResult = await readRoomResponse(response);
-    return normalizeCount(roomResult.listeners);
-  }));
-
-  const episodes = {};
-  settled.forEach((result, index) => {
-    const episodeKey = episodeKeys[index];
-    if (result.status === "fulfilled") {
-      episodes[episodeKey] = { listeners: result.value };
-      return;
-    }
-    safeDevelopmentLog(env, "PRESENCE_ROOM_COUNT_FAILED", result.reason);
-    episodes[episodeKey] = { listeners: 0 };
-  });
-  return jsonResponse({ episodes }, 200, origin);
+async function handlePresenceOnline(_request, env, origin, url) {
+  rejectAnyQuery(url);
+  const response = await globalPresenceStub(env).fetch(
+    new Request("https://presence.internal/count"),
+  );
+  const roomResult = await readRoomResponse(response);
+  return jsonResponse({ online: normalizeCount(roomResult.online) }, 200, origin);
 }
 
 async function requireSeededEpisodes(env, episodeKeys) {
@@ -262,17 +288,17 @@ export async function hashClientId(clientId, salt) {
     .join("");
 }
 
-function presenceStub(env, episodeKey) {
+function globalPresenceStub(env) {
   if (!env.PRESENCE?.getByName) {
     throw new HttpError(500, "CONFIGURATION_ERROR", "Server configuration error");
   }
-  return env.PRESENCE.getByName(episodeKey);
+  return env.PRESENCE.getByName(GLOBAL_PRESENCE_ROOM);
 }
 
 async function readRoomResponse(response) {
   if (!response?.ok) throw new Error("PresenceRoomError");
   const value = await response.json();
-  if (!value || typeof value.listeners !== "number") throw new Error("PresenceRoomPayloadError");
+  if (!value || typeof value.online !== "number") throw new Error("PresenceRoomPayloadError");
   return value;
 }
 

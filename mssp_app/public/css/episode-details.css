@@ -122,14 +122,10 @@
 
 .hero-details__stats {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  column-gap: 18px;
+  grid-template-columns: minmax(7.5rem, 1.35fr) minmax(5.5rem, 1fr);
+  column-gap: 20px;
   width: 100%;
   margin-top: 4px;
-}
-
-.hero-details__stats:has(.hero-details__stat--listeners[hidden]) {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .hero-details__stat {
@@ -139,6 +135,15 @@
   min-width: 0;
   padding: 0;
   text-align: left;
+}
+
+.hero-details__stat--duration {
+  min-width: 0;
+}
+
+.hero-details__stat--favorite {
+  min-width: 0;
+  justify-self: start;
 }
 
 button.hero-details__stat {
@@ -178,11 +183,6 @@ button.hero-details__stat:focus-visible {
   height: 20px;
 }
 
-.hero-details__stat--listeners .hero-details__stat-icon svg {
-  width: 22px;
-  height: 22px;
-}
-
 .hero-details__stat-value {
   display: block;
   flex: 0 1 auto;
@@ -195,9 +195,24 @@ button.hero-details__stat:focus-visible {
   font-variant-numeric: tabular-nums;
 }
 
+.hero-details__stat--duration .hero-details__stat-value {
+  min-width: 5.5ch;
+}
+
+.hero-details__stat--favorite .hero-details__stat-value {
+  min-width: 5ch;
+}
+
 @media (min-width: 561px) {
   .hero-details__stat-value {
     flex: 1 1 auto;
-    min-width: 4.75rem;
+  }
+
+  .hero-details__stat--duration .hero-details__stat-value {
+    min-width: 6.5ch;
+  }
+
+  .hero-details__stat--favorite .hero-details__stat-value {
+    min-width: 5ch;
   }
 }

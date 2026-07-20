@@ -13,6 +13,12 @@ const compactNumberFormatter = new Intl.NumberFormat("en-US", {
   maximumFractionDigits: 1,
 });
 
+export const VIEW_EYE_ICON = `
+  <svg aria-hidden="true" viewBox="0 0 512 512" fill="currentColor">
+    <path d="M0,226v32c128,192,384,192,512,0v-32C384,34,128,34,0,226z M256,370c-70.7,0-128-57.3-128-128s57.3-128,128-128s128,57.3,128,128S326.7,370,256,370z M256,170c0-8.3,1.7-16.1,4.3-23.6c-1.5-0.1-2.8-0.4-4.3-0.4c-53,0-96,43-96,96s43,96,96,96c53,0,96-43,96-96c0-1.5-0.4-2.8-0.4-4.3c-7.4,2.6-15.3,4.3-23.6,4.3C288.2,242,256,209.8,256,170z"></path>
+  </svg>
+`;
+
 export function createCommunitySignals({
   apiBase,
   getClientId,
@@ -30,7 +36,8 @@ export function createCommunitySignals({
 
   const normalizedApiBase = String(apiBase).replace(/\/+$/, "");
   const signalsByEpisode = new Map();
-  const listeners = new Set();
+  const episodeListeners = new Set();
+  const onlineListeners = new Set();
   const trackedScopes = new Map();
   const knownEpisodeKeys = new Set();
   const latestRequestByFieldKey = new Map();
@@ -44,6 +51,8 @@ export function createCommunitySignals({
   let favoriteRetryIndex = 0;
   let backgroundFailureCount = 0;
   let backgroundPollingSuspended = false;
+  let onlineCount = null;
+  let latestOnlineRequest = 0;
 
   const setTimeoutFn = windowRef?.setTimeout?.bind(windowRef) || globalThis.setTimeout;
   const clearTimeoutFn = windowRef?.clearTimeout?.bind(windowRef) || globalThis.clearTimeout;
@@ -57,7 +66,9 @@ export function createCommunitySignals({
     documentRef?.addEventListener?.("visibilitychange", handleVisibilityChange);
     refreshTimer = setIntervalFn(() => {
       void refreshTrackedEpisodes({ background: true });
+      void refreshOnlineCount({ background: true });
     }, refreshIntervalMs);
+    void refreshOnlineCount({ force: true });
     flushFavoriteOutbox();
   }
 
@@ -75,14 +86,24 @@ export function createCommunitySignals({
   }
 
   function subscribe(listener) {
-    listeners.add(listener);
+    episodeListeners.add(listener);
     listener(new Set());
-    return () => listeners.delete(listener);
+    return () => episodeListeners.delete(listener);
+  }
+
+  function subscribeOnline(listener) {
+    onlineListeners.add(listener);
+    listener(onlineCount);
+    return () => onlineListeners.delete(listener);
+  }
+
+  function getOnlineCount() {
+    return onlineCount;
   }
 
   function getEpisodeSignals(episodeKey) {
     const value = signalsByEpisode.get(episodeKey);
-    return value ? { stars: value.stars, listeners: value.listeners } : { stars: null, listeners: null };
+    return value ? { stars: value.stars, views: value.views } : { stars: null, views: null };
   }
 
   function setKnownEpisodeKeys(episodeKeys) {
@@ -119,7 +140,7 @@ export function createCommunitySignals({
     const tasks = [];
     for (const chunk of chunkArray(keys, MAX_BATCH_SIZE)) {
       tasks.push(fetchCountChunk("stars", "/v1/stars/counts", chunk));
-      tasks.push(fetchCountChunk("listeners", "/v1/presence/counts", chunk));
+      tasks.push(fetchCountChunk("views", "/v1/views/counts", chunk));
     }
     const settled = await Promise.allSettled(tasks);
     const successes = settled.filter((result) => result.status === "fulfilled").length;
@@ -148,28 +169,80 @@ export function createCommunitySignals({
     flushFavoriteOutbox();
   }
 
-  async function sendPresenceHeartbeat({ episodeKey, playing, keepalive = false } = {}) {
-    if (!isKnownEpisode(episodeKey) || typeof playing !== "boolean") return false;
+  async function recordView(episodeKey) {
+    if (!isKnownEpisode(episodeKey)) return false;
+    try {
+      const response = await fetchImpl(`${normalizedApiBase}/v1/views/record`, {
+        method: "POST",
+        cache: "no-store",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: getClientId(),
+          episodeKey,
+        }),
+      });
+      if (!response.ok) return false;
+      const payload = await response.json();
+      if (payload?.episodeKey === episodeKey && Number.isFinite(payload.views)) {
+        updateSignalField(episodeKey, "views", normalizeCount(payload.views));
+      }
+      return payload?.counted === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function sendOnlineHeartbeat({ online, keepalive = false } = {}) {
+    if (typeof online !== "boolean") return false;
     try {
       const response = await fetchImpl(`${normalizedApiBase}/v1/presence/heartbeat`, {
         method: "POST",
         cache: "no-store",
         credentials: "omit",
-        keepalive: Boolean(keepalive && !playing),
+        keepalive: Boolean(keepalive && !online),
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           clientId: getClientId(),
-          episodeKey,
-          playing,
+          online,
         }),
       });
       if (!response.ok) return false;
       const payload = await response.json();
-      if (payload?.episodeKey === episodeKey && Number.isFinite(payload.listeners)) {
-        updateSignalField(episodeKey, "listeners", normalizeCount(payload.listeners));
+      if (Number.isFinite(payload.online)) {
+        setOnlineCount(normalizeCount(payload.online));
       }
       return true;
     } catch {
+      return false;
+    }
+  }
+
+  async function refreshOnlineCount({ background = false, force = false } = {}) {
+    if (background && backgroundPollingSuspended && !force) return false;
+    const sequence = ++requestSequence;
+    latestOnlineRequest = sequence;
+    try {
+      const response = await fetchImpl(`${normalizedApiBase}/v1/presence/online`, {
+        method: "GET",
+        cache: "no-store",
+        credentials: "omit",
+      });
+      if (!response.ok) throw new Error("Online count request failed");
+      const payload = await response.json();
+      if (latestOnlineRequest !== sequence) return true;
+      if (!Number.isFinite(payload.online)) throw new Error("Online count response was invalid");
+      setOnlineCount(normalizeCount(payload.online));
+      if (background) {
+        backgroundFailureCount = 0;
+        backgroundPollingSuspended = false;
+      }
+      return true;
+    } catch {
+      if (background) {
+        backgroundFailureCount += 1;
+        if (backgroundFailureCount >= MAX_BACKGROUND_FAILURES) backgroundPollingSuspended = true;
+      }
       return false;
     }
   }
@@ -260,10 +333,16 @@ export function createCommunitySignals({
   }
 
   function setSignalField(episodeKey, field, value) {
-    const current = signalsByEpisode.get(episodeKey) || { stars: null, listeners: null };
+    const current = signalsByEpisode.get(episodeKey) || { stars: null, views: null };
     if (current[field] === value) return false;
     signalsByEpisode.set(episodeKey, { ...current, [field]: value });
     return true;
+  }
+
+  function setOnlineCount(value) {
+    if (onlineCount === value) return;
+    onlineCount = value;
+    for (const listener of onlineListeners) listener(onlineCount);
   }
 
   function refreshTrackedEpisodes({ background = false, force = false } = {}) {
@@ -282,6 +361,7 @@ export function createCommunitySignals({
     favoriteRetryTimer = null;
     flushFavoriteOutbox();
     void refreshTrackedEpisodes({ force: true });
+    void refreshOnlineCount({ force: true });
   }
 
   function handleVisibilityChange() {
@@ -316,19 +396,23 @@ export function createCommunitySignals({
 
   function notify(changedKeys) {
     if (!changedKeys.size) return;
-    for (const listener of listeners) listener(new Set(changedKeys));
+    for (const listener of episodeListeners) listener(new Set(changedKeys));
   }
 
   return {
     start,
     stop,
     subscribe,
+    subscribeOnline,
+    getOnlineCount,
     getEpisodeSignals,
     setKnownEpisodeKeys,
     setTrackedEpisodeKeys,
     loadCountsForEpisodes,
     setFavorite,
-    sendPresenceHeartbeat,
+    recordView,
+    sendOnlineHeartbeat,
+    refreshOnlineCount,
   };
 }
 
@@ -337,9 +421,8 @@ export function formatCommunityCount(value, { compact = false } = {}) {
   return (compact ? compactNumberFormatter : fullNumberFormatter).format(normalizeCount(value));
 }
 
-export function formatListeningSignal(value, { compact = false } = {}) {
-  if (!Number.isFinite(value) || value <= 0) return "";
-  return `● ${formatCommunityCount(value, { compact })} listening`;
+export function formatViewSignal(value, { compact = false } = {}) {
+  return formatCommunityCount(value, { compact });
 }
 
 function readOutbox(storage) {

@@ -1,4 +1,5 @@
 export const PRESENCE_TTL_MS = 90_000;
+export const GLOBAL_PRESENCE_ROOM = "global";
 
 const CLIENT_HASH_PATTERN = /^[0-9a-f]{64}$/;
 
@@ -8,13 +9,12 @@ export class PresenceRoom {
     this.sql = state.storage.sql;
     const initialize = async () => {
       this.sql.exec(`
-        CREATE TABLE IF NOT EXISTS listeners (
+        CREATE TABLE IF NOT EXISTS online_clients (
           client_hash TEXT PRIMARY KEY,
-          playing INTEGER NOT NULL,
           last_seen INTEGER NOT NULL
         );
-        CREATE INDEX IF NOT EXISTS idx_listeners_live
-        ON listeners (playing, last_seen);
+        CREATE INDEX IF NOT EXISTS idx_online_clients_last_seen
+        ON online_clients (last_seen);
       `);
     };
     this.ready = state.blockConcurrencyWhile
@@ -43,43 +43,42 @@ export class PresenceRoom {
       return internalJson({ error: "invalid_json" }, 400);
     }
 
-    if (!isExactObject(payload, ["clientHash", "playing"])
+    if (!isExactObject(payload, ["clientHash", "online"])
       || !CLIENT_HASH_PATTERN.test(payload.clientHash)
-      || typeof payload.playing !== "boolean") {
+      || typeof payload.online !== "boolean") {
       return internalJson({ error: "invalid_payload" }, 400);
     }
 
     const now = Date.now();
     this.deleteExpired(now);
-    if (payload.playing) {
+    if (payload.online) {
       this.sql.exec(
-        `INSERT INTO listeners (client_hash, playing, last_seen)
-         VALUES (?, 1, ?)
+        `INSERT INTO online_clients (client_hash, last_seen)
+         VALUES (?, ?)
          ON CONFLICT(client_hash) DO UPDATE SET
-           playing = 1,
            last_seen = excluded.last_seen`,
         payload.clientHash,
         now,
       );
     } else {
-      this.sql.exec("DELETE FROM listeners WHERE client_hash = ?", payload.clientHash);
+      this.sql.exec("DELETE FROM online_clients WHERE client_hash = ?", payload.clientHash);
     }
 
-    return internalJson({ listeners: this.countListeners() });
+    return internalJson({ online: this.countOnline() });
   }
 
   handleCount() {
     this.deleteExpired(Date.now());
-    return internalJson({ listeners: this.countListeners() });
+    return internalJson({ online: this.countOnline() });
   }
 
   deleteExpired(now) {
-    this.sql.exec("DELETE FROM listeners WHERE last_seen <= ?", now - PRESENCE_TTL_MS);
+    this.sql.exec("DELETE FROM online_clients WHERE last_seen <= ?", now - PRESENCE_TTL_MS);
   }
 
-  countListeners() {
+  countOnline() {
     const row = this.sql.exec(
-      "SELECT COUNT(*) AS count FROM listeners WHERE playing = 1",
+      "SELECT COUNT(*) AS count FROM online_clients",
     ).one();
     return normalizeCount(row?.count);
   }

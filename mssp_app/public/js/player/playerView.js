@@ -4,7 +4,7 @@ import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-g";
 import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-m";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";
-import { formatCommunityCount, formatListeningSignal } from "../community/communitySignals.js";
+import { formatCommunityCount, formatViewSignal, VIEW_EYE_ICON } from "../community/communitySignals.js?v=eye-icon-b";
 import {
   createEpisodeRow,
   createEpisodeRowMenuManager,
@@ -14,7 +14,7 @@ import {
   updateEpisodeRowMenuItems,
   updateEpisodeRowProgress,
   updateEpisodeRowSignals,
-} from "../episodeRow.js";
+} from "../episodeRow.js?v=views-rows-b";
 
 const SEEK_BACK_SECONDS = 15;
 const SEEK_FORWARD_SECONDS = 30;
@@ -507,16 +507,13 @@ export function createPlayerView({
     const episode = playerState.getState().selectedEpisode;
     const signals = episode
       ? communitySignals?.getEpisodeSignals(episode.episodeKey)
-      : { stars: null, listeners: null };
+      : { stars: null, views: null };
     dom.fullPlayerStars.textContent = `★ ${formatCommunityCount(signals?.stars)}`;
-    const listeningLabel = formatListeningSignal(signals?.listeners);
-    dom.fullPlayerListeners.hidden = !listeningLabel;
-    dom.fullPlayerListeners.textContent = listeningLabel;
+    const viewsCount = formatViewSignal(signals?.views, { compact: true });
+    dom.fullPlayerViews.innerHTML = `<span class="full-player__views-icon" aria-hidden="true">${VIEW_EYE_ICON}</span><span>${viewsCount}</span>`;
     dom.fullPlayerSignals.setAttribute(
       "aria-label",
-      listeningLabel
-        ? `${formatCommunityCount(signals?.stars)} total stars, ${listeningLabel.replace(/^●\s*/, "")}`
-        : `${formatCommunityCount(signals?.stars)} total stars`,
+      `${formatCommunityCount(signals?.stars)} total stars, ${viewsCount} views`,
     );
   }
 

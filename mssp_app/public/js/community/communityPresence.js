@@ -1,22 +1,12 @@
-import { PLAYBACK_STATUSES } from "../player/playerState.js";
-
-const ACTIVE_STATUSES = new Set([
-  PLAYBACK_STATUSES.LOADING_SOURCE,
-  PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
-  PLAYBACK_STATUSES.PLAYING,
-]);
-
 export function createCommunityPresence({
-  playerState,
   communitySignals,
   documentRef = globalThis.document,
   windowRef = globalThis.window,
   heartbeatIntervalMs = 20_000,
 } = {}) {
   let started = false;
-  let unsubscribe = null;
-  let desiredEpisodeKey = null;
-  let activeEpisodeKey = null;
+  let desiredOnline = false;
+  let activeOnline = false;
   let heartbeatTimer = null;
   let transition = Promise.resolve();
 
@@ -26,54 +16,44 @@ export function createCommunityPresence({
   function start() {
     if (started) return;
     started = true;
-    unsubscribe = playerState.subscribe(handlePlayerState);
     documentRef?.addEventListener?.("visibilitychange", handleVisibilityChange);
     windowRef?.addEventListener?.("online", handleOnline);
     windowRef?.addEventListener?.("beforeunload", handleBeforeUnload);
+    reconcilePresence();
   }
 
   function stop() {
     if (!started) return;
     started = false;
-    unsubscribe?.();
-    unsubscribe = null;
     documentRef?.removeEventListener?.("visibilitychange", handleVisibilityChange);
     windowRef?.removeEventListener?.("online", handleOnline);
     windowRef?.removeEventListener?.("beforeunload", handleBeforeUnload);
     clearHeartbeatTimer();
-    if (activeEpisodeKey) {
-      void communitySignals.sendPresenceHeartbeat({
-        episodeKey: activeEpisodeKey,
-        playing: false,
-        keepalive: true,
-      });
-      activeEpisodeKey = null;
+    if (activeOnline) {
+      void communitySignals.sendOnlineHeartbeat({ online: false, keepalive: true });
+      activeOnline = false;
     }
-    desiredEpisodeKey = null;
-  }
-
-  function handlePlayerState(state) {
-    desiredEpisodeKey = getListeningEpisodeKey(state, documentRef?.visibilityState || "visible");
-    queueReconcile();
+    desiredOnline = false;
   }
 
   function handleVisibilityChange() {
-    handlePlayerState(playerState.getState());
+    reconcilePresence();
   }
 
   function handleOnline() {
-    if (activeEpisodeKey) {
-      void communitySignals.sendPresenceHeartbeat({ episodeKey: activeEpisodeKey, playing: true });
+    if (desiredOnline) {
+      void communitySignals.sendOnlineHeartbeat({ online: true });
     }
   }
 
   function handleBeforeUnload() {
-    if (!activeEpisodeKey) return;
-    void communitySignals.sendPresenceHeartbeat({
-      episodeKey: activeEpisodeKey,
-      playing: false,
-      keepalive: true,
-    });
+    if (!activeOnline) return;
+    void communitySignals.sendOnlineHeartbeat({ online: false, keepalive: true });
+  }
+
+  function reconcilePresence() {
+    desiredOnline = documentRef?.visibilityState === "visible";
+    queueReconcile();
   }
 
   function queueReconcile() {
@@ -81,29 +61,19 @@ export function createCommunityPresence({
   }
 
   async function reconcile() {
-    if (!started || desiredEpisodeKey === activeEpisodeKey) return;
+    if (!started || desiredOnline === activeOnline) return;
     clearHeartbeatTimer();
-    const previousEpisodeKey = activeEpisodeKey;
-    activeEpisodeKey = null;
-    if (previousEpisodeKey) {
-      await communitySignals.sendPresenceHeartbeat({
-        episodeKey: previousEpisodeKey,
-        playing: false,
-      });
+    if (activeOnline) {
+      await communitySignals.sendOnlineHeartbeat({ online: false });
+      activeOnline = false;
     }
-    if (!started || !desiredEpisodeKey) return;
-    activeEpisodeKey = desiredEpisodeKey;
-    await communitySignals.sendPresenceHeartbeat({
-      episodeKey: activeEpisodeKey,
-      playing: true,
-    });
-    if (!started || !activeEpisodeKey) return;
+    if (!started || !desiredOnline) return;
+    activeOnline = true;
+    await communitySignals.sendOnlineHeartbeat({ online: true });
+    if (!started || !activeOnline) return;
     heartbeatTimer = setIntervalFn(() => {
-      if (!activeEpisodeKey) return;
-      void communitySignals.sendPresenceHeartbeat({
-        episodeKey: activeEpisodeKey,
-        playing: true,
-      });
+      if (!activeOnline) return;
+      void communitySignals.sendOnlineHeartbeat({ online: true });
     }, heartbeatIntervalMs);
   }
 
@@ -113,11 +83,4 @@ export function createCommunityPresence({
   }
 
   return { start, stop };
-}
-
-export function getListeningEpisodeKey(state, visibilityState = "visible") {
-  if (!state?.selectedEpisode?.episodeKey || !state.playbackRequested) return null;
-  if (!ACTIVE_STATUSES.has(state.playbackStatus)) return null;
-  if (visibilityState !== "visible" && state.playbackStatus !== PLAYBACK_STATUSES.PLAYING) return null;
-  return state.selectedEpisode.episodeKey;
 }
