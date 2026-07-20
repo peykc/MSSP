@@ -334,7 +334,7 @@ export function initLaunchPullToRefresh({
   function launchIsEligible() {
     return document.visibilityState === "visible"
       && !launchView.classList.contains("is-covered")
-      && !document.body.matches(".library-open, .stats-open, .calendar-open, .patreon-rss-open, .player-expanded, .search-results-open")
+      && !document.body.matches(".library-open, .stats-open, .calendar-open, .patreon-rss-open, .a2hs-open, .player-expanded, .search-results-open")
       && scroller.scrollTop <= 1;
   }
 

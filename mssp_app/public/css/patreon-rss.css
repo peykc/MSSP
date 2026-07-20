@@ -489,7 +489,24 @@ body.patreon-rss-dragging .patreon-rss-dialog__drag {
   opacity: 0.58;
 }
 
-body.patreon-rss-open { overflow: hidden; }
+body.patreon-rss-open,
+body.a2hs-open { overflow: hidden; }
+
+.a2hs-modal .patreon-rss-dialog__guide {
+  display: block;
+}
+
+.a2hs-modal .patreon-rss-dialog__guide-visual {
+  min-width: 148px;
+  min-height: 240px;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.a2hs-modal .a2hs-dialog__close .patreon-rss-dialog__info-mark {
+  font-size: 1.35rem;
+  font-weight: 600;
+}
 
 body.patreon-rss-dragging {
   user-select: none;

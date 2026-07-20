@@ -22,7 +22,7 @@
   overflow-y: auto;
 }
 
-body:is(.calendar-open, .patreon-rss-open, .player-expanded, .search-results-open) #app {
+body:is(.calendar-open, .patreon-rss-open, .a2hs-open, .player-expanded, .search-results-open) #app {
   overflow: hidden;
   overscroll-behavior: none;
 }

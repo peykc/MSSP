@@ -26,8 +26,8 @@
     <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="stylesheet" href="./css/base.css?v=paytch-coral-a">
-    <link rel="stylesheet" href="./css/layout.css?v=search-scroll-lock-b">
-    <link rel="stylesheet" href="./css/launch.css?v=launch-fav-f">
+    <link rel="stylesheet" href="./css/layout.css?v=a2hs-a">
+    <link rel="stylesheet" href="./css/launch.css?v=a2hs-a">
     <link rel="stylesheet" href="./css/archive.css?v=tip-nav-c">
     <link rel="stylesheet" href="./css/sealed-stone.css">
     <link rel="stylesheet" href="./css/library.css?v=archive-fullbleed-a">
@@ -38,8 +38,8 @@
     <link rel="stylesheet" href="./css/responsive.css?v=fav-empty-a">
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
-    <link rel="stylesheet" href="./css/pwa-update.css">
-    <link rel="stylesheet" href="./css/patreon-rss.css?v=paytch-coral-a">
+    <link rel="stylesheet" href="./css/pwa-update.css?v=a2hs-a">
+    <link rel="stylesheet" href="./css/patreon-rss.css?v=a2hs-a">
     <link rel="stylesheet" href="./css/transcript.css?v=cover-ambient-g">
     <link rel="stylesheet" href="./css/global-search.css?v=sort-reveal-a">
     <style>
@@ -105,17 +105,27 @@
               <span class="launch__favorites__count" id="launchFavoritesCount" aria-hidden="true" hidden>0</span>
             </button>
           </div>
-          <button class="launch__paytch-link" id="patreonRssLogoButton" type="button" aria-label="Link PAYTCH">
-            <span class="launch__paytch-link__label">Link PAYTCH</span>
-            <svg class="launch__paytch-link__icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" aria-hidden="true">
-              <g transform="matrix(.47407 0 0 .47407 .383 .422)">
-                <clipPath id="launchPatreonClip"><path d="M0 0h1080v1080H0z"/></clipPath>
-                <g clip-path="url(#launchPatreonClip)">
-                  <path fill="currentColor" fill-rule="nonzero" d="M1033.05 324.45c-.19-137.9-107.59-250.92-233.6-291.7-156.48-50.64-362.86-43.3-512.28 27.2-181.1 85.46-237.99 272.66-240.11 459.36-1.74 153.5 13.58 557.79 241.62 560.67 169.44 2.15 194.67-216.18 273.07-321.33 55.78-74.81 127.6-95.94 216.01-117.82 151.95-37.61 255.51-157.53 255.29-316.38z"/>
+          <div class="launch__top-actions">
+            <button class="launch__a2hs" id="launchA2hsButton" type="button" aria-label="Add to Home Screen" hidden>
+              <svg class="launch__a2hs__icon" aria-hidden="true" viewBox="0 0 24 24" fill="none">
+                <path d="M3 10V18C3 19.1046 3.89543 20 5 20H12M3 10V6C3 4.89543 3.89543 4 5 4H19C20.1046 4 21 4.89543 21 6V10M3 10H21M21 10V13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M17.5 15L17.5 21M17.5 21L20 18.5M17.5 21L15 18.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="6" cy="7" r="1" fill="currentColor"/>
+                <circle cx="9" cy="7" r="1" fill="currentColor"/>
+              </svg>
+            </button>
+            <button class="launch__paytch-link" id="patreonRssLogoButton" type="button" aria-label="Link PAYTCH">
+              <span class="launch__paytch-link__label">Link PAYTCH</span>
+              <svg class="launch__paytch-link__icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" aria-hidden="true">
+                <g transform="matrix(.47407 0 0 .47407 .383 .422)">
+                  <clipPath id="launchPatreonClip"><path d="M0 0h1080v1080H0z"/></clipPath>
+                  <g clip-path="url(#launchPatreonClip)">
+                    <path fill="currentColor" fill-rule="nonzero" d="M1033.05 324.45c-.19-137.9-107.59-250.92-233.6-291.7-156.48-50.64-362.86-43.3-512.28 27.2-181.1 85.46-237.99 272.66-240.11 459.36-1.74 153.5 13.58 557.79 241.62 560.67 169.44 2.15 194.67-216.18 273.07-321.33 55.78-74.81 127.6-95.94 216.01-117.82 151.95-37.61 255.51-157.53 255.29-316.38z"/>
+                  </g>
                 </g>
-              </g>
-            </svg>
-          </button>
+              </svg>
+            </button>
+          </div>
         </div>
         <div class="launch-search" id="globalSearch">
           <div class="launch-search__bar">
@@ -443,6 +453,13 @@
               <ol class="patreon-rss-dialog__steps">
                 <li><span class="patreon-rss-dialog__step-copy">Log into the Patreon app.</span></li>
                 <li><span class="patreon-rss-dialog__step-copy">Open <a href="https://open.patreon.com/m/c/MSsecretpod" target="_blank" rel="noopener noreferrer">Matt and Shane&apos;s Secret Podcast</a>.</span></li>
+                <li>
+                  <span class="patreon-rss-dialog__step-copy">
+                    Tap
+                    <span class="patreon-rss-guide-chip patreon-rss-guide-chip--menu" aria-hidden="true"><span class="patreon-rss-guide-chip__dots"></span></span>,
+                    then <strong>Add to podcast app</strong>.
+                  </span>
+                </li>
                 <li><span class="patreon-rss-dialog__step-copy">Copy RSS link.</span></li>
               </ol>
             </div>
@@ -501,6 +518,57 @@
               <button class="patreon-rss-action patreon-rss-action--primary" id="patreonRssSubmit" type="submit">Connect</button>
             </div>
             </form>
+          </div>
+        </div>
+      </section>
+    </div>
+    <div class="patreon-rss-modal a2hs-modal" id="a2hsModal" aria-hidden="true" hidden>
+      <section class="patreon-rss-dialog a2hs-dialog" id="a2hsDialog" role="dialog" aria-modal="true" aria-labelledby="a2hsTitle" tabindex="-1">
+        <button class="patreon-rss-dialog__drag" id="a2hsDragHandle" type="button" aria-label="Close add to Home Screen guide">
+          <span class="patreon-rss-dialog__grabber" aria-hidden="true"></span>
+        </button>
+        <header class="patreon-rss-dialog__header">
+          <div class="patreon-rss-dialog__heading">
+            <div class="patreon-rss-dialog__eyebrow-row">
+              <p class="eyebrow">Install</p>
+              <span class="patreon-rss-dialog__segment-arm" aria-hidden="true">
+                <span class="patreon-rss-dialog__segment-line"></span>
+              </span>
+            </div>
+            <h2 id="a2hsTitle">Add to Home Screen</h2>
+          </div>
+          <button class="patreon-rss-dialog__info a2hs-dialog__close" id="a2hsClose" type="button" aria-label="Close">
+            <span class="patreon-rss-dialog__info-mark" aria-hidden="true">×</span>
+          </button>
+        </header>
+        <div class="patreon-rss-dialog__content-frame">
+          <div class="patreon-rss-dialog__guide" id="a2hsGuide">
+            <div class="patreon-rss-dialog__guide-layout is-active">
+              <div class="patreon-rss-dialog__guide-copy">
+                <h3 class="patreon-rss-dialog__guide-title">How to install on iPhone</h3>
+                <ol class="patreon-rss-dialog__steps">
+                  <li>
+                    <span class="patreon-rss-dialog__step-copy">
+                      Press the browser
+                      <span class="patreon-rss-guide-chip patreon-rss-guide-chip--share" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <polyline points="8 6 12 2 16 6"></polyline>
+                          <line x1="12" y1="2" x2="12" y2="15"></line>
+                          <path d="M16 10h2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h2"></path>
+                        </svg>
+                      </span>
+                      share button.
+                    </span>
+                  </li>
+                  <li><span class="patreon-rss-dialog__step-copy">Press <strong>Add to Home Screen</strong>.</span></li>
+                </ol>
+              </div>
+              <div class="patreon-rss-dialog__guide-visual-column">
+                <figure class="patreon-rss-dialog__guide-visual">
+                  <img src="./images/a2hs/ios-add-home.gif" alt="Safari share sheet showing Add to Home Screen." decoding="async">
+                </figure>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -679,6 +747,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=fav-badge-a"></script>
+    <script type="module" src="./js/main.js?v=a2hs-a"></script>
   </body>
 </html>

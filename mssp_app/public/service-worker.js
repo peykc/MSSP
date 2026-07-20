@@ -1,4 +1,4 @@
-const RELEASE_ID = "v361";
+const RELEASE_ID = "v362";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -13,8 +13,8 @@ const SHELL_PATHS = [
   "./index.html",
   "./site.webmanifest",
   "./css/base.css?v=list-unify-a",
-  "./css/layout.css?v=search-scroll-lock-b",
-  "./css/launch.css?v=launch-fav-f",
+  "./css/layout.css?v=a2hs-a",
+  "./css/launch.css?v=a2hs-a",
   "./css/archive.css?v=tip-nav-c",
   "./css/sealed-stone.css",
   "./css/library.css?v=archive-fullbleed-a",
@@ -25,12 +25,13 @@ const SHELL_PATHS = [
   "./css/responsive.css?v=fav-empty-a",
   "./css/utilities.css",
   "./css/player.css",
-  "./css/pwa-update.css",
-  "./css/patreon-rss.css",
+  "./css/pwa-update.css?v=a2hs-a",
+  "./css/patreon-rss.css?v=a2hs-a",
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=fav-badge-a",
+  "./js/main.js?v=a2hs-a",
+  "./js/a2hsModal.js?v=a2hs-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
   "./js/community/communitySignals.js",
@@ -39,7 +40,7 @@ const SHELL_PATHS = [
   "./js/calendarModal.js?v=heatmap-full-labels-a",
   "./js/collectionGlyphs.js",
   "./js/collectionsView.js?v=cal-preview-b",
-  "./js/dom.js?v=fav-badge-a",
+  "./js/dom.js?v=a2hs-a",
   "./js/episodeDetails.js?v=fav-empty-a",
   "./js/episodeRow.js",
   "./js/episodeList.js?v=fav-empty-a",
@@ -59,7 +60,7 @@ const SHELL_PATHS = [
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",
-  "./js/pwa.js?v=search-scroll-lock-a",
+  "./js/pwa.js?v=a2hs-a",
   "./js/search.js",
   "./js/sources/publicSources.js",
   "./js/sources/patreonRssMatcher.js",

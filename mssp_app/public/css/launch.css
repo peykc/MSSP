@@ -110,6 +110,13 @@ body.launch-loading .launch {
   min-width: 0;
 }
 
+.launch__top-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
 .launch__brand {
   display: block;
   width: 34px;
@@ -179,6 +186,44 @@ body.launch-loading .launch {
 
 .launch__favorites__count[hidden] {
   display: none;
+}
+
+.launch__a2hs {
+  display: grid;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  color: #e3dac9;
+  cursor: pointer;
+  background: transparent;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.launch__a2hs[hidden] {
+  display: none;
+}
+
+.launch__a2hs:hover,
+.launch__a2hs:focus-visible {
+  color: #f2ebe0;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.launch__a2hs:focus-visible {
+  outline: 2px solid #ebce86;
+  outline-offset: 3px;
+}
+
+.launch__a2hs__icon {
+  display: block;
+  width: 22px;
+  height: 22px;
 }
 
 .launch__paytch-link {

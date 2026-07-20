@@ -7,7 +7,7 @@ import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
 import { createCommunitySignals } from "./community/communitySignals.js";
-import { dom } from "./dom.js?v=fav-badge-a";
+import { dom } from "./dom.js?v=a2hs-a";
 import { createEpisodeDetails } from "./episodeDetails.js?v=fav-empty-a";
 import { createEpisodeList } from "./episodeList.js?v=fav-empty-a";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js";
@@ -22,7 +22,8 @@ import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js?v=cover-ambient-g";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
-import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=search-scroll-lock-a";
+import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-a";
+import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=a2hs-a";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createPatreonRssSources } from "./sources/patreonRssSources.js";
@@ -392,6 +393,10 @@ async function init() {
   }
 
   syncLaunchFavoritesButton();
+
+  const a2hsModal = createA2hsModal({ dom });
+  initAddToHomeScreen({ dom, a2hsModal });
+
   initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
 
   let episodesByKey = null;
