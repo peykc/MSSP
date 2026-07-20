@@ -5,6 +5,7 @@ const PAUSE_DELAY_MS = 3_000;
 const HARD_REFRESH_TIMEOUT_MS = 30_000;
 const PULL_CLAIM_THRESHOLD = 8;
 const PULL_REFRESH_THRESHOLD = 100;
+const PULL_INDICATOR_MAX = 124;
 const PULL_CYCLE_START_MS = 250;
 const PULL_SPOKE_OPACITIES = [1, 0.88, 0.76, 0.64, 0.52, 0.40, 0.28, 0.16];
 const PROTECTED_PLAYBACK_STATUSES = new Set([
@@ -374,19 +375,26 @@ export function initLaunchPullToRefresh({
     }
 
     event.preventDefault();
-    gesture.distance = Math.min(124, Math.max(0, deltaY * 0.5));
-    const progress = Math.min(1, gesture.distance / PULL_REFRESH_THRESHOLD);
-    indicator.style.setProperty("--pull-distance", `${gesture.distance}px`);
+    // Page can keep overscrolling; indicator visuals + arming stay tied to the
+    // original actuation band so the spinner parks at the top while content continues down.
+    const rawDistance = Math.max(0, deltaY * 0.5);
+    const pageOffset = rawDistance <= PULL_INDICATOR_MAX
+      ? rawDistance
+      : PULL_INDICATOR_MAX + (rawDistance - PULL_INDICATOR_MAX) * 0.45;
+    gesture.distance = pageOffset;
+    const visualDistance = Math.min(pageOffset, PULL_INDICATOR_MAX);
+    const progress = Math.min(1, pageOffset / PULL_REFRESH_THRESHOLD);
+    indicator.style.setProperty("--pull-distance", `${visualDistance}px`);
     indicator.style.setProperty("--pull-progress", String(progress));
     for (let index = 0; index < 8; index += 1) {
       const revealProgress = Math.max(0, Math.min(1, (progress - index / 8) * 8));
       const spokeOpacity = revealProgress * PULL_SPOKE_OPACITIES[index];
       indicator.style.setProperty(`--spoke-${index + 1}`, String(spokeOpacity));
     }
-    indicator.style.setProperty("--pull-angle", `${Math.min(324, gesture.distance / PULL_REFRESH_THRESHOLD * 324)}deg`);
-    indicator.style.setProperty("--pull-rotation", `${gesture.distance * 2}deg`);
-    scroller.style.setProperty("--pull-offset", `${gesture.distance}px`);
-    if (!gesture.armed && gesture.distance >= PULL_REFRESH_THRESHOLD) {
+    indicator.style.setProperty("--pull-angle", `${Math.min(324, progress * 324)}deg`);
+    indicator.style.setProperty("--pull-rotation", `${visualDistance * 2}deg`);
+    scroller.style.setProperty("--pull-offset", `${pageOffset}px`);
+    if (!gesture.armed && pageOffset >= PULL_REFRESH_THRESHOLD) {
       gesture.armed = true;
       indicator.classList.add("is-arming");
       window.clearTimeout(cycleTimer);

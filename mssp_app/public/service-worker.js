@@ -1,4 +1,4 @@
-const RELEASE_ID = "v362";
+const RELEASE_ID = "v363";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -30,7 +30,7 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=a2hs-a",
+  "./js/main.js?v=pull-overscroll-a",
   "./js/a2hsModal.js?v=a2hs-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
@@ -60,7 +60,7 @@ const SHELL_PATHS = [
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",
-  "./js/pwa.js?v=a2hs-a",
+  "./js/pwa.js?v=pull-overscroll-a",
   "./js/search.js",
   "./js/sources/publicSources.js",
   "./js/sources/patreonRssMatcher.js",
