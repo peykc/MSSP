@@ -91,7 +91,6 @@ export const dom = {
   fullPlayerTitle: getRequiredElement("fullPlayerTitle"),
   fullPlayerMeta: getRequiredElement("fullPlayerMeta"),
   fullPlayerSignals: getRequiredElement("fullPlayerSignals"),
-  fullPlayerStars: getRequiredElement("fullPlayerStars"),
   fullPlayerViews: getRequiredElement("fullPlayerViews"),
   dawgsOnline: getRequiredElement("dawgsOnline"),
   fullPlayerFavorite: getRequiredElement("fullPlayerFavorite"),

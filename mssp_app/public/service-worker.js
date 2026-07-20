@@ -1,4 +1,4 @@
-const RELEASE_ID = "v370";
+const RELEASE_ID = "v372";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -24,13 +24,13 @@ const SHELL_PATHS = [
   "./css/tooltip.css",
   "./css/responsive.css?v=fav-empty-a",
   "./css/utilities.css",
-  "./css/player.css",
+  "./css/player.css?v=player-views-only-a",
   "./css/pwa-update.css?v=a2hs-a",
   "./css/patreon-rss.css?v=a2hs-a",
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=dawgs-full-a",
+  "./js/main.js?v=player-views-only-a",
   "./js/a2hsModal.js?v=a2hs-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
@@ -41,7 +41,7 @@ const SHELL_PATHS = [
   "./js/calendarModal.js?v=heatmap-full-labels-a",
   "./js/collectionGlyphs.js",
   "./js/collectionsView.js?v=cal-preview-b",
-  "./js/dom.js?v=dawgs-footer-a",
+  "./js/dom.js?v=player-views-only-a",
   "./js/episodeDetails.js?v=views-rows-b",
   "./js/episodeRow.js?v=views-rows-b",
   "./js/episodeList.js?v=views-rows-b",
@@ -57,7 +57,7 @@ const SHELL_PATHS = [
   "./js/player/coverAmbient.js?v=cover-ambient-g",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js?v=views-compact-a",
+  "./js/player/playerView.js?v=player-views-only-a",
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",

@@ -86,6 +86,7 @@ body.player-dragging {
   display: grid;
   min-width: 0;
   gap: 4px;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
 }
 
 .mini-player__title {
@@ -117,6 +118,7 @@ body.player-dragging {
 #miniPlayerStatus {
   overflow: hidden;
   color: var(--muted);
+  font-family: inherit;
   font-size: 0.82rem;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -585,14 +587,10 @@ body.player-dragging .full-player__collapse {
   align-items: center;
   gap: 10px;
   min-height: 1rem;
-  color: rgba(255, 255, 255, 0.66);
+  color: rgba(255, 255, 255, 0.84);
   font-size: 0.76rem;
   font-weight: 650;
   line-height: 1.2;
-}
-
-.full-player__signals span:last-child {
-  color: rgba(255, 255, 255, 0.84);
 }
 
 .full-player__signals span[hidden] {
@@ -603,7 +601,6 @@ body.player-dragging .full-player__collapse {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  color: rgba(255, 255, 255, 0.84);
 }
 
 .full-player__views-icon svg {

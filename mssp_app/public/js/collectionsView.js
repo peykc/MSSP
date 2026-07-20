@@ -29,40 +29,59 @@ function renderExploreCalendarPreview() {
     .map((day) => `<span class="explore-preview__weekday">${day}</span>`)
     .join("");
 
-  /* Sunday-start month with leading/trailing blanks: Fri–Sat of week 2 empty,
-     plus Sun of week 1. Highlights — OT Tue/Sat, PAYTCH Wed, cancelled Mon
-     (like 2019-09-16), NT Wed. */
+  /* Sunday-start month with leading blank Sun of week 1 and trailing blank Sat
+     of week 2. Highlights — OT/PAYTCH split Tue, PAYTCH Thu, OT Sat,
+     cancelled Mon (like 2019-09-16), NT Thu, NT/PAYTCH split Fri. */
   const cells = [
     { blank: true },
-    { num: "1" },
-    { num: "2", kind: "old" },
-    { num: "3", kind: "paytch" },
-    { num: "4" },
-    { num: "5" },
-    { num: "6", kind: "old" },
-    { num: "7" },
-    { num: "8", kind: "cancelled" },
-    { num: "9" },
-    { num: "10", kind: "new" },
-    { num: "11" },
-    { blank: true },
+    {},
+    { kinds: ["old", "paytch"] },
+    {},
+    { kind: "paytch" },
+    {},
+    { kind: "old" },
+    {},
+    { kind: "cancelled" },
+    {},
+    {},
+    { kind: "new" },
+    { kinds: ["new", "paytch"] },
     { blank: true },
   ].map((cell) => {
     if (cell.blank) {
       return '<span class="explore-preview__cell explore-preview__cell--blank"></span>';
     }
-    if (!cell.kind) {
-      return `<span class="explore-preview__cell"><span class="explore-preview__num">${cell.num}</span></span>`;
+    const kinds = cell.kinds || (cell.kind ? [cell.kind] : null);
+    if (!kinds) {
+      return '<span class="explore-preview__cell"></span>';
     }
-    const accent = COLLECTION_ACCENTS[cell.kind];
-    const releaseClass = cell.kind === "cancelled"
+    if (kinds.length >= 2) {
+      const topLeftKind = kinds.find((kind) => kind !== "paytch") || kinds[0];
+      const bottomRightKind = kinds.includes("paytch")
+        ? "paytch"
+        : kinds.find((kind) => kind !== topLeftKind) || kinds[1];
+      const topLeftAccent = COLLECTION_ACCENTS[topLeftKind];
+      const bottomRightAccent = COLLECTION_ACCENTS[bottomRightKind];
+      return `
+        <span class="explore-preview__cell explore-preview__cell--release explore-preview__cell--split" style="--accent-a: ${topLeftAccent}; --accent-b: ${bottomRightAccent}">
+          <span class="explore-preview__glyph explore-preview__glyph--tl" style="--glyph-color: ${topLeftAccent}">
+            ${renderCollectionGlyphSvg(topLeftKind, "explore-preview__glyph-svg")}
+          </span>
+          <span class="explore-preview__glyph explore-preview__glyph--br" style="--glyph-color: ${bottomRightAccent}">
+            ${renderCollectionGlyphSvg(bottomRightKind, "explore-preview__glyph-svg")}
+          </span>
+        </span>
+      `;
+    }
+    const kind = kinds[0];
+    const accent = COLLECTION_ACCENTS[kind];
+    const releaseClass = kind === "cancelled"
       ? "explore-preview__cell--release explore-preview__cell--cancelled"
       : "explore-preview__cell--release";
     return `
       <span class="explore-preview__cell ${releaseClass}" style="--cell-accent: ${accent}">
-        <span class="explore-preview__num">${cell.num}</span>
         <span class="explore-preview__glyph" style="--glyph-color: ${accent}">
-          ${renderCollectionGlyphSvg(cell.kind, "explore-preview__glyph-svg")}
+          ${renderCollectionGlyphSvg(kind, "explore-preview__glyph-svg")}
         </span>
       </span>
     `;

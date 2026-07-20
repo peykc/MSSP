@@ -4,7 +4,7 @@ import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-g";
 import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-m";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";
-import { formatCommunityCount, formatViewSignal, VIEW_EYE_ICON } from "../community/communitySignals.js?v=eye-icon-b";
+import { formatViewSignal, VIEW_EYE_ICON } from "../community/communitySignals.js?v=eye-icon-b";
 import {
   createEpisodeRow,
   createEpisodeRowMenuManager,
@@ -508,13 +508,10 @@ export function createPlayerView({
     const signals = episode
       ? communitySignals?.getEpisodeSignals(episode.episodeKey)
       : { stars: null, views: null };
-    dom.fullPlayerStars.textContent = `★ ${formatCommunityCount(signals?.stars)}`;
-    const viewsCount = formatViewSignal(signals?.views, { compact: true });
+    const views = Number.isFinite(signals?.views) ? signals.views : 0;
+    const viewsCount = formatViewSignal(views, { compact: true });
     dom.fullPlayerViews.innerHTML = `<span class="full-player__views-icon" aria-hidden="true">${VIEW_EYE_ICON}</span><span>${viewsCount}</span>`;
-    dom.fullPlayerSignals.setAttribute(
-      "aria-label",
-      `${formatCommunityCount(signals?.stars)} total stars, ${viewsCount} views`,
-    );
+    dom.fullPlayerSignals.setAttribute("aria-label", `${viewsCount} views`);
   }
 
   function getQueueWindow() {
