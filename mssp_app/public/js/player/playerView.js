@@ -1,6 +1,6 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-f";
+import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-g";
 import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-m";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";

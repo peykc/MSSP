@@ -20,7 +20,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=cover-ambient-f";
+import { createPlayerView } from "./player/playerView.js?v=cover-ambient-g";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=search-scroll-lock-a";
 import { initSearch } from "./search.js";

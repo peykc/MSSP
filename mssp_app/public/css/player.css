@@ -1047,8 +1047,7 @@ body.player-expanded {
   .full-player__queue-panel,
   .full-player__transcript-panel,
   .full-player__transcript-list,
-  .full-player__ambient-layer,
-  .transcript-search__ambient-layer {
+  .full-player__ambient-layer {
     transition: none;
   }
 
