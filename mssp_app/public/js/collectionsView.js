@@ -12,6 +12,7 @@ const COLLECTION_ACCENTS = {
   old: "#8da1b8",
   paytch: "#db855f",
   new: "#c79457",
+  cancelled: "#a98bd4",
 };
 const HEAT_PREVIEW_COLORS = [
   "rgb(54, 69, 79)",
@@ -28,21 +29,24 @@ function renderExploreCalendarPreview() {
     .map((day) => `<span class="explore-preview__weekday">${day}</span>`)
     .join("");
 
+  /* Sunday-start month with leading/trailing blanks: Fri–Sat of week 2 empty,
+     plus Sun of week 1. Highlights — OT Tue/Sat, PAYTCH Wed, cancelled Mon
+     (like 2019-09-16), NT Wed. */
   const cells = [
-    { blank: true },
     { blank: true },
     { num: "1" },
     { num: "2", kind: "old" },
-    { num: "3" },
-    { num: "4", kind: "paytch" },
+    { num: "3", kind: "paytch" },
+    { num: "4" },
     { num: "5" },
-    { num: "6" },
-    { num: "7", kind: "new" },
-    { num: "8" },
-    { num: "9", kind: "old" },
-    { num: "10" },
+    { num: "6", kind: "old" },
+    { num: "7" },
+    { num: "8", kind: "cancelled" },
+    { num: "9" },
+    { num: "10", kind: "new" },
     { num: "11" },
-    { num: "12", kind: "new" },
+    { blank: true },
+    { blank: true },
   ].map((cell) => {
     if (cell.blank) {
       return '<span class="explore-preview__cell explore-preview__cell--blank"></span>';
@@ -51,8 +55,11 @@ function renderExploreCalendarPreview() {
       return `<span class="explore-preview__cell"><span class="explore-preview__num">${cell.num}</span></span>`;
     }
     const accent = COLLECTION_ACCENTS[cell.kind];
+    const releaseClass = cell.kind === "cancelled"
+      ? "explore-preview__cell--release explore-preview__cell--cancelled"
+      : "explore-preview__cell--release";
     return `
-      <span class="explore-preview__cell explore-preview__cell--release" style="--cell-accent: ${accent}">
+      <span class="explore-preview__cell ${releaseClass}" style="--cell-accent: ${accent}">
         <span class="explore-preview__num">${cell.num}</span>
         <span class="explore-preview__glyph" style="--glyph-color: ${accent}">
           ${renderCollectionGlyphSvg(cell.kind, "explore-preview__glyph-svg")}

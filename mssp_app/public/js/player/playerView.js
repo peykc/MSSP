@@ -13,6 +13,7 @@ import {
   updateEpisodeRowMarquee,
   updateEpisodeRowMenuItems,
   updateEpisodeRowProgress,
+  updateEpisodeRowSignals,
 } from "../episodeRow.js";
 
 const SEEK_BACK_SECONDS = 15;
@@ -169,9 +170,11 @@ export function createPlayerView({
 
   const queueRowOptions = {
     includePlay: false,
+    includeSignals: true,
     marqueeAlways: true,
     playbackProgressStore,
     favoritesStore,
+    communitySignals,
     onFavoriteToggle,
     getSourceStatusForEpisode,
     menuManager: queueMenuManager,
@@ -309,6 +312,7 @@ export function createPlayerView({
 
     if (!hasEpisode) {
       communitySignals?.setTrackedEpisodeKeys("player", []);
+      communitySignals?.setTrackedEpisodeKeys("queue", []);
       void transcriptView.setSelectedEpisode(null);
       maybeResetBurstOnContextChange(state, null);
       setExpandedUi(false);
@@ -619,6 +623,15 @@ export function createPlayerView({
 
     renderCompactQueueRow(currentItem);
 
+    if (fullPlayerMode === FULL_PLAYER_MODES.QUEUE) {
+      const trackedQueueKeys = queueWindow.items
+        .map((episode) => episode?.episodeKey)
+        .filter(Boolean);
+      communitySignals?.setTrackedEpisodeKeys("queue", trackedQueueKeys);
+    } else {
+      communitySignals?.setTrackedEpisodeKeys("queue", []);
+    }
+
     if (queueReindexAnimationActive || queueRenderLocked) return;
 
     const rows = visibleUpcoming.map((episode) => createQueueListItem(episode));
@@ -810,6 +823,7 @@ export function createPlayerView({
     if (nextMode !== FULL_PLAYER_MODES.QUEUE) {
       cancelQueueReindexAnimation({ render: false });
       queueMenuManager.closeEpisodeMenu();
+      communitySignals?.setTrackedEpisodeKeys("queue", []);
     }
     fullPlayerMode = nextMode;
     const isQueueMode = fullPlayerMode === FULL_PLAYER_MODES.QUEUE;
@@ -1292,8 +1306,30 @@ export function createPlayerView({
   });
   communitySignals?.subscribe((changedKeys) => {
     const episodeKey = playerState.getState().selectedEpisode?.episodeKey;
-    if (!episodeKey || (changedKeys.size && !changedKeys.has(episodeKey))) return;
-    renderCommunitySignals();
+    if (episodeKey && (!changedKeys.size || changedKeys.has(episodeKey))) {
+      renderCommunitySignals();
+    }
+
+    if (fullPlayerMode !== FULL_PLAYER_MODES.QUEUE) return;
+
+    if (compactQueueRow) {
+      const compactKey = compactQueueRow.dataset.episodeKey;
+      if (compactKey && (!changedKeys.size || changedKeys.has(compactKey))) {
+        const episode = playerState.getState().selectedEpisode;
+        if (episode?.episodeKey === compactKey) {
+          updateEpisodeRowSignals(compactQueueRow, episode, communitySignals);
+        }
+      }
+    }
+
+    for (const item of dom.fullPlayerQueueList.children) {
+      const row = item.querySelector?.(".episode-row");
+      const rowKey = row?.dataset?.episodeKey || item.dataset?.episodeKey;
+      if (!row || !rowKey) continue;
+      if (changedKeys.size && !changedKeys.has(rowKey)) continue;
+      const episode = getQueueWindow().items.find((entry) => entry.episodeKey === rowKey);
+      if (episode) updateEpisodeRowSignals(row, episode, communitySignals);
+    }
   });
 
   return {

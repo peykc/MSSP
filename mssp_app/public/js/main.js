@@ -1,9 +1,9 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
-import { createFullCalendarModal } from "./fullCalendarModal.js";
+import { createFullCalendarModal } from "./fullCalendarModal.js?v=tip-nav-c";
 import { createGlobalSearch } from "./globalSearch.js?v=search-ops-f";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
-import { createCollectionsView } from "./collectionsView.js";
+import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
 import { createCommunitySignals } from "./community/communitySignals.js";
@@ -66,7 +66,6 @@ async function init() {
   const calendarModal = createCalendarModal({ dom });
   const statsPageView = createStatsPageView({ dom });
   createSealedStoneModal({ dom });
-  const fullCalendarModal = createFullCalendarModal({ dom });
   const archiveStatsView = createArchiveStatsView({ dom, state });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
@@ -333,6 +332,13 @@ async function init() {
     clearRows: episodeList.clearRows,
     renderDetails: episodeDetails.renderDetails,
     renderVisibleRows: episodeList.renderVisibleRows,
+  });
+
+  const fullCalendarModal = createFullCalendarModal({
+    dom,
+    onSelectEpisode: (episode) => {
+      void libraryView.openEpisode(episode);
+    },
   });
 
   const collectionsView = createCollectionsView({

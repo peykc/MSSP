@@ -28,7 +28,7 @@
     <link rel="stylesheet" href="./css/base.css?v=list-unify-a">
     <link rel="stylesheet" href="./css/layout.css?v=search-scroll-lock-b">
     <link rel="stylesheet" href="./css/launch.css">
-    <link rel="stylesheet" href="./css/archive.css">
+    <link rel="stylesheet" href="./css/archive.css?v=tip-nav-c">
     <link rel="stylesheet" href="./css/sealed-stone.css">
     <link rel="stylesheet" href="./css/library.css?v=archive-fullbleed-a">
     <link rel="stylesheet" href="./css/episode-list.css?v=menu-icons-a">
@@ -316,28 +316,61 @@
     </section>
     <div class="calendar-modal" id="calendarModal" aria-hidden="true" hidden>
       <section class="calendar-dialog" id="calendarDialog" role="dialog" aria-modal="true" aria-labelledby="calendarTitle" tabindex="-1">
-        <header class="calendar-dialog__header">
-          <div class="calendar-dialog__heading">
-            <h2 id="calendarTitle">Release Heatmap</h2>
-            <div class="calendar-mode" role="group" aria-label="Heatmap style">
-              <button type="button" class="calendar-mode__btn" data-mode="color" aria-pressed="true">Color</button>
-              <button type="button" class="calendar-mode__btn" data-mode="brightness" aria-pressed="false">Brightness</button>
-            </div>
+        <header class="calendar-dialog__header calendar-dialog__header--heatmap">
+          <div class="calendar-dialog__title-row">
+            <h2 id="calendarTitle">Heatmap</h2>
+            <span class="calendar-dialog__segment-arm" aria-hidden="true">
+              <span class="calendar-dialog__segment-line"></span>
+            </span>
+            <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close heatmap">
+              <span aria-hidden="true"></span>
+            </button>
           </div>
-          <button class="calendar-dialog__close" id="calendarClose" type="button" aria-label="Close release heatmap">
-            <span aria-hidden="true"></span>
-          </button>
+          <div class="calendar-mode" role="group" aria-label="Heatmap style">
+            <button type="button" class="calendar-mode__btn" data-mode="color" aria-pressed="true">Color</button>
+            <button type="button" class="calendar-mode__btn" data-mode="brightness" aria-pressed="false">Brightness</button>
+          </div>
         </header>
         <div class="calendar-section">
-          <p class="calendar-section__label">By weekday</p>
+          <div class="calendar-section__label">
+            <span class="calendar-section__arm" aria-hidden="true">
+              <span class="calendar-section__arm-line"></span>
+              <span class="calendar-section__arm-tip"></span>
+            </span>
+            <span class="calendar-section__title">By weekday</span>
+            <span class="calendar-section__arm" aria-hidden="true">
+              <span class="calendar-section__arm-tip"></span>
+              <span class="calendar-section__arm-line"></span>
+            </span>
+          </div>
           <div class="calendar-heatmap calendar-heatmap--week" id="calendarWeekdays" role="group" aria-label="Episode releases by weekday"></div>
         </div>
         <div class="calendar-section">
-          <p class="calendar-section__label">By month</p>
+          <div class="calendar-section__label">
+            <span class="calendar-section__arm" aria-hidden="true">
+              <span class="calendar-section__arm-line"></span>
+              <span class="calendar-section__arm-tip"></span>
+            </span>
+            <span class="calendar-section__title">By month</span>
+            <span class="calendar-section__arm" aria-hidden="true">
+              <span class="calendar-section__arm-tip"></span>
+              <span class="calendar-section__arm-line"></span>
+            </span>
+          </div>
           <div class="calendar-heatmap calendar-heatmap--month" id="calendarMonths" role="group" aria-label="Episode releases by month"></div>
         </div>
         <div class="calendar-section">
-          <p class="calendar-section__label">By day of month</p>
+          <div class="calendar-section__label">
+            <span class="calendar-section__arm" aria-hidden="true">
+              <span class="calendar-section__arm-line"></span>
+              <span class="calendar-section__arm-tip"></span>
+            </span>
+            <span class="calendar-section__title">By day of month</span>
+            <span class="calendar-section__arm" aria-hidden="true">
+              <span class="calendar-section__arm-tip"></span>
+              <span class="calendar-section__arm-line"></span>
+            </span>
+          </div>
           <div class="calendar-heatmap" id="calendarHeatmap" role="group" aria-label="Episode releases by day of month"></div>
         </div>
         <div class="calendar-legend" aria-hidden="true">
@@ -349,14 +382,16 @@
     </div>
     <div class="calendar-modal" id="fullCalendarModal" aria-hidden="true" hidden>
       <section class="calendar-dialog full-calendar-dialog" id="fullCalendarDialog" role="dialog" aria-modal="true" aria-labelledby="fullCalendarTitle" tabindex="-1">
-        <header class="calendar-dialog__header">
-          <div class="calendar-dialog__heading">
-            <h2 id="fullCalendarTitle">Archive Calendar</h2>
+        <header class="calendar-dialog__header calendar-dialog__header--calendar">
+          <div class="calendar-dialog__title-row">
+            <h2 id="fullCalendarTitle">Calendar</h2>
+            <span class="calendar-dialog__segment-arm calendar-dialog__segment-arm--leading" aria-hidden="true"></span>
             <div class="full-calendar__legend" id="fullCalendarLegend" role="group" aria-label="Collections"></div>
+            <span class="calendar-dialog__segment-arm calendar-dialog__segment-arm--trailing" aria-hidden="true"></span>
+            <button class="calendar-dialog__close" id="fullCalendarClose" type="button" aria-label="Close calendar">
+              <span aria-hidden="true"></span>
+            </button>
           </div>
-          <button class="calendar-dialog__close" id="fullCalendarClose" type="button" aria-label="Close archive calendar">
-            <span aria-hidden="true"></span>
-          </button>
         </header>
         <div class="full-calendar" id="fullCalendarBody">
           <div class="full-calendar__months" id="fullCalendarMonths"></div>
@@ -637,6 +672,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=cover-ambient-g"></script>
+    <script type="module" src="./js/main.js?v=tip-nav-c"></script>
   </body>
 </html>

@@ -162,7 +162,7 @@
   .full-player__compact .episode-row--no-play,
   .full-player__queue-list .episode-row--no-play {
     grid-template-columns: 44px minmax(0, 1fr) auto;
-    height: 72px;
+    height: var(--row);
     align-items: center;
     border: 0;
     border-bottom: 1px solid var(--line);

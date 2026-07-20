@@ -50,7 +50,7 @@ function dateOrdinal(dateKey) {
   return parts.year * 12 + parts.month;
 }
 
-export function createFullCalendarModal({ dom }) {
+export function createFullCalendarModal({ dom, onSelectEpisode }) {
   let restoreFocusTo = null;
   let isOpen = false;
   let pinnedCell = null;
@@ -87,6 +87,23 @@ export function createFullCalendarModal({ dom }) {
   tooltip.setAttribute("role", "tooltip");
   tooltip.hidden = true;
   dom.fullCalendarModal.appendChild(tooltip);
+
+  tooltip.addEventListener("mouseleave", () => {
+    if (!pinnedCell) hideTooltip();
+  });
+  tooltip.addEventListener("click", (event) => {
+    const hit = event.target.closest("[data-episode-key]");
+    if (!hit) return;
+    event.preventDefault();
+    event.stopPropagation();
+    const episode = findEpisodeByKey(hit.dataset.episodeKey);
+    if (!episode) return;
+    close({
+      onClosed: () => {
+        onSelectEpisode?.(episode);
+      },
+    });
+  });
 
   renderLegend();
   bindDelegatedEvents();
@@ -304,7 +321,7 @@ export function createFullCalendarModal({ dom }) {
     if (!isOpen) return;
     afterClose = typeof options?.onClosed === "function" ? options.onClosed : null;
     clearSpotlight();
-    pinnedCell = null;
+    setPinnedCell(null);
     hoverCell = null;
     hideTooltip();
     isOpen = false;
@@ -344,7 +361,7 @@ export function createFullCalendarModal({ dom }) {
   }
 
   function render(episodes) {
-    pinnedCell = null;
+    setPinnedCell(null);
     hoverCell = null;
     clearSpotlight();
     hideTooltip();
@@ -513,7 +530,7 @@ export function createFullCalendarModal({ dom }) {
 
   function syncTooltipWithMountedRange() {
     if (activeTooltipDate && !isDateInMountedRange(activeTooltipDate)) {
-      pinnedCell = null;
+      setPinnedCell(null);
       hoverCell = null;
       hideTooltip();
     }
@@ -617,7 +634,7 @@ export function createFullCalendarModal({ dom }) {
       if (pinnedCell && block.window.contains(pinnedCell)) pinnedStillMounted = true;
       if (hoverCell && block.window.contains(hoverCell)) hoverStillMounted = true;
     }
-    if (pinnedCell && !pinnedStillMounted) pinnedCell = null;
+    if (pinnedCell && !pinnedStillMounted) setPinnedCell(null);
     if (hoverCell && !hoverStillMounted) hoverCell = null;
 
     if (activeTooltipDate && isDateInMountedRange(activeTooltipDate)) {
@@ -671,7 +688,7 @@ export function createFullCalendarModal({ dom }) {
     if (!isOpen) return;
 
     activeRelayoutAnchor ||= viewportAnchor || captureViewportAnchor();
-    pinnedCell = null;
+    setPinnedCell(null);
     hoverCell = null;
     hideTooltip();
 
@@ -904,10 +921,18 @@ export function createFullCalendarModal({ dom }) {
     return cell;
   }
 
+  function setPinnedCell(cell) {
+    if (pinnedCell && pinnedCell !== cell) {
+      pinnedCell.classList.remove("is-active");
+    }
+    pinnedCell = cell || null;
+    if (pinnedCell) pinnedCell.classList.add("is-active");
+  }
+
   function showTooltipForDate(dateKey) {
     const cell = queryMountedCell(dateKey);
     if (!cell) return;
-    pinnedCell = cell;
+    setPinnedCell(cell);
     showTooltip(cell);
   }
 
@@ -928,7 +953,8 @@ export function createFullCalendarModal({ dom }) {
       if (cell) showTooltip(cell);
       else hideTooltip();
     });
-    dom.fullCalendarMonths.addEventListener("mouseleave", () => {
+    dom.fullCalendarMonths.addEventListener("mouseleave", (event) => {
+      if (event.relatedTarget && tooltip.contains(event.relatedTarget)) return;
       hoverCell = null;
       if (!pinnedCell) hideTooltip();
     });
@@ -944,13 +970,22 @@ export function createFullCalendarModal({ dom }) {
       const cell = event.target.closest(".cal-cell--event");
       if (!cell) return;
       if (pinnedCell === cell) {
-        pinnedCell = null;
+        setPinnedCell(null);
         hideTooltip();
       } else {
-        pinnedCell = cell;
+        setPinnedCell(cell);
         showTooltip(cell);
       }
     });
+  }
+
+  function findEpisodeByKey(episodeKey) {
+    if (!episodeKey) return null;
+    for (const dayEpisodes of episodesByDate.values()) {
+      const match = dayEpisodes.find((episode) => episode.episodeKey === episodeKey);
+      if (match) return match;
+    }
+    return null;
   }
 
   function showTooltip(cell) {
@@ -966,25 +1001,27 @@ export function createFullCalendarModal({ dom }) {
     if (!dayEpisodes || !dayEpisodes.length) return;
 
     tooltip.classList.remove("full-calendar-tooltip--cancelled");
+    tooltip.classList.add("is-interactive");
     const parts = parseDateParts(dateKey);
     const heading = parts ? `${MONTH_NAMES[parts.month]} ${parts.day}, ${parts.year}` : dateKey;
     const items = dayEpisodes.map((episode) => {
       const meta = COLLECTION_META[episode.collectionKind] || { label: "", accent: "#888" };
-      const epLabel = episode.episode ? `${meta.label} · Ep ${escapeHtml(episode.episode)}` : meta.label;
+      const epLabel = episode.episode ? `Ep ${episode.episode}` : meta.label;
+      const key = episode.episodeKey || "";
       return `
-        <li class="fc-tip__item">
+        <button type="button" class="fc-tip__item" data-episode-key="${escapeHtml(key)}">
           <img class="fc-tip__cover" src="${escapeHtml(episode.coverUrl || "")}" alt="" loading="lazy">
           <span class="fc-tip__text">
             <span class="fc-tip__ep" style="--ep-color: ${meta.accent}">${escapeHtml(epLabel)}</span>
             <span class="fc-tip__name">${escapeHtml(episode.title || "Untitled")}</span>
           </span>
-        </li>
+        </button>
       `;
     }).join("");
 
     tooltip.innerHTML = `
       <div class="fc-tip__title">${escapeHtml(heading)}</div>
-      <ul class="fc-tip__list">${items}</ul>
+      <div class="fc-tip__list">${items}</div>
     `;
     tooltip.hidden = false;
     positionTooltip(cell);
@@ -993,9 +1030,18 @@ export function createFullCalendarModal({ dom }) {
   function showCancelledTooltip(cell) {
     activeTooltipDate = cell.dataset.date || CANCELLED_DATE;
     tooltip.classList.add("full-calendar-tooltip--cancelled");
+    tooltip.classList.remove("is-interactive");
     tooltip.innerHTML = `
       <div class="fc-tip__title">September 16, 2019</div>
-      <span class="fc-tip__cancel-label">“CANCELLED”</span>
+      <div class="fc-tip__list">
+        <div class="fc-tip__item" aria-hidden="true">
+          <img class="fc-tip__cover fc-tip__cover--glyph" src="./assets/icons/hand-from-ground.svg" alt="">
+          <span class="fc-tip__text">
+            <span class="fc-tip__ep" style="--ep-color: ${CANCELLED_ACCENT}">Boss Call</span>
+            <span class="fc-tip__name">“CANCELLED”</span>
+          </span>
+        </div>
+      </div>
     `;
     tooltip.hidden = false;
     positionTooltip(cell);
@@ -1018,6 +1064,7 @@ export function createFullCalendarModal({ dom }) {
 
   function hideTooltip() {
     tooltip.hidden = true;
+    tooltip.classList.remove("is-interactive");
     activeTooltipDate = null;
   }
 
@@ -1049,14 +1096,15 @@ export function createFullCalendarModal({ dom }) {
       close();
       return;
     }
+    if (event.target.closest(".full-calendar-tooltip")) return;
     if (!event.target.closest(".cal-cell--event")) {
-      pinnedCell = null;
+      setPinnedCell(null);
       hideTooltip();
     }
   });
   dom.fullCalendarBody.addEventListener("scroll", () => {
     if (!suppressScrollDismiss && (pinnedCell || hoverCell !== null)) {
-      pinnedCell = null;
+      setPinnedCell(null);
       hoverCell = null;
       hideTooltip();
     }

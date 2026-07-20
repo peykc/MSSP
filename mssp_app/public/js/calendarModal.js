@@ -53,6 +53,21 @@ function brightnessColor(value) {
   return `hsl(28, 86%, ${lightness.toFixed(1)}%)`;
 }
 
+/* Map each cell against only its section's counts so weekday / month /
+   day-of-month each use the full color range independently. */
+function relativeIntensity(count, counts) {
+  let min = counts[0];
+  let max = counts[0];
+  for (let index = 1; index < counts.length; index += 1) {
+    const value = counts[index];
+    if (value < min) min = value;
+    if (value > max) max = value;
+  }
+  const range = max - min;
+  if (range <= 0) return count > 0 ? 1 : 0;
+  return (count - min) / range;
+}
+
 export function createCalendarModal({ dom }) {
   let restoreFocusTo = null;
   let isOpen = false;
@@ -217,11 +232,8 @@ export function createCalendarModal({ dom }) {
   }
 
   function renderWeekdayRow(counts, breakdown) {
-    const max = Math.max(...counts);
-    const min = Math.min(...counts);
-    const range = max - min || 1;
     dom.calendarWeekdays.innerHTML = counts.map((count, index) => {
-      const intensity = (count - min) / range;
+      const intensity = relativeIntensity(count, counts);
       const name = WEEKDAYS[index];
       const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
       return `
@@ -237,11 +249,8 @@ export function createCalendarModal({ dom }) {
   }
 
   function renderMonthRow(counts, breakdown) {
-    const max = Math.max(...counts);
-    const min = Math.min(...counts);
-    const range = max - min || 1;
     dom.calendarMonths.innerHTML = counts.map((count, index) => {
-      const intensity = (count - min) / range;
+      const intensity = relativeIntensity(count, counts);
       const name = MONTHS[index];
       const label = `${name}, ${count} episodes. Old Testament ${breakdown[index].old}, New Testament ${breakdown[index].new}, PAYTCH ${breakdown[index].paytch}`;
       return `
@@ -257,12 +266,9 @@ export function createCalendarModal({ dom }) {
   }
 
   function renderMonthGrid(counts, breakdown) {
-    const max = Math.max(...counts);
-    const min = Math.min(...counts);
-    const range = max - min || 1;
     const cellsMarkup = counts.map((count, index) => {
       const day = index + 1;
-      const intensity = (count - min) / range;
+      const intensity = relativeIntensity(count, counts);
       const spread = breakdown[index];
       const label = `Day ${day}, ${count} episodes. Old Testament ${spread.old}, New Testament ${spread.new}, PAYTCH ${spread.paytch}`;
       return `
