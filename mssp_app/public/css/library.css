@@ -6,6 +6,7 @@
   grid-template-columns: minmax(250px, min(35vw, 520px)) minmax(0, 1fr);
   gap: 0;
   padding: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   background: var(--bg);
   box-shadow: -24px 0 60px rgba(0, 0, 0, 0.38);
   transform: translateX(0);

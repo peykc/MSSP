@@ -233,6 +233,7 @@ body.player-dragging {
   overflow: hidden;
   overscroll-behavior: contain;
   color: var(--text);
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   background: #1f1d1c;
   border: 0;
   border-radius: 16px 16px 0 0;

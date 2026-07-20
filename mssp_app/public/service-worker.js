@@ -1,4 +1,4 @@
-const RELEASE_ID = "v372";
+const RELEASE_ID = "v374";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -17,14 +17,14 @@ const SHELL_PATHS = [
   "./css/launch.css?v=dawgs-twitch-a",
   "./css/archive.css?v=tip-nav-c",
   "./css/sealed-stone.css",
-  "./css/library.css?v=dawgs-footer-a",
-  "./css/episode-list.css?v=views-rows-b",
+  "./css/library.css?v=archive-iowan-a",
+  "./css/episode-list.css?v=archive-iowan-a",
   "./css/episode-details.css?v=views-rows-b",
   "./css/filters.css",
   "./css/tooltip.css",
   "./css/responsive.css?v=fav-empty-a",
   "./css/utilities.css",
-  "./css/player.css?v=player-views-only-a",
+  "./css/player.css?v=player-iowan-a",
   "./css/pwa-update.css?v=a2hs-a",
   "./css/patreon-rss.css?v=a2hs-a",
   "./css/transcript.css?v=cover-ambient-g",
