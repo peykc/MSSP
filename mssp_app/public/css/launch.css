@@ -102,12 +102,83 @@ body.launch-loading .launch {
   gap: 12px;
 }
 
+.launch__brand-cluster {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
 .launch__brand {
   display: block;
   width: 34px;
   height: auto;
   flex: 0 0 auto;
   user-select: none;
+}
+
+.launch__favorites {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0 6px;
+  border: 0;
+  border-radius: 10px;
+  color: #e3dac9;
+  cursor: pointer;
+  background: transparent;
+  transition: color 160ms ease, transform 160ms ease, opacity 160ms ease;
+}
+
+.launch__favorites:hover,
+.launch__favorites:focus-visible {
+  color: #f2ebe0;
+  outline: none;
+  transform: translateY(-1px);
+}
+
+.launch__favorites:focus-visible {
+  outline: 2px solid #ebce86;
+  outline-offset: 3px;
+}
+
+.launch__favorites.is-active {
+  color: #e3dac9;
+}
+
+.launch__favorites.is-active:hover,
+.launch__favorites.is-active:focus-visible {
+  color: #f2ebe0;
+}
+
+.launch__favorites__icon {
+  display: block;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  fill: currentColor;
+}
+
+.launch__favorites__count {
+  display: block;
+  min-width: 0.75em;
+  color: inherit;
+  font-family: "Spectral", serif;
+  font-size: 13px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.launch__favorites__count[hidden] {
+  display: none;
 }
 
 .launch__paytch-link {

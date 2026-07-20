@@ -35,11 +35,21 @@ export function createEpisodeList({
     menuManager.closeEpisodeMenu();
   }
 
+  function syncEmptyState() {
+    const empty = state.visibleEpisodes.length === 0;
+    if (!dom.episodeListEmpty) return;
+    dom.episodeListEmpty.hidden = !empty;
+    dom.episodeListEmpty.textContent = state.favoritesOnly
+      ? "No Favorites :("
+      : "No episodes match this view.";
+  }
+
   function clearRows() {
     closeEpisodeMenu();
     rowCache.clear();
     dom.listItems.innerHTML = "";
     communitySignals?.setTrackedEpisodeKeys("archive", []);
+    syncEmptyState();
   }
 
   function applyEpisodeFilters({ resetSelection = false, preserveScroll = false } = {}) {
@@ -71,6 +81,7 @@ export function createEpisodeList({
   }
 
   function renderVisibleRows() {
+    syncEmptyState();
     if (menuManager.getOpenMenuRoot() && !menuManager.getOpenMenuRoot().isConnected) {
       closeEpisodeMenu();
     }

@@ -48,6 +48,11 @@
     box-shadow: 0 16px 34px rgba(0, 0, 0, 0.34);
   }
 
+  .hero-cover.is-favorites-placeholder {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
   .hero-details {
     display: grid;
     grid-template-rows: auto 1fr auto 1fr auto;

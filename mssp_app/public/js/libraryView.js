@@ -73,8 +73,19 @@ export function createLibraryView({
     setLaunchCovered(true);
     revealLibrary();
 
-    dom.heroCover.src = state.activeCollection.coverUrl;
-    dom.heroCover.alt = `${state.activeCollection.name} cover`;
+    if (state.favoritesOnly) {
+      dom.heroCoverFrame?.classList.add("is-favorites-placeholder");
+      if (dom.heroCoverStar) dom.heroCoverStar.hidden = false;
+      dom.heroCover.hidden = true;
+      dom.heroCover.removeAttribute("src");
+      dom.heroCover.alt = "";
+    } else {
+      dom.heroCoverFrame?.classList.remove("is-favorites-placeholder");
+      if (dom.heroCoverStar) dom.heroCoverStar.hidden = true;
+      dom.heroCover.hidden = false;
+      dom.heroCover.src = state.activeCollection.coverUrl;
+      dom.heroCover.alt = `${state.activeCollection.name} cover`;
+    }
     dom.panelTitle.textContent = state.favoritesOnly ? "Favorites" : state.activeCollection.name;
     dom.searchInput.value = "";
     state.query = "";

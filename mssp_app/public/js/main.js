@@ -7,13 +7,13 @@ import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
 import { createCommunitySignals } from "./community/communitySignals.js";
-import { dom } from "./dom.js?v=sort-reveal-a";
-import { createEpisodeDetails } from "./episodeDetails.js";
-import { createEpisodeList } from "./episodeList.js";
+import { dom } from "./dom.js?v=fav-badge-a";
+import { createEpisodeDetails } from "./episodeDetails.js?v=fav-empty-a";
+import { createEpisodeList } from "./episodeList.js?v=fav-empty-a";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
-import { createLibraryView } from "./libraryView.js?v=search-switcher-g";
+import { createLibraryView } from "./libraryView.js?v=fav-empty-a";
 import { createStatsPageView } from "./statsPageView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
@@ -374,6 +374,24 @@ async function init() {
     episodeDetails.updateHeroTitleMarquee();
   });
   dom.backButton.addEventListener("click", libraryView.closeLibrary);
+  dom.launchFavoritesButton.addEventListener("click", () => {
+    void libraryView.openFavorites();
+  });
+
+  function syncLaunchFavoritesButton() {
+    const count = favoritesStore.getCount();
+    const hasFavorites = count > 0;
+    const badgeCount = Math.min(count, 9999);
+    dom.launchFavoritesButton.classList.toggle("is-active", hasFavorites);
+    dom.launchFavoritesButton.setAttribute(
+      "aria-label",
+      hasFavorites ? `Open favorites (${count})` : "Open favorites",
+    );
+    dom.launchFavoritesCount.hidden = !hasFavorites;
+    dom.launchFavoritesCount.textContent = String(badgeCount);
+  }
+
+  syncLaunchFavoritesButton();
   initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
 
   let episodesByKey = null;
@@ -417,6 +435,7 @@ async function init() {
     void logMetadataDiagnostics(apiClient);
 
     favoritesStore.subscribe(() => {
+      syncLaunchFavoritesButton();
       collectionsView.renderHero();
       if (dom.libraryView.classList.contains("is-hidden")) return;
       if (state.favoritesOnly) {

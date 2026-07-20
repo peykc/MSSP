@@ -30,18 +30,42 @@ export function createEpisodeDetails({
   communitySignals,
   onFavoriteToggle,
 }) {
+  function setHeroCoverImage(src, alt) {
+    dom.heroCoverFrame?.classList.remove("is-favorites-placeholder");
+    if (dom.heroCoverStar) dom.heroCoverStar.hidden = true;
+    dom.heroCover.hidden = false;
+    dom.heroCover.src = src || "";
+    dom.heroCover.alt = alt || "";
+  }
+
+  function setFavoritesPlaceholderCover() {
+    dom.heroCoverFrame?.classList.add("is-favorites-placeholder");
+    if (dom.heroCoverStar) dom.heroCoverStar.hidden = false;
+    dom.heroCover.hidden = true;
+    dom.heroCover.removeAttribute("src");
+    dom.heroCover.alt = "";
+  }
+
   function renderDetails() {
     const episode = state.visibleEpisodes.find((item) => item.id === state.selectedEpisodeId);
     if (!episode) {
       communitySignals?.setTrackedEpisodeKeys("details", []);
-      dom.heroCover.src = state.activeCollection.coverUrl;
-      dom.heroCover.alt = `${state.activeCollection.name} cover`;
-      dom.heroDetails.innerHTML = "<span>No episodes match this view.</span>";
+      if (state.favoritesOnly) {
+        setFavoritesPlaceholderCover();
+      } else {
+        setHeroCoverImage(
+          state.activeCollection?.coverUrl || "",
+          `${state.activeCollection?.name || "Collection"} cover`,
+        );
+      }
+      dom.heroDetails.hidden = true;
+      dom.heroDetails.innerHTML = "";
+      requestAnimationFrame(updateHeroCoverSize);
       return;
     }
 
-    dom.heroCover.src = episode.coverUrl;
-    dom.heroCover.alt = `${episode.title || "Selected episode"} cover`;
+    dom.heroDetails.hidden = false;
+    setHeroCoverImage(episode.coverUrl, `${episode.title || "Selected episode"} cover`);
     const episodeLabel = formatEpisodeLabel(episode);
     const accessLabel = episode.paytch ? "PAYTCH" : "Public";
     const durationLabel = formatEpisodeDuration(episode.durationSeconds);
@@ -123,7 +147,7 @@ export function createEpisodeDetails({
   });
 
   function updateHeroCoverSize() {
-    if (!dom.heroPanel || !dom.heroCover) return;
+    if (!dom.heroPanel || !dom.heroCoverFrame) return;
 
     if (window.matchMedia("(max-aspect-ratio: 7 / 6)").matches) {
       dom.heroPanel.style.removeProperty("--hero-cover-size");
@@ -138,9 +162,11 @@ export function createEpisodeDetails({
       - parseFloat(panelStyle.paddingTop)
       - parseFloat(panelStyle.paddingBottom);
     const detailsStyle = window.getComputedStyle(dom.heroDetails);
-    const detailsHeight = dom.heroDetails.offsetHeight
-      + parseFloat(detailsStyle.marginTop)
-      + parseFloat(detailsStyle.marginBottom);
+    const detailsHeight = dom.heroDetails.hidden
+      ? 0
+      : dom.heroDetails.offsetHeight
+        + parseFloat(detailsStyle.marginTop)
+        + parseFloat(detailsStyle.marginBottom);
     const rowGap = parseFloat(panelStyle.rowGap) || 0;
     const availableHeight = panelHeight - dom.backButton.offsetHeight - detailsHeight - rowGap * 2;
     const size = Math.max(72, Math.min(430, panelWidth, availableHeight));

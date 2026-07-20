@@ -27,15 +27,15 @@
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="stylesheet" href="./css/base.css?v=paytch-coral-a">
     <link rel="stylesheet" href="./css/layout.css?v=search-scroll-lock-b">
-    <link rel="stylesheet" href="./css/launch.css?v=paytch-logo-b">
+    <link rel="stylesheet" href="./css/launch.css?v=launch-fav-f">
     <link rel="stylesheet" href="./css/archive.css?v=tip-nav-c">
     <link rel="stylesheet" href="./css/sealed-stone.css">
     <link rel="stylesheet" href="./css/library.css?v=archive-fullbleed-a">
-    <link rel="stylesheet" href="./css/episode-list.css?v=menu-icons-a">
-    <link rel="stylesheet" href="./css/episode-details.css?v=hero-title-a">
+    <link rel="stylesheet" href="./css/episode-list.css?v=fav-empty-a">
+    <link rel="stylesheet" href="./css/episode-details.css?v=fav-empty-b">
     <link rel="stylesheet" href="./css/filters.css">
     <link rel="stylesheet" href="./css/tooltip.css">
-    <link rel="stylesheet" href="./css/responsive.css?v=list-unify-c">
+    <link rel="stylesheet" href="./css/responsive.css?v=fav-empty-a">
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css">
     <link rel="stylesheet" href="./css/pwa-update.css">
@@ -96,7 +96,15 @@
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
         <div class="launch__top-bar">
-          <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="Matt and Shane's Secret Podcast">
+          <div class="launch__brand-cluster">
+            <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="Matt and Shane's Secret Podcast">
+            <button class="launch__favorites" id="launchFavoritesButton" type="button" aria-label="Open favorites">
+              <svg class="launch__favorites__icon" aria-hidden="true" viewBox="0 0 24 24">
+                <path d="m12 3.5 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 17.02l-5.3 2.79 1.01-5.9-4.29-4.18 5.93-.86L12 3.5Z"></path>
+              </svg>
+              <span class="launch__favorites__count" id="launchFavoritesCount" aria-hidden="true" hidden>0</span>
+            </button>
+          </div>
           <button class="launch__paytch-link" id="patreonRssLogoButton" type="button" aria-label="Link PAYTCH">
             <span class="launch__paytch-link__label">Link PAYTCH</span>
             <svg class="launch__paytch-link__icon" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" fill-rule="evenodd" clip-rule="evenodd" stroke-linejoin="round" stroke-miterlimit="2" aria-hidden="true">
@@ -287,7 +295,12 @@
         <button class="back-button" id="backButton" type="button" aria-label="Back to collections">
           <span aria-hidden="true">‹</span>
         </button>
-        <img class="hero-cover" id="heroCover" alt="">
+        <div class="hero-cover" id="heroCoverFrame">
+          <img class="hero-cover__image" id="heroCover" alt="">
+          <svg class="hero-cover__star" id="heroCoverStar" viewBox="0 0 24 24" aria-hidden="true" hidden>
+            <path d="m12 3.5 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 17.02l-5.3 2.79 1.01-5.9-4.29-4.18 5.93-.86L12 3.5Z"></path>
+          </svg>
+        </div>
         <div class="hero-details" id="heroDetails">
           <span>Select an episode to inspect details.</span>
         </div>
@@ -309,6 +322,7 @@
         </div>
 
         <div class="episode-list" id="episodeList" tabindex="0" aria-label="Episode list">
+          <p class="episode-list__empty" id="episodeListEmpty" hidden>No episodes match this view.</p>
           <div class="episode-list__spacer" id="listSpacer"></div>
           <div class="episode-list__items" id="listItems"></div>
         </div>
@@ -672,6 +686,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=scroll-bottom-b"></script>
+    <script type="module" src="./js/main.js?v=fav-badge-a"></script>
   </body>
 </html>
