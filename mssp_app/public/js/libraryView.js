@@ -8,6 +8,7 @@ export function createLibraryView({
   clearRows,
   renderDetails,
   renderVisibleRows,
+  getMiniplayerEpisode,
 }) {
   const prefersReducedMotion = () => window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -34,6 +35,32 @@ export function createLibraryView({
     });
   }
 
+  function selectEpisodeInList(episode) {
+    if (!episode) return false;
+
+    const matched = state.visibleEpisodes.find((item) => item.episodeKey === episode.episodeKey)
+      || state.visibleEpisodes.find((item) => item.id === episode.id);
+    if (!matched) return false;
+
+    state.selectedEpisodeId = matched.id;
+    return true;
+  }
+
+  function scrollEpisodeListTo(episode) {
+    if (!episode) return false;
+
+    const index = state.visibleEpisodes.findIndex((item) => (
+      item.episodeKey === episode.episodeKey || item.id === episode.id
+    ));
+    if (index < 0) return false;
+
+    const rowHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--row")) || 64;
+    const targetTop = index * rowHeight;
+    const maxScroll = Math.max(0, state.visibleEpisodes.length * rowHeight - dom.episodeList.clientHeight);
+    dom.episodeList.scrollTop = Math.max(0, Math.min(targetTop - dom.episodeList.clientHeight * 0.28, maxScroll));
+    return true;
+  }
+
   async function openCollection(id) {
     state.favoritesOnly = false;
     return openLibrary(id);
@@ -47,7 +74,7 @@ export function createLibraryView({
   async function openEpisode(episode) {
     if (!episode) return;
     state.favoritesOnly = false;
-    await openLibrary("anthology");
+    await openLibrary("anthology", { scrollToMiniplayer: false });
 
     const matched = state.episodes.find((item) => item.episodeKey === episode.episodeKey)
       || state.episodes.find((item) => item.id === episode.id);
@@ -55,18 +82,12 @@ export function createLibraryView({
 
     state.selectedEpisodeId = matched.id;
     applyEpisodeFilters({ resetSelection: false });
-    const index = state.visibleEpisodes.findIndex((item) => item.id === matched.id);
-    if (index >= 0) {
-      const rowHeight = Number.parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--row")) || 64;
-      const targetTop = index * rowHeight;
-      const maxScroll = Math.max(0, state.visibleEpisodes.length * rowHeight - dom.episodeList.clientHeight);
-      dom.episodeList.scrollTop = Math.max(0, Math.min(targetTop - dom.episodeList.clientHeight * 0.28, maxScroll));
-    }
+    scrollEpisodeListTo(matched);
     renderDetails();
     renderVisibleRows();
   }
 
-  async function openLibrary(id) {
+  async function openLibrary(id, { scrollToMiniplayer = true } = {}) {
     state.activeCollection = state.collections.find((item) => item.id === id);
     if (!state.activeCollection) return;
 
@@ -92,6 +113,17 @@ export function createLibraryView({
     state.selectedCoverKinds = new Set();
     renderCoverFilters();
     await loadEpisodes();
+
+    if (!scrollToMiniplayer) return;
+
+    const miniplayerEpisode = getMiniplayerEpisode?.();
+    if (!miniplayerEpisode) return;
+
+    if (selectEpisodeInList(miniplayerEpisode)) {
+      scrollEpisodeListTo(miniplayerEpisode);
+      renderDetails();
+      renderVisibleRows();
+    }
   }
 
   async function loadEpisodes() {

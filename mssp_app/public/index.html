@@ -18,16 +18,17 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-title" content="MSSP Archive">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <link rel="preload" href="./assets/brand/mssp-mark.png" as="image">
+    <link rel="preload" href="./apple-touch-icon.png" as="image">
     <title>MSSP Archive</title>
     <link rel="manifest" href="./site.webmanifest">
     <link rel="icon" href="./favicon.ico" sizes="any">
+    <link rel="icon" type="image/png" sizes="180x180" href="./apple-touch-icon.png">
     <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32x32.png">
     <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16x16.png">
     <link rel="apple-touch-icon" href="./apple-touch-icon.png">
     <link rel="stylesheet" href="./css/base.css?v=paytch-coral-a">
-    <link rel="stylesheet" href="./css/layout.css?v=a2hs-a">
-    <link rel="stylesheet" href="./css/launch.css?v=dawgs-twitch-a">
+    <link rel="stylesheet" href="./css/layout.css?v=a2hs-b">
+    <link rel="stylesheet" href="./css/launch.css?v=a2hs-d">
     <link rel="stylesheet" href="./css/archive.css?v=tip-nav-c">
     <link rel="stylesheet" href="./css/sealed-stone.css">
     <link rel="stylesheet" href="./css/library.css?v=archive-iowan-a">
@@ -38,8 +39,8 @@
     <link rel="stylesheet" href="./css/responsive.css?v=fav-empty-a">
     <link rel="stylesheet" href="./css/utilities.css">
     <link rel="stylesheet" href="./css/player.css?v=player-iowan-a">
-    <link rel="stylesheet" href="./css/pwa-update.css?v=a2hs-a">
-    <link rel="stylesheet" href="./css/patreon-rss.css?v=a2hs-a">
+    <link rel="stylesheet" href="./css/pwa-update.css?v=a2hs-b">
+    <link rel="stylesheet" href="./css/patreon-rss.css?v=a2hs-f">
     <link rel="stylesheet" href="./css/transcript.css?v=cover-ambient-g">
     <link rel="stylesheet" href="./css/global-search.css?v=sort-reveal-a">
     <style>
@@ -91,13 +92,13 @@
       <span id="pullRefreshLabel">Pull to refresh</span>
     </div>
     <div class="launch-splash" id="launchSplash" aria-hidden="false">
-      <img class="launch-splash__mark" src="./assets/brand/mssp-mark.png" alt="">
+      <img class="launch-splash__mark" src="./apple-touch-icon.png" alt="">
     </div>
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
         <div class="launch__top-bar">
           <div class="launch__brand-cluster">
-            <img class="launch__brand" src="./assets/brand/mssp-mark.png" alt="Matt and Shane's Secret Podcast">
+            <img class="launch__brand" src="./apple-touch-icon.png" alt="Matt and Shane's Secret Podcast">
             <button class="launch__favorites" id="launchFavoritesButton" type="button" aria-label="Open favorites">
               <svg class="launch__favorites__icon" aria-hidden="true" viewBox="0 0 24 24">
                 <path d="m12 3.5 2.65 5.37 5.93.86-4.29 4.18 1.01 5.9L12 17.02l-5.3 2.79 1.01-5.9-4.29-4.18 5.93-.86L12 3.5Z"></path>
@@ -177,7 +178,7 @@
               <span class="collection-card__seal-line"></span>
               <span class="collection-card__seal-tip"></span>
             </span>
-            <img class="launch-footer__mark" src="./assets/brand/mssp-mark.png" alt="">
+            <img class="launch-footer__mark" src="./apple-touch-icon.png" alt="">
             <span class="collection-card__seal-arm">
               <span class="collection-card__seal-tip"></span>
               <span class="collection-card__seal-line"></span>
@@ -490,7 +491,7 @@
                 <li><span class="patreon-rss-dialog__step-copy">Open <a href="https://www.patreon.com/MSsecretpod" target="_blank" rel="noopener noreferrer">Matt and Shane&apos;s Secret Podcast</a>.</span></li>
                 <li>
                   <span class="patreon-rss-dialog__step-copy">
-                    Press
+                    Click
                     <span class="patreon-rss-guide-chip patreon-rss-guide-chip--podcast" aria-hidden="true">
                       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true">
                       <path fill="currentColor" d="M13.208 2.685a9.78 9.78 0 0 1 6.6 3.649h-.012a9.8 9.8 0 0 1 2.085 7.249 9.9 9.9 0 0 1-.877 3.097 9.9 9.9 0 0 1-1.755 2.565c-.353.371-.615.536-.893.536-.251-.015-.51-.21-.847-.63-.289-.36-.398-.581-.387-.78.008-.198.14-.409.458-.75a7.5 7.5 0 0 0 1.988-4.301 7.47 7.47 0 0 0-1.59-5.531 7.47 7.47 0 0 0-5.037-2.786 8 8 0 0 0-.844-.042c-.28 0-.562.011-.843.042a7.47 7.47 0 0 0-5.036 2.786 7.5 7.5 0 0 0-1.59 5.531 7.5 7.5 0 0 0 1.987 4.301c.319.341.446.552.458.75.01.199-.098.417-.387.78-.337.42-.596.615-.847.63-.274 0-.54-.165-.893-.536a9.8 9.8 0 0 1-2.632-5.663 9.78 9.78 0 0 1 2.089-7.248 9.8 9.8 0 0 1 7.702-3.709q.551 0 1.102.06"></path>
@@ -543,42 +544,52 @@
         <header class="patreon-rss-dialog__header">
           <div class="patreon-rss-dialog__heading">
             <div class="patreon-rss-dialog__eyebrow-row">
-              <p class="eyebrow">Install</p>
+              <p class="eyebrow">Install App</p>
               <span class="patreon-rss-dialog__segment-arm" aria-hidden="true">
                 <span class="patreon-rss-dialog__segment-line"></span>
               </span>
             </div>
             <h2 id="a2hsTitle">Add to Home Screen</h2>
           </div>
-          <button class="patreon-rss-dialog__info a2hs-dialog__close" id="a2hsClose" type="button" aria-label="Close">
-            <span class="patreon-rss-dialog__info-mark" aria-hidden="true">×</span>
-          </button>
+          <span class="patreon-rss-dialog__info a2hs-dialog__mark" id="a2hsBrandMark" aria-hidden="true">
+            <img class="a2hs-dialog__mark-img" src="./apple-touch-icon.png" alt="" width="40" height="40" decoding="async">
+          </span>
         </header>
         <div class="patreon-rss-dialog__content-frame">
           <div class="patreon-rss-dialog__guide" id="a2hsGuide">
             <div class="patreon-rss-dialog__guide-layout is-active">
               <div class="patreon-rss-dialog__guide-copy">
-                <h3 class="patreon-rss-dialog__guide-title">How to install on iPhone</h3>
+                <h3 class="patreon-rss-dialog__guide-title">How to install on iOS</h3>
                 <ol class="patreon-rss-dialog__steps">
                   <li>
                     <span class="patreon-rss-dialog__step-copy">
-                      Press the browser
-                      <span class="patreon-rss-guide-chip patreon-rss-guide-chip--share" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                      Tap
+                      <button class="patreon-rss-guide-chip patreon-rss-guide-chip--share" id="a2hsShareButton" type="button" aria-label="Open share sheet">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
                           <polyline points="8 6 12 2 16 6"></polyline>
                           <line x1="12" y1="2" x2="12" y2="15"></line>
                           <path d="M16 10h2a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1v-9a1 1 0 0 1 1-1h2"></path>
                         </svg>
-                      </span>
-                      share button.
+                      </button>
                     </span>
                   </li>
-                  <li><span class="patreon-rss-dialog__step-copy">Press <strong>Add to Home Screen</strong>.</span></li>
+                  <li>
+                    <span class="patreon-rss-dialog__step-copy">
+                      <span class="a2hs-guide-mark">
+                        Add to Home Screen
+                        <svg class="a2hs-guide-mark__icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                          <path d="M2 8C2 4.68629 4.68629 2 8 2H16C19.3137 2 22 4.68629 22 8V16C22 19.3137 19.3137 22 16 22H8C4.68629 22 2 19.3137 2 16V8Z" stroke="currentColor" stroke-width="1.5"/>
+                          <path d="M12 7.75732L12 16.2426" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                          <path d="M16.25 12L7.76476 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                      </span>
+                    </span>
+                  </li>
                 </ol>
               </div>
               <div class="patreon-rss-dialog__guide-visual-column">
                 <figure class="patreon-rss-dialog__guide-visual">
-                  <img src="./images/a2hs/ios-add-home.gif" alt="Safari share sheet showing Add to Home Screen." decoding="async">
+                  <img src="./images/a2hs/iospwa.gif" alt="Safari share sheet showing Add to Home Screen." decoding="async">
                 </figure>
               </div>
             </div>
@@ -759,6 +770,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=player-views-only-a"></script>
+    <script type="module" src="./js/main.js?v=a2hs-e"></script>
   </body>
 </html>

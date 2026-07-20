@@ -8,13 +8,13 @@ import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
 import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=eye-icon-b";
 import { createViewProgress } from "./community/viewProgress.js";
-import { dom } from "./dom.js?v=player-views-only-a";
+import { dom } from "./dom.js?v=a2hs-e";
 import { createEpisodeDetails } from "./episodeDetails.js?v=views-rows-b";
 import { createEpisodeList } from "./episodeList.js?v=views-rows-b";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=views-rows-b";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
-import { createLibraryView } from "./libraryView.js?v=fav-empty-a";
+import { createLibraryView } from "./libraryView.js?v=mini-scroll-a";
 import { createStatsPageView } from "./statsPageView.js";
 import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
@@ -23,7 +23,7 @@ import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js?v=player-views-only-a";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
-import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-a";
+import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-e";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=pull-overscroll-a";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
@@ -346,6 +346,7 @@ async function init() {
     clearRows: episodeList.clearRows,
     renderDetails: episodeDetails.renderDetails,
     renderVisibleRows: episodeList.renderVisibleRows,
+    getMiniplayerEpisode: () => playerState.getState().selectedEpisode,
   });
 
   const fullCalendarModal = createFullCalendarModal({
