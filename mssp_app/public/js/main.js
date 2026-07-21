@@ -6,9 +6,10 @@ import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
-import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=visitors-b";
+import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=pitch-c";
+import { createPitchCounter } from "./community/pitchCounter.js?v=pitch-c";
 import { createViewProgress } from "./community/viewProgress.js";
-import { dom } from "./dom.js?v=visitors-b";
+import { dom } from "./dom.js?v=pitch-c";
 import { createEpisodeDetails } from "./episodeDetails.js?v=views-rows-b";
 import { createEpisodeList } from "./episodeList.js?v=views-rows-b";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=views-rows-b";
@@ -71,6 +72,9 @@ async function init() {
   let showLifetimeVisitors = false;
   let dawgsOnlineCount = null;
   let siteVisitorTotal = null;
+  const dawgsPitchCounter = createPitchCounter(
+    dom.dawgsOnline.querySelector("[data-dawgs-online-count]"),
+  );
 
   function renderDawgsMetric() {
     const value = showLifetimeVisitors ? siteVisitorTotal : dawgsOnlineCount;
@@ -85,8 +89,11 @@ async function init() {
       "title",
       showLifetimeVisitors ? "Show dawgs online" : "Show lifetime visitors",
     );
-    const countElement = dom.dawgsOnline.querySelector("[data-dawgs-online-count]");
-    if (countElement) countElement.textContent = show ? formatCommunityCount(value) : "—";
+    if (!show) {
+      dawgsPitchCounter.setValue(null, { animate: false });
+      return;
+    }
+    dawgsPitchCounter.setValue(value, { animate: true });
   }
 
   communitySignals.subscribeOnline((count) => {

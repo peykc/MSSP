@@ -1438,8 +1438,53 @@ p {
   height: 100%;
 }
 
-.dawgs-online__count {
+.dawgs-online__count,
+.pitch-counter {
+  --digit-pad: 0.18em;
+  --digit-height: calc(1em + (var(--digit-pad) * 2));
+  display: inline-flex;
+  align-items: center;
+  height: var(--digit-height);
+  line-height: 1;
+  overflow: hidden;
+  padding-block: var(--digit-pad);
   font-variant-numeric: tabular-nums;
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    black var(--digit-pad),
+    black calc(100% - var(--digit-pad)),
+    transparent 100%
+  );
+}
+
+.pitch-counter > span[data-value] {
+  display: flex;
+  flex-direction: column;
+  width: 0.62em;
+  height: var(--digit-height);
+  line-height: 1;
+  text-align: center;
+  transform: translateY(0%);
+  transition: transform 2s ease;
+  z-index: 1;
+}
+
+.pitch-counter > span[data-value] > span {
+  flex: 0 0 var(--digit-height);
+  display: grid;
+  place-items: center;
+  height: var(--digit-height);
+}
+
+.pitch-counter > span[data-value].is-instant {
+  transition: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pitch-counter > span[data-value] {
+    transition: none;
+  }
 }
 
 @supports not (grid-template-rows: subgrid) {
