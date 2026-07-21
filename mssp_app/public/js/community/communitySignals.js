@@ -19,6 +19,13 @@ export const VIEW_EYE_ICON = `
   </svg>
 `;
 
+/** Geometric dash (not a text em dash) so it aligns with the eye icon while counts load. */
+export const VIEW_PENDING_MARK = `
+  <svg class="signal-pending-mark" aria-hidden="true" viewBox="0 0 12 12" fill="currentColor">
+    <rect x="1.5" y="5.25" width="9" height="1.5" rx="0.75"></rect>
+  </svg>
+`;
+
 export function createCommunitySignals({
   apiBase,
   getClientId,

@@ -607,6 +607,13 @@ body.player-dragging .full-player__collapse {
 .full-player__views-icon svg {
   width: 14px;
   height: 14px;
+  display: block;
+}
+
+.full-player__views .signal-pending-mark {
+  width: 11px;
+  height: 14px;
+  display: block;
 }
 
 .full-player__title {

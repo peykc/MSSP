@@ -1,4 +1,4 @@
-const RELEASE_ID = "v381";
+const RELEASE_ID = "v383";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -18,13 +18,13 @@ const SHELL_PATHS = [
   "./css/archive.css?v=tip-nav-c",
   "./css/sealed-stone.css",
   "./css/library.css?v=archive-iowan-a",
-  "./css/episode-list.css?v=archive-iowan-a",
+  "./css/episode-list.css?v=views-pending-a",
   "./css/episode-details.css?v=views-rows-b",
   "./css/filters.css",
   "./css/tooltip.css",
   "./css/responsive.css?v=fav-empty-a",
   "./css/utilities.css",
-  "./css/player.css?v=player-iowan-a",
+  "./css/player.css?v=views-pending-a",
   "./css/pwa-update.css?v=a2hs-b",
   "./css/patreon-rss.css?v=a2hs-f",
   "./css/transcript.css?v=cover-ambient-g",
@@ -34,7 +34,7 @@ const SHELL_PATHS = [
   "./js/a2hsModal.js?v=a2hs-e",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js",
-  "./js/community/communitySignals.js?v=eye-icon-b",
+  "./js/community/communitySignals.js?v=eye-icon-c",
   "./js/community/viewProgress.js",
   "./js/patreonRssModal.js",
   "./js/archiveStats.js",
@@ -43,8 +43,8 @@ const SHELL_PATHS = [
   "./js/collectionsView.js?v=cal-preview-b",
   "./js/dom.js?v=a2hs-e",
   "./js/episodeDetails.js?v=views-rows-b",
-  "./js/episodeRow.js?v=views-rows-b",
-  "./js/episodeList.js?v=views-rows-b",
+  "./js/episodeRow.js?v=views-pending-a",
+  "./js/episodeList.js?v=views-pending-a",
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js?v=scroll-bottom-b",
@@ -57,7 +57,7 @@ const SHELL_PATHS = [
   "./js/player/coverAmbient.js?v=cover-ambient-g",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js?v=player-views-only-a",
+  "./js/player/playerView.js?v=views-pending-a",
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",

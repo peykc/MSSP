@@ -1,6 +1,6 @@
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { formatEpisodeLabel, formatTimeRemaining } from "./utils.js";
-import { formatViewSignal, VIEW_EYE_ICON } from "./community/communitySignals.js?v=eye-icon-b";
+import { formatViewSignal, VIEW_EYE_ICON, VIEW_PENDING_MARK } from "./community/communitySignals.js?v=eye-icon-c";
 
 export const COMPLETED_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -81,7 +81,7 @@ export function getEpisodeRowHTML({ includePlay = true, includeSignals = false }
     ? `<span class="episode-row__signals" aria-label="Episode views">
         <span class="episode-row__signal episode-row__signal--views" data-signal="views">
           <span class="episode-row__signal-icon" aria-hidden="true">${VIEW_EYE_ICON}</span>
-          <span class="episode-row__signal-count" data-views-count>0</span>
+          <span class="episode-row__signal-count" data-views-count>${VIEW_PENDING_MARK}</span>
         </span>
       </span>`
     : "";
@@ -246,9 +246,12 @@ export function updateEpisodeRowSignals(row, episode, communitySignals) {
     stars: null,
     views: null,
   };
-  // Match stars: show 0 once known; treat unloaded null as 0 so the row never sticks on "—"
-  const views = Number.isFinite(signals.views) ? signals.views : 0;
-  viewsElement.textContent = formatViewSignal(views, { compact: true });
+  // null = still loading → SVG dash; finite (including 0) once counts have resolved
+  if (!Number.isFinite(signals.views)) {
+    viewsElement.innerHTML = VIEW_PENDING_MARK;
+  } else {
+    viewsElement.textContent = formatViewSignal(signals.views, { compact: true });
+  }
 }
 
 export function updateEpisodeRowMenuItems(row, episode, playbackProgressStore) {

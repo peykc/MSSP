@@ -344,6 +344,20 @@
 .episode-row__signal-icon svg {
   width: 12px;
   height: 12px;
+  display: block;
+}
+
+.episode-row__signal-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 12px;
+}
+
+.episode-row__signal-count .signal-pending-mark {
+  width: 10px;
+  height: 12px;
+  display: block;
 }
 
 .episode-row__signal[hidden] {

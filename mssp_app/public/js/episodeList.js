@@ -5,7 +5,7 @@ import {
   updateEpisodeRowMarquee,
   updateEpisodeRowPlayButton,
   updateEpisodeRowSignals,
-} from "./episodeRow.js?v=views-rows-b";
+} from "./episodeRow.js?v=views-pending-a";
 
 const OVERSCAN = 8;
 
