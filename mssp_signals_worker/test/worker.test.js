@@ -11,6 +11,7 @@ const API_BASE = "https://mssp-signals.example.workers.dev";
 const CLIENT_ONE = "7f52ca32-8f4c-4f6b-917e-13b9933a61aa";
 const CLIENT_TWO = "bddab51d-b7fa-4bb5-b7df-fc090d38d15f";
 const SALT = "test-only-salt";
+const MOCK_PEAK_AT_MS = 1_700_000_000_000;
 const [EPISODE_ONE, EPISODE_TWO, ...OTHER_EPISODES] = EPISODE_KEYS;
 
 test("health and preflight use strict CORS and no-store JSON headers", async () => {
@@ -224,8 +225,30 @@ test("global online count reads from the shared presence room", async () => {
   env.PRESENCE.rooms.set(GLOBAL_PRESENCE_ROOM, new Map([["hash", true]]));
   const response = await callWorker(env, "/v1/presence/online");
   assert.equal(response.status, 200);
-  assert.deepEqual(await response.json(), { online: 1 });
+  assert.deepEqual(await response.json(), {
+    online: 1,
+    peak: 1,
+    peakAt: new Date(MOCK_PEAK_AT_MS).toISOString(),
+  });
   assert.deepEqual(env.PRESENCE.requestedNames, [GLOBAL_PRESENCE_ROOM]);
+});
+
+test("presence peaks route returns the record and daily series without query support", async () => {
+  const env = createEnv();
+  env.PRESENCE.rooms.set(GLOBAL_PRESENCE_ROOM, new Map([["hash", true], ["hash-two", true]]));
+  const response = await callWorker(env, "/v1/presence/peaks");
+  assert.equal(response.status, 200);
+  const expectedPeakAt = new Date(MOCK_PEAK_AT_MS).toISOString();
+  assert.deepEqual(await response.json(), {
+    peak: 2,
+    peakAt: expectedPeakAt,
+    days: [{ day: "2023-11-14", peak: 2, peakAt: expectedPeakAt }],
+  });
+  assertPublicHeaders(response, API_ORIGIN);
+
+  const unsupported = await callWorker(env, "/v1/presence/peaks?days=7");
+  assert.equal(unsupported.status, 400);
+  assert.equal((await unsupported.json()).error.code, "UNSUPPORTED_QUERY_PARAMETER");
 });
 
 test("PresenceRoom dedupes clients, clears stops, and expires stale online users", async () => {
@@ -239,17 +262,106 @@ test("PresenceRoom dedupes clients, clears stops, and expires stale online users
   let now = 1_000_000;
   Date.now = () => now;
   try {
-    assert.equal(await roomHeartbeat(room, clientHash, true), 1);
-    assert.equal(await roomHeartbeat(room, clientHash, true), 1);
+    assert.equal((await roomHeartbeat(room, clientHash, true)).online, 1);
+    assert.equal((await roomHeartbeat(room, clientHash, true)).online, 1);
     now += PRESENCE_TTL_MS - 1;
-    assert.equal(await roomCount(room), 1);
+    assert.equal((await roomCount(room)).online, 1);
     now += 1;
-    assert.equal(await roomCount(room), 0);
-    assert.equal(await roomHeartbeat(room, clientHash, true), 1);
-    assert.equal(await roomHeartbeat(room, clientHash, false), 0);
+    assert.equal((await roomCount(room)).online, 0);
+    assert.equal((await roomHeartbeat(room, clientHash, true)).online, 1);
+    assert.equal((await roomHeartbeat(room, clientHash, false)).online, 0);
   } finally {
     Date.now = originalNow;
   }
+});
+
+test("PresenceRoom records the all-time peak and keeps it after clients leave", async () => {
+  const sql = new MockSqlStorage();
+  const roomState = {
+    storage: { sql },
+    blockConcurrencyWhile(callback) { return Promise.resolve().then(callback); },
+  };
+  const room = new PresenceRoom(roomState);
+  const hashOne = await hashClientId(CLIENT_ONE, SALT);
+  const hashTwo = await hashClientId(CLIENT_TWO, SALT);
+  const originalNow = Date.now;
+  let now = 2_000_000;
+  Date.now = () => now;
+  try {
+    assert.deepEqual(await roomHeartbeat(room, hashOne, true), {
+      online: 1, peak: 1, peakAt: 2_000_000,
+    });
+    now += 1_000;
+    assert.deepEqual(await roomHeartbeat(room, hashTwo, true), {
+      online: 2, peak: 2, peakAt: 2_001_000,
+    });
+    now += 1_000;
+    assert.deepEqual(await roomHeartbeat(room, hashTwo, false), {
+      online: 1, peak: 2, peakAt: 2_001_000,
+    });
+    now += PRESENCE_TTL_MS;
+    assert.deepEqual(await roomCount(room), {
+      online: 0, peak: 2, peakAt: 2_001_000,
+    });
+    assert.deepEqual(await roomHeartbeat(room, hashOne, true), {
+      online: 1, peak: 2, peakAt: 2_001_000,
+    });
+
+    const revived = new PresenceRoom(roomState);
+    assert.deepEqual(await roomCount(revived), {
+      online: 1, peak: 2, peakAt: 2_001_000,
+    });
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("PresenceRoom tracks a separate peak for each UTC day", async () => {
+  const sql = new MockSqlStorage();
+  const roomState = {
+    storage: { sql },
+    blockConcurrencyWhile(callback) { return Promise.resolve().then(callback); },
+  };
+  const room = new PresenceRoom(roomState);
+  const hashOne = await hashClientId(CLIENT_ONE, SALT);
+  const hashTwo = await hashClientId(CLIENT_TWO, SALT);
+  const dayOnePeakAt = Date.UTC(2026, 6, 20, 23, 1, 0);
+  const dayThreeAt = Date.UTC(2026, 6, 22, 23, 1, 0);
+  const originalNow = Date.now;
+  let now = Date.UTC(2026, 6, 20, 23, 0, 0);
+  Date.now = () => now;
+  try {
+    await roomHeartbeat(room, hashOne, true);
+    now = dayOnePeakAt;
+    await roomHeartbeat(room, hashTwo, true);
+    now = dayThreeAt;
+    await roomHeartbeat(room, hashOne, true);
+    assert.deepEqual(await roomPeaks(room), {
+      peak: 2,
+      peakAt: dayOnePeakAt,
+      days: [
+        { day: "2026-07-20", peak: 2, peakAt: dayOnePeakAt },
+        { day: "2026-07-22", peak: 1, peakAt: dayThreeAt },
+      ],
+    });
+  } finally {
+    Date.now = originalNow;
+  }
+});
+
+test("PresenceRoom seeds the daily series from a pre-daily all-time record", async () => {
+  const sql = new MockSqlStorage();
+  const recordAt = Date.UTC(2026, 6, 21, 0, 12, 48);
+  sql.peak = { online: 8, at: recordAt };
+  const room = new PresenceRoom({
+    storage: { sql },
+    blockConcurrencyWhile(callback) { return Promise.resolve().then(callback); },
+  });
+  assert.deepEqual(await roomPeaks(room), {
+    peak: 8,
+    peakAt: recordAt,
+    days: [{ day: "2026-07-21", peak: 8, peakAt: recordAt }],
+  });
 });
 
 test("D1 migrations contain idempotent trigger-maintained favorite and view counts", async () => {
@@ -298,12 +410,17 @@ async function roomHeartbeat(room, clientHash, online) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ clientHash, online }),
   }));
-  return (await response.json()).online;
+  return response.json();
 }
 
 async function roomCount(room) {
   const response = await room.fetch(new Request("https://presence.internal/count"));
-  return (await response.json()).online;
+  return response.json();
+}
+
+async function roomPeaks(room) {
+  const response = await room.fetch(new Request("https://presence.internal/peaks"));
+  return response.json();
 }
 
 class MockD1 {
@@ -395,6 +512,7 @@ class MockD1Statement {
 
 class MockPresenceNamespace {
   rooms = new Map();
+  peaks = new Map();
   failedNames = new Set();
   requestedNames = [];
   payloads = [];
@@ -413,7 +531,17 @@ class MockPresenceNamespace {
           if (payload.online) room.set(payload.clientHash, true);
           else room.delete(payload.clientHash);
         }
-        return Response.json({ online: room.size });
+        const peak = Math.max(this.peaks.get(name) || 0, room.size);
+        this.peaks.set(name, peak);
+        const peakAt = peak > 0 ? MOCK_PEAK_AT_MS : null;
+        if (url.pathname === "/peaks") {
+          return Response.json({
+            peak,
+            peakAt,
+            days: peak > 0 ? [{ day: "2023-11-14", peak, peakAt }] : [],
+          });
+        }
+        return Response.json({ online: room.size, peak, peakAt });
       },
     };
   }
@@ -421,10 +549,43 @@ class MockPresenceNamespace {
 
 class MockSqlStorage {
   clients = new Map();
+  peak = { online: 0, at: null };
+  dailyPeaks = new Map();
 
   exec(sql, ...values) {
     const normalized = sql.trim();
     if (normalized.startsWith("CREATE TABLE") || normalized.startsWith("CREATE INDEX")) return cursor([]);
+    if (normalized.startsWith("UPDATE presence_stats")) {
+      const [online, at, threshold] = values;
+      if (this.peak.online < threshold) this.peak = { online, at };
+      return cursor([]);
+    }
+    if (normalized.startsWith("SELECT peak_online, peak_at")) {
+      return cursor([{ peak_online: this.peak.online, peak_at: this.peak.at }]);
+    }
+    if (normalized.startsWith("INSERT OR IGNORE INTO daily_peaks")) {
+      if (this.peak.online > 0 && this.peak.at !== null) {
+        const day = new Date(this.peak.at).toISOString().slice(0, 10);
+        if (!this.dailyPeaks.has(day)) {
+          this.dailyPeaks.set(day, { peak_online: this.peak.online, peak_at: this.peak.at });
+        }
+      }
+      return cursor([]);
+    }
+    if (normalized.startsWith("INSERT INTO daily_peaks")) {
+      const [day, online, at] = values;
+      const row = this.dailyPeaks.get(day);
+      if (!row || row.peak_online < online) {
+        this.dailyPeaks.set(day, { peak_online: online, peak_at: at });
+      }
+      return cursor([]);
+    }
+    if (normalized.startsWith("SELECT day, peak_online, peak_at")) {
+      const rows = [...this.dailyPeaks.entries()]
+        .sort(([left], [right]) => left.localeCompare(right))
+        .map(([day, row]) => ({ day, peak_online: row.peak_online, peak_at: row.peak_at }));
+      return cursor(rows);
+    }
     if (normalized.startsWith("DELETE FROM online_clients WHERE last_seen")) {
       const [cutoff] = values;
       for (const [key, client] of this.clients) {

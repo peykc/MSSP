@@ -13,8 +13,19 @@ Raw browser UUIDs are accepted at the API boundary, validated, immediately hashe
 - `GET /v1/views/counts?episode=<key>&episode=<key>`
 - `POST /v1/presence/heartbeat`
 - `GET /v1/presence/online`
+- `GET /v1/presence/peaks`
 
 All public responses use JSON, `Cache-Control: no-store`, and strict origin checks for `https://peykc.github.io` plus HTTP localhost/loopback development origins. Repeated `episode` parameters are deduplicated; a request may contain at most 20 unique known keys.
+
+The heartbeat and online endpoints return the current `online` count plus the all-time record: `peak` (highest concurrent count ever observed) and `peakAt` (ISO 8601 UTC moment it was set, `null` until the first heartbeat). The records live in the presence Durable Object's SQLite storage, so they survive Worker deploys and restarts and are never reset automatically.
+
+`GET /v1/presence/peaks` additionally returns the graph-ready history: the all-time `peak`/`peakAt` plus `days`, an ascending array of `{ day, peak, peakAt }` with one entry per UTC day (`day` is `YYYY-MM-DD`). Days are only recorded while at least one client is online, so a missing day means zero concurrent users. The first daily row was backfilled from the all-time record's day when the feature deployed. Check the record anytime:
+
+```powershell
+Invoke-RestMethod -Method Get `
+  -Uri 'https://msspsignal.pkcollection.net/v1/presence/online' `
+  -Headers @{ Origin = 'https://peykc.github.io' }
+```
 
 ## Local setup
 

@@ -15,6 +15,24 @@ export class PresenceRoom {
         );
         CREATE INDEX IF NOT EXISTS idx_online_clients_last_seen
         ON online_clients (last_seen);
+        CREATE TABLE IF NOT EXISTS presence_stats (
+          id INTEGER PRIMARY KEY CHECK (id = 1),
+          peak_online INTEGER NOT NULL,
+          peak_at INTEGER
+        );
+        INSERT OR IGNORE INTO presence_stats (id, peak_online, peak_at)
+        VALUES (1, 0, NULL);
+        CREATE TABLE IF NOT EXISTS daily_peaks (
+          day TEXT PRIMARY KEY,
+          peak_online INTEGER NOT NULL,
+          peak_at INTEGER NOT NULL
+        );
+      `);
+      this.sql.exec(`
+        INSERT OR IGNORE INTO daily_peaks (day, peak_online, peak_at)
+        SELECT strftime('%Y-%m-%d', peak_at / 1000, 'unixepoch'), peak_online, peak_at
+        FROM presence_stats
+        WHERE id = 1 AND peak_online > 0 AND peak_at IS NOT NULL
       `);
     };
     this.ready = state.blockConcurrencyWhile
@@ -31,6 +49,9 @@ export class PresenceRoom {
     }
     if (url.pathname === "/count" && request.method === "GET") {
       return this.handleCount();
+    }
+    if (url.pathname === "/peaks" && request.method === "GET") {
+      return this.handlePeaks();
     }
     return internalJson({ error: "not_found" }, 404);
   }
@@ -50,7 +71,6 @@ export class PresenceRoom {
     }
 
     const now = Date.now();
-    this.deleteExpired(now);
     if (payload.online) {
       this.sql.exec(
         `INSERT INTO online_clients (client_hash, last_seen)
@@ -64,12 +84,63 @@ export class PresenceRoom {
       this.sql.exec("DELETE FROM online_clients WHERE client_hash = ?", payload.clientHash);
     }
 
-    return internalJson({ online: this.countOnline() });
+    return internalJson(this.snapshotPresence(now));
   }
 
   handleCount() {
-    this.deleteExpired(Date.now());
-    return internalJson({ online: this.countOnline() });
+    return internalJson(this.snapshotPresence(Date.now()));
+  }
+
+  snapshotPresence(now) {
+    this.deleteExpired(now);
+    const online = this.countOnline();
+    this.sql.exec(
+      `UPDATE presence_stats
+       SET peak_online = ?, peak_at = ?
+       WHERE id = 1 AND peak_online < ?`,
+      online,
+      now,
+      online,
+    );
+    if (online > 0) {
+      this.sql.exec(
+        `INSERT INTO daily_peaks (day, peak_online, peak_at)
+         VALUES (?, ?, ?)
+         ON CONFLICT(day) DO UPDATE SET
+           peak_online = excluded.peak_online,
+           peak_at = excluded.peak_at
+         WHERE excluded.peak_online > daily_peaks.peak_online`,
+        utcDayKey(now),
+        online,
+        now,
+      );
+    }
+    const stats = this.sql.exec(
+      "SELECT peak_online, peak_at FROM presence_stats WHERE id = 1",
+    ).one();
+    return {
+      online,
+      peak: normalizeCount(stats?.peak_online),
+      peakAt: toEpochMs(stats?.peak_at),
+    };
+  }
+
+  handlePeaks() {
+    const stats = this.sql.exec(
+      "SELECT peak_online, peak_at FROM presence_stats WHERE id = 1",
+    ).one();
+    const days = [...this.sql.exec(
+      "SELECT day, peak_online, peak_at FROM daily_peaks ORDER BY day",
+    )].map((row) => ({
+      day: String(row.day),
+      peak: normalizeCount(row.peak_online),
+      peakAt: toEpochMs(row.peak_at),
+    }));
+    return internalJson({
+      peak: normalizeCount(stats?.peak_online),
+      peakAt: toEpochMs(stats?.peak_at),
+      days,
+    });
   }
 
   deleteExpired(now) {
@@ -87,6 +158,15 @@ export class PresenceRoom {
 function normalizeCount(value) {
   const count = Number(value);
   return Number.isSafeInteger(count) && count >= 0 ? count : 0;
+}
+
+function toEpochMs(value) {
+  const ms = Number(value);
+  return Number.isSafeInteger(ms) && ms > 0 ? ms : null;
+}
+
+function utcDayKey(epochMs) {
+  return new Date(epochMs).toISOString().slice(0, 10);
 }
 
 function isExactObject(value, expectedKeys) {

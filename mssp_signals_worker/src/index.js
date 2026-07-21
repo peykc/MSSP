@@ -18,6 +18,7 @@ const ROUTES = new Map([
   ["/v1/views/counts", { methods: ["GET"], handler: handleViewCounts }],
   ["/v1/presence/heartbeat", { methods: ["POST"], handler: handlePresenceHeartbeat }],
   ["/v1/presence/online", { methods: ["GET"], handler: handlePresenceOnline }],
+  ["/v1/presence/peaks", { methods: ["GET"], handler: handlePresencePeaks }],
 ]);
 
 export default {
@@ -167,9 +168,7 @@ async function handlePresenceHeartbeat(request, env, origin, url) {
     }),
   );
   const roomResult = await readRoomResponse(response);
-  return jsonResponse({
-    online: normalizeCount(roomResult.online),
-  }, 200, origin);
+  return jsonResponse(publicPresencePayload(roomResult), 200, origin);
 }
 
 async function handlePresenceOnline(_request, env, origin, url) {
@@ -178,7 +177,37 @@ async function handlePresenceOnline(_request, env, origin, url) {
     new Request("https://presence.internal/count"),
   );
   const roomResult = await readRoomResponse(response);
-  return jsonResponse({ online: normalizeCount(roomResult.online) }, 200, origin);
+  return jsonResponse(publicPresencePayload(roomResult), 200, origin);
+}
+
+async function handlePresencePeaks(_request, env, origin, url) {
+  rejectAnyQuery(url);
+  const response = await globalPresenceStub(env).fetch(
+    new Request("https://presence.internal/peaks"),
+  );
+  const roomResult = await readPeaksResponse(response);
+  return jsonResponse({
+    peak: normalizeCount(roomResult.peak),
+    peakAt: isoTimestampOrNull(roomResult.peakAt),
+    days: roomResult.days.map((entry) => ({
+      day: entry.day,
+      peak: normalizeCount(entry.peak),
+      peakAt: isoTimestampOrNull(entry.peakAt),
+    })),
+  }, 200, origin);
+}
+
+function publicPresencePayload(roomResult) {
+  return {
+    online: normalizeCount(roomResult.online),
+    peak: normalizeCount(roomResult.peak),
+    peakAt: isoTimestampOrNull(roomResult.peakAt),
+  };
+}
+
+function isoTimestampOrNull(epochMs) {
+  const ms = Number(epochMs);
+  return Number.isSafeInteger(ms) && ms > 0 ? new Date(ms).toISOString() : null;
 }
 
 async function requireSeededEpisodes(env, episodeKeys) {
@@ -299,6 +328,23 @@ async function readRoomResponse(response) {
   if (!response?.ok) throw new Error("PresenceRoomError");
   const value = await response.json();
   if (!value || typeof value.online !== "number") throw new Error("PresenceRoomPayloadError");
+  return value;
+}
+
+const DAY_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+async function readPeaksResponse(response) {
+  if (!response?.ok) throw new Error("PresenceRoomError");
+  const value = await response.json();
+  if (!value || typeof value.peak !== "number" || !Array.isArray(value.days)) {
+    throw new Error("PresenceRoomPayloadError");
+  }
+  for (const entry of value.days) {
+    if (!entry || typeof entry.day !== "string" || !DAY_KEY_PATTERN.test(entry.day)
+      || typeof entry.peak !== "number") {
+      throw new Error("PresenceRoomPayloadError");
+    }
+  }
   return value;
 }
 

@@ -830,7 +830,9 @@ p {
 .launch__browse > h2,
 .launch__archive > h2 {
   margin: 0;
+  font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 600;
 }
 
 .launch__archive {
@@ -1738,6 +1740,7 @@ p {
   margin: 0;
   overflow: hidden;
   color: var(--card-muted);
+  font-family: "Spectral", serif;
   font-size: clamp(0.62rem, 1vw, 0.72rem);
   font-weight: 600;
   letter-spacing: 0.14em;
