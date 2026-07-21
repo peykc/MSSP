@@ -2,7 +2,7 @@ export function createCommunityPresence({
   communitySignals,
   documentRef = globalThis.document,
   windowRef = globalThis.window,
-  heartbeatIntervalMs = 20_000,
+  heartbeatIntervalMs = 45_000,
 } = {}) {
   let started = false;
   let desiredOnline = false;
