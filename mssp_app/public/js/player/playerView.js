@@ -4,7 +4,7 @@ import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-g";
 import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-m";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";
-import { formatViewSignal, VIEW_EYE_ICON, VIEW_PENDING_MARK } from "../community/communitySignals.js?v=eye-icon-c";
+import { formatViewSignal, VIEW_EYE_ICON, VIEW_PENDING_MARK } from "../community/communitySignals.js?v=poll-cut-a";
 import {
   createEpisodeRow,
   createEpisodeRowMenuManager,
@@ -14,7 +14,7 @@ import {
   updateEpisodeRowMenuItems,
   updateEpisodeRowProgress,
   updateEpisodeRowSignals,
-} from "../episodeRow.js?v=views-pending-a";
+} from "../episodeRow.js?v=poll-cut-a";
 
 const SEEK_BACK_SECONDS = 15;
 const SEEK_FORWARD_SECONDS = 30;

@@ -2,7 +2,7 @@ export function createCommunityPresence({
   communitySignals,
   documentRef = globalThis.document,
   windowRef = globalThis.window,
-  heartbeatIntervalMs = 45_000,
+  heartbeatIntervalMs = 120_000,
 } = {}) {
   let started = false;
   let listeningActive = false;
@@ -46,7 +46,13 @@ export function createCommunityPresence({
   }
 
   function handleVisibilityChange() {
+    const alreadyOnline = activeOnline;
     reconcilePresence();
+    // Already-online clients skip reconcile's heartbeat; nudge so last_seen and
+    // the shared online count refresh without a separate /presence/online poll.
+    if (documentRef?.visibilityState === "visible" && alreadyOnline) {
+      void communitySignals.sendOnlineHeartbeat({ online: true });
+    }
   }
 
   function handleOnline() {

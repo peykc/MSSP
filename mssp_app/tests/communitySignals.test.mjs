@@ -185,11 +185,11 @@ test("PAYTCH mutations send only the permitted privacy fields", async () => {
   assert.equal(requestOptions.find((options) => JSON.parse(options.body).online === true)?.keepalive, false);
 });
 
-test("online count subscribers receive global presence updates", async () => {
+test("online count subscribers receive presence updates from heartbeats", async () => {
   const signals = createSignals({
     fetchImpl: async (url) => {
       const parsed = new URL(url);
-      if (parsed.pathname.endsWith("/presence/online")) {
+      if (parsed.pathname.endsWith("/presence/heartbeat")) {
         return Response.json({ online: 7 });
       }
       if (parsed.pathname.endsWith("/visitors/record")) {
@@ -205,11 +205,13 @@ test("online count subscribers receive global presence updates", async () => {
   signals.subscribeOnline((count) => values.push(count));
   signals.start();
   await wait(10);
+  assert.deepEqual(values, [null]);
+  await signals.sendOnlineHeartbeat({ online: true });
   assert.deepEqual(values, [null, 7]);
   signals.stop();
 });
 
-test("hidden tabs skip polling unless audio is playing", async () => {
+test("hidden tabs do not poll episode counts, even while audio is playing", async () => {
   const documentRef = Object.assign(new EventTarget(), { visibilityState: "hidden" });
   const windowRef = new EventTarget();
   windowRef.setTimeout = setTimeout;
@@ -220,13 +222,10 @@ test("hidden tabs skip polling unless audio is playing", async () => {
   const signals = createSignals({
     documentRef,
     windowRef,
-    refreshIntervalMs: 5,
+    archiveDebounceMs: 5,
     fetchImpl: async (url) => {
       requests.push(String(url));
       const parsed = new URL(url);
-      if (parsed.pathname.endsWith("/presence/online")) {
-        return Response.json({ online: 1 });
-      }
       if (parsed.pathname.endsWith("/visitors/record")) {
         return Response.json({ counted: true, total: 1 });
       }
@@ -244,13 +243,48 @@ test("hidden tabs skip polling unless audio is playing", async () => {
   signals.start();
   await wait(25);
   const baseline = requests.length;
-  await wait(20);
-  assert.equal(requests.length, baseline);
-
   signals.setListeningActive(true);
   await wait(20);
-  assert.ok(requests.length > baseline);
-  assert.ok(requests.some((url) => url.includes("/stars/counts") || url.includes("/views/counts") || url.includes("/presence/online")));
+  assert.equal(requests.length, baseline);
+  assert.equal(requests.some((url) => url.includes("/stars/counts") || url.includes("/views/counts")), false);
+  signals.stop();
+});
+
+test("focus resume refreshes episode counts without polling /presence/online", async () => {
+  const documentRef = Object.assign(new EventTarget(), { visibilityState: "visible" });
+  const windowRef = new EventTarget();
+  windowRef.setTimeout = setTimeout;
+  windowRef.clearTimeout = clearTimeout;
+  windowRef.setInterval = setInterval;
+  windowRef.clearInterval = clearInterval;
+  const requests = [];
+  const signals = createSignals({
+    documentRef,
+    windowRef,
+    archiveDebounceMs: 5,
+    fetchImpl: async (url) => {
+      requests.push(String(url));
+      const parsed = new URL(url);
+      if (parsed.pathname.endsWith("/visitors/record") || parsed.pathname.endsWith("/visitors/total")) {
+        return Response.json({ counted: true, total: 1 });
+      }
+      const field = parsed.pathname.includes("stars") ? "stars" : "views";
+      return Response.json({
+        episodes: Object.fromEntries(parsed.searchParams.getAll("episode").map((key) => [key, { [field]: 2 }])),
+      });
+    },
+  });
+  signals.setKnownEpisodeKeys(["episode"]);
+  signals.setTrackedEpisodeKeys("archive", ["episode"]);
+  signals.start();
+  await wait(20);
+  documentRef.visibilityState = "hidden";
+  documentRef.dispatchEvent(new Event("visibilitychange"));
+  documentRef.visibilityState = "visible";
+  documentRef.dispatchEvent(new Event("visibilitychange"));
+  await wait(20);
+  assert.ok(requests.some((url) => url.includes("/stars/counts")));
+  assert.equal(requests.some((url) => url.includes("/presence/online")), false);
   signals.stop();
 });
 
@@ -295,7 +329,7 @@ function createSignals(overrides = {}) {
     storage: memoryStorage(),
     windowRef: new EventTarget(),
     documentRef: Object.assign(new EventTarget(), { visibilityState: "visible" }),
-    refreshIntervalMs: 60_000,
+    refreshIntervalMs: 0,
     ...overrides,
   });
 }

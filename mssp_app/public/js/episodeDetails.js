@@ -1,5 +1,5 @@
 import { formatEpisodeDuration, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
-import { formatCommunityCount } from "./community/communitySignals.js?v=eye-icon-c";
+import { formatCommunityCount } from "./community/communitySignals.js?v=poll-cut-a";
 
 const STAR_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24">

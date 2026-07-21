@@ -1,4 +1,4 @@
-const RELEASE_ID = "v383";
+const RELEASE_ID = "v385";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -30,11 +30,11 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=a2hs-e",
+  "./js/main.js?v=poll-cut-a",
   "./js/a2hsModal.js?v=a2hs-e",
   "./js/community/communityIdentity.js",
-  "./js/community/communityPresence.js",
-  "./js/community/communitySignals.js?v=eye-icon-c",
+  "./js/community/communityPresence.js?v=poll-cut-a",
+  "./js/community/communitySignals.js?v=poll-cut-a",
   "./js/community/viewProgress.js",
   "./js/patreonRssModal.js",
   "./js/archiveStats.js",
@@ -42,9 +42,9 @@ const SHELL_PATHS = [
   "./js/collectionGlyphs.js",
   "./js/collectionsView.js?v=cal-preview-b",
   "./js/dom.js?v=a2hs-e",
-  "./js/episodeDetails.js?v=views-rows-b",
-  "./js/episodeRow.js?v=views-pending-a",
-  "./js/episodeList.js?v=views-pending-a",
+  "./js/episodeDetails.js?v=poll-cut-a",
+  "./js/episodeRow.js?v=poll-cut-a",
+  "./js/episodeList.js?v=poll-cut-a",
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js?v=scroll-bottom-b",
@@ -57,7 +57,7 @@ const SHELL_PATHS = [
   "./js/player/coverAmbient.js?v=cover-ambient-g",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js?v=views-pending-a",
+  "./js/player/playerView.js?v=poll-cut-a",
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",

@@ -391,12 +391,38 @@ test("D1 migrations contain idempotent trigger-maintained favorite and view coun
   assert.match(views, /CREATE TRIGGER IF NOT EXISTS view_edges_after_insert/);
 });
 
+test("write and heartbeat routes return 429 when the client rate limit is exceeded", async () => {
+  const env = createEnv();
+  env.WRITE_RATE_LIMITER = new MockRateLimiter({ succeed: false });
+  env.HEARTBEAT_RATE_LIMITER = new MockRateLimiter({ succeed: false });
+
+  const toggle = await postJson(env, "/v1/stars/toggle", {
+    clientId: CLIENT_ONE,
+    episodeKey: EPISODE_ONE,
+    favorite: true,
+  });
+  assert.equal(toggle.status, 429);
+  assert.equal(toggle.headers.get("Retry-After"), "60");
+  assert.deepEqual(await toggle.json(), {
+    error: { code: "RATE_LIMITED", message: "Too many requests" },
+  });
+
+  const heartbeat = await postJson(env, "/v1/presence/heartbeat", {
+    clientId: CLIENT_ONE,
+    online: true,
+  });
+  assert.equal(heartbeat.status, 429);
+  assert.equal(env.PRESENCE.payloads.length, 0);
+});
+
 function createEnv({ environment = "production" } = {}) {
   return {
     CLIENT_HASH_SALT: SALT,
     ENVIRONMENT: environment,
     DB: new MockD1(),
     PRESENCE: new MockPresenceNamespace(),
+    WRITE_RATE_LIMITER: new MockRateLimiter(),
+    HEARTBEAT_RATE_LIMITER: new MockRateLimiter(),
   };
 }
 
@@ -578,6 +604,18 @@ class MockPresenceNamespace {
         return Response.json({ online: room.size, peak, peakAt });
       },
     };
+  }
+}
+
+class MockRateLimiter {
+  constructor({ succeed = true } = {}) {
+    this.succeed = succeed;
+    this.keys = [];
+  }
+
+  async limit({ key }) {
+    this.keys.push(key);
+    return { success: this.succeed };
   }
 }
 

@@ -98,4 +98,17 @@ Catalog seeding is additive and idempotent; historical keys are not deleted auto
 
 ## Production abuse controls
 
-CORS is browser policy, not authentication. When the Worker is attached to a Cloudflare custom domain, configure Cloudflare rate-limiting rules for `/v1/stars/toggle`, `/v1/views/record`, `/v1/visitors/record`, and `/v1/presence/heartbeat`, with separate, more generous limits for the count endpoints. Rate-limit at Cloudflare's edge; do not add IP addresses or user-agent strings to application storage or logs.
+CORS is browser policy, not authentication. Write and heartbeat routes are rate-limited in-Worker via Cloudflare Rate Limiting bindings keyed by `client_hash` (never by IP or user-agent):
+
+- `WRITE_RATE_LIMITER` — 30 / 60s for `/v1/stars/toggle`, `/v1/views/record`, and `/v1/visitors/record`
+- `HEARTBEAT_RATE_LIMITER` — 12 / 60s for `/v1/presence/heartbeat`
+
+Exceeded limits return `429` with `Retry-After: 60`. Count/read endpoints stay unlimited at the app layer so archive scrolls remain responsive; add Cloudflare WAF/rate-limit rules on the custom domain if those need edge protection too.
+
+## Client polling (expected load)
+
+The app is intentionally chatty-light:
+
+- Presence heartbeat about every **2 minutes** while a tab is visible (or audio is playing). Server TTL is **5 minutes**, so a closed tab can linger online briefly.
+- Online count updates come from heartbeat responses (plus a visibility nudge). There is no separate periodic `/v1/presence/online` poll.
+- Episode star/view counts refresh on focus/network resume and when the tracked episode window changes, not on a background timer.

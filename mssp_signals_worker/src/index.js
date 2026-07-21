@@ -77,6 +77,7 @@ async function handleStarToggle(request, env, origin, url) {
 
   await requireSeededEpisodes(env, [payload.episodeKey]);
   const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
+  await enforceClientRateLimit(env.WRITE_RATE_LIMITER, clientHash);
   const mutation = payload.favorite
     ? env.DB.prepare(
       "INSERT OR IGNORE INTO favorite_edges (episode_key, client_hash, created_at) VALUES (?1, ?2, ?3)",
@@ -120,6 +121,7 @@ async function handleViewRecord(request, env, origin, url) {
 
   await requireSeededEpisodes(env, [payload.episodeKey]);
   const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
+  await enforceClientRateLimit(env.WRITE_RATE_LIMITER, clientHash);
   const mutation = env.DB.prepare(
     "INSERT OR IGNORE INTO view_edges (episode_key, client_hash, created_at) VALUES (?1, ?2, ?3)",
   ).bind(payload.episodeKey, clientHash, Math.floor(Date.now() / 1000));
@@ -159,6 +161,7 @@ async function handleVisitorRecord(request, env, origin, url) {
   validateClientId(payload.clientId);
 
   const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
+  await enforceClientRateLimit(env.WRITE_RATE_LIMITER, clientHash);
   const mutation = env.DB.prepare(
     "INSERT OR IGNORE INTO visitor_edges (client_hash, created_at) VALUES (?1, ?2)",
   ).bind(clientHash, Math.floor(Date.now() / 1000));
@@ -192,6 +195,7 @@ async function handlePresenceHeartbeat(request, env, origin, url) {
   }
 
   const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
+  await enforceClientRateLimit(env.HEARTBEAT_RATE_LIMITER, clientHash);
   const response = await globalPresenceStub(env).fetch(
     new Request("https://presence.internal/heartbeat", {
       method: "POST",
@@ -354,6 +358,18 @@ function globalPresenceStub(env) {
     throw new HttpError(500, "CONFIGURATION_ERROR", "Server configuration error");
   }
   return env.PRESENCE.getByName(GLOBAL_PRESENCE_ROOM);
+}
+
+async function enforceClientRateLimit(limiter, clientHash) {
+  if (!limiter?.limit) {
+    throw new HttpError(500, "CONFIGURATION_ERROR", "Server configuration error");
+  }
+  const result = await limiter.limit({ key: clientHash });
+  if (!result?.success) {
+    throw new HttpError(429, "RATE_LIMITED", "Too many requests", {
+      "Retry-After": "60",
+    });
+  }
 }
 
 async function readRoomResponse(response) {

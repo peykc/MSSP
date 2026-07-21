@@ -1,6 +1,6 @@
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { formatEpisodeLabel, formatTimeRemaining } from "./utils.js";
-import { formatViewSignal, VIEW_EYE_ICON, VIEW_PENDING_MARK } from "./community/communitySignals.js?v=eye-icon-c";
+import { formatViewSignal, VIEW_EYE_ICON, VIEW_PENDING_MARK } from "./community/communitySignals.js?v=poll-cut-a";
 
 export const COMPLETED_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">

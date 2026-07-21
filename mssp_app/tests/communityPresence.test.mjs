@@ -73,6 +73,39 @@ test("presence stays online while hidden if audio is playing", async () => {
   presence.stop();
 });
 
+test("already-online clients nudge a heartbeat when the tab becomes visible again", async () => {
+  const documentRef = Object.assign(new EventTarget(), { visibilityState: "visible" });
+  const windowRef = new EventTarget();
+  windowRef.setInterval = setInterval;
+  windowRef.clearInterval = clearInterval;
+  const calls = [];
+  const communitySignals = {
+    async sendOnlineHeartbeat(payload) {
+      calls.push(payload);
+      return true;
+    },
+  };
+  const presence = createCommunityPresence({
+    communitySignals,
+    documentRef,
+    windowRef,
+    heartbeatIntervalMs: 60_000,
+  });
+  presence.start();
+  await settle();
+  presence.setListeningActive(true);
+  documentRef.visibilityState = "hidden";
+  documentRef.dispatchEvent(new Event("visibilitychange"));
+  await settle();
+  assert.deepEqual(calls, [{ online: true }]);
+
+  documentRef.visibilityState = "visible";
+  documentRef.dispatchEvent(new Event("visibilitychange"));
+  await settle();
+  assert.deepEqual(calls, [{ online: true }, { online: true }]);
+  presence.stop();
+});
+
 async function settle() {
   await Promise.resolve();
   await Promise.resolve();

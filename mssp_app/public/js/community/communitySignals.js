@@ -1,7 +1,8 @@
 const OUTBOX_STORAGE_KEY = "mssp:community-favorite-outbox";
 const MAX_BATCH_SIZE = 20;
 const MAX_OUTBOX_ENTRIES = 1000;
-const DEFAULT_REFRESH_INTERVAL_MS = 25_000;
+/** Episode count polling is focus/track-driven by default (0 disables the interval). */
+const DEFAULT_REFRESH_INTERVAL_MS = 0;
 const DEFAULT_ARCHIVE_DEBOUNCE_MS = 350;
 const DEFAULT_RETRY_DELAYS_MS = [5_000, 15_000, 60_000];
 const MAX_CONCURRENT_FAVORITES = 3;
@@ -74,12 +75,14 @@ export function createCommunitySignals({
     started = true;
     windowRef?.addEventListener?.("online", handleResume);
     documentRef?.addEventListener?.("visibilitychange", handleVisibilityChange);
-    refreshTimer = setIntervalFn(() => {
-      if (!shouldPoll()) return;
-      void refreshTrackedEpisodes({ background: true });
-      void refreshOnlineCount({ background: true });
-    }, refreshIntervalMs);
-    void refreshOnlineCount({ force: true });
+    // Online count comes from presence heartbeats. Episode counts refresh on
+    // focus/resume and when the tracked episode window changes — not on a timer.
+    if (refreshIntervalMs > 0) {
+      refreshTimer = setIntervalFn(() => {
+        if (!shouldPoll()) return;
+        void refreshTrackedEpisodes({ background: true });
+      }, refreshIntervalMs);
+    }
     void recordVisitor();
     flushFavoriteOutbox();
   }
@@ -127,11 +130,9 @@ export function createCommunitySignals({
     const listening = Boolean(next);
     if (listeningActive === listening) return;
     listeningActive = listening;
-    if (!started || !listening || !shouldPoll()) return;
+    if (!started || !listening) return;
     backgroundFailureCount = 0;
     backgroundPollingSuspended = false;
-    void refreshTrackedEpisodes({ background: true });
-    void refreshOnlineCount({ background: true });
   }
 
   function shouldPoll() {
@@ -448,7 +449,6 @@ export function createCommunitySignals({
     favoriteRetryTimer = null;
     flushFavoriteOutbox();
     void refreshTrackedEpisodes({ force: true });
-    void refreshOnlineCount({ force: true });
     void refreshVisitorTotal({ force: true });
   }
 

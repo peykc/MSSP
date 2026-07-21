@@ -1,4 +1,5 @@
-export const PRESENCE_TTL_MS = 90_000;
+/** Clients heartbeat about every 2 minutes; allow ~2 missed beats before expiry. */
+export const PRESENCE_TTL_MS = 300_000;
 export const GLOBAL_PRESENCE_ROOM = "global";
 
 const CLIENT_HASH_PATTERN = /^[0-9a-f]{64}$/;

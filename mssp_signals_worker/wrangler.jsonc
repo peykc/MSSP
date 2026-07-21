@@ -31,6 +31,24 @@
 			]
 		}
 	],
+	"ratelimits": [
+		{
+			"name": "WRITE_RATE_LIMITER",
+			"namespace_id": "26072101",
+			"simple": {
+				"limit": 30,
+				"period": 60
+			}
+		},
+		{
+			"name": "HEARTBEAT_RATE_LIMITER",
+			"namespace_id": "26072102",
+			"simple": {
+				"limit": 12,
+				"period": 60
+			}
+		}
+	],
 	"secrets": {
 		"required": [
 			"CLIENT_HASH_SALT"
