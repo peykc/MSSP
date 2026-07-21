@@ -94,6 +94,7 @@ export const dom = {
   fullPlayerSignals: getRequiredElement("fullPlayerSignals"),
   fullPlayerViews: getRequiredElement("fullPlayerViews"),
   dawgsOnline: getRequiredElement("dawgsOnline"),
+  siteVisitors: getRequiredElement("siteVisitors"),
   fullPlayerFavorite: getRequiredElement("fullPlayerFavorite"),
   fullPlayerStatusPanel: getRequiredElement("fullPlayerStatusPanel"),
   fullPlayerStatus: getRequiredElement("fullPlayerStatus"),

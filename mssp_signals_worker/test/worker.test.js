@@ -126,6 +126,23 @@ test("view records are idempotent and counts reconcile from the final batch quer
   assert.deepEqual(await response.json(), { episodes: { [EPISODE_ONE]: { views: 2 } } });
 });
 
+test("visitor records are idempotent and total is amusement-park lifetime unique clients", async () => {
+  const env = createEnv();
+  const first = await postJson(env, "/v1/visitors/record", { clientId: CLIENT_ONE });
+  assert.equal(first.status, 200);
+  assert.deepEqual(await first.json(), { counted: true, total: 1 });
+
+  const again = await postJson(env, "/v1/visitors/record", { clientId: CLIENT_ONE });
+  assert.deepEqual(await again.json(), { counted: false, total: 1 });
+
+  const second = await postJson(env, "/v1/visitors/record", { clientId: CLIENT_TWO });
+  assert.deepEqual(await second.json(), { counted: true, total: 2 });
+
+  const total = await callWorker(env, "/v1/visitors/total");
+  assert.equal(total.status, 200);
+  assert.deepEqual(await total.json(), { total: 2 });
+});
+
 test("view writes fail before mutation when the D1 catalog is not seeded", async () => {
   const env = createEnv();
   env.DB.catalog.delete(EPISODE_ONE);
@@ -428,8 +445,10 @@ class MockD1 {
     this.catalog = new Set(EPISODE_KEYS);
     this.edges = new Set();
     this.viewEdges = new Set();
+    this.visitorEdges = new Set();
     this.counts = new Map();
     this.viewCounts = new Map();
+    this.visitorTotal = 0;
     this.boundValues = [];
   }
 
@@ -439,6 +458,18 @@ class MockD1 {
 
   async batch(statements) {
     return statements.map((statement) => {
+      if (statement.sql.startsWith("INSERT OR IGNORE INTO visitor_edges")) {
+        const [clientHash] = statement.values;
+        const inserted = !this.visitorEdges.has(clientHash);
+        if (inserted) {
+          this.visitorEdges.add(clientHash);
+          this.visitorTotal += 1;
+        }
+        return { success: true, meta: { changes: inserted ? 1 : 0 }, results: [] };
+      }
+      if (statement.sql.startsWith("SELECT COALESCE((SELECT total FROM visitor_stats")) {
+        return { success: true, results: [{ total: this.visitorTotal }] };
+      }
       const [episodeKey, clientHash] = statement.values;
       if (statement.sql.startsWith("INSERT OR IGNORE INTO favorite_edges")) {
         const edge = `${episodeKey}\u0000${clientHash}`;
@@ -505,6 +536,9 @@ class MockD1Statement {
           .filter((key) => this.db.viewCounts.has(key))
           .map((episode_key) => ({ episode_key, count: this.db.viewCounts.get(episode_key) })),
       };
+    }
+    if (this.sql.includes("FROM visitor_stats")) {
+      return { results: [{ total: this.db.visitorTotal }] };
     }
     throw new Error("Unexpected D1 query");
   }

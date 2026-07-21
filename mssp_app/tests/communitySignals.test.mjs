@@ -73,6 +73,9 @@ test("favorite retry does not apply a second optimistic increment", async () => 
       if (parsed.pathname.endsWith("/presence/online")) {
         return Response.json({ online: 0 });
       }
+      if (parsed.pathname.endsWith("/visitors/record")) {
+        return Response.json({ counted: false, total: 1 });
+      }
       if (parsed.pathname.endsWith("/stars/toggle")) {
         toggleAttempts += 1;
         if (toggleAttempts === 1) throw new Error("offline");
@@ -160,6 +163,9 @@ test("PAYTCH mutations send only the permitted privacy fields", async () => {
       if (parsed.pathname.endsWith("/views/record")) {
         return Response.json({ episodeKey: "paytch-key", counted: true, views: 1 });
       }
+      if (parsed.pathname.endsWith("/visitors/record")) {
+        return Response.json({ counted: true, total: 1 });
+      }
       return Response.json({ episodes: {} });
     },
   });
@@ -173,7 +179,7 @@ test("PAYTCH mutations send only the permitted privacy fields", async () => {
 
   assert.deepEqual(Object.keys(bodies.find((body) => "favorite" in body)).sort(), ["clientId", "episodeKey", "favorite"]);
   assert.deepEqual(Object.keys(bodies.find((body) => "online" in body)).sort(), ["clientId", "online"]);
-  assert.deepEqual(Object.keys(bodies.find((body) => !("favorite" in body) && !("online" in body))).sort(), ["clientId", "episodeKey"]);
+  assert.deepEqual(Object.keys(bodies.find((body) => "episodeKey" in body && !("favorite" in body))).sort(), ["clientId", "episodeKey"]);
   assert.equal(JSON.stringify(bodies).includes("rss"), false);
   assert.equal(JSON.stringify(bodies).includes("audio"), false);
   assert.equal(requestOptions.find((options) => JSON.parse(options.body).online === true)?.keepalive, false);
@@ -186,6 +192,12 @@ test("online count subscribers receive global presence updates", async () => {
       if (parsed.pathname.endsWith("/presence/online")) {
         return Response.json({ online: 7 });
       }
+      if (parsed.pathname.endsWith("/visitors/record")) {
+        return Response.json({ counted: true, total: 42 });
+      }
+      if (parsed.pathname.endsWith("/visitors/total")) {
+        return Response.json({ total: 42 });
+      }
       return Response.json({ episodes: {} });
     },
   });
@@ -194,6 +206,76 @@ test("online count subscribers receive global presence updates", async () => {
   signals.start();
   await wait(10);
   assert.deepEqual(values, [null, 7]);
+  signals.stop();
+});
+
+test("hidden tabs skip polling unless audio is playing", async () => {
+  const documentRef = Object.assign(new EventTarget(), { visibilityState: "hidden" });
+  const windowRef = new EventTarget();
+  windowRef.setTimeout = setTimeout;
+  windowRef.clearTimeout = clearTimeout;
+  windowRef.setInterval = setInterval;
+  windowRef.clearInterval = clearInterval;
+  const requests = [];
+  const signals = createSignals({
+    documentRef,
+    windowRef,
+    refreshIntervalMs: 5,
+    fetchImpl: async (url) => {
+      requests.push(String(url));
+      const parsed = new URL(url);
+      if (parsed.pathname.endsWith("/presence/online")) {
+        return Response.json({ online: 1 });
+      }
+      if (parsed.pathname.endsWith("/visitors/record")) {
+        return Response.json({ counted: true, total: 1 });
+      }
+      if (parsed.pathname.endsWith("/visitors/total")) {
+        return Response.json({ total: 1 });
+      }
+      const field = parsed.pathname.includes("stars") ? "stars" : "views";
+      return Response.json({
+        episodes: Object.fromEntries(parsed.searchParams.getAll("episode").map((key) => [key, { [field]: 0 }])),
+      });
+    },
+  });
+  signals.setKnownEpisodeKeys(["episode"]);
+  signals.setTrackedEpisodeKeys("archive", ["episode"]);
+  signals.start();
+  await wait(25);
+  const baseline = requests.length;
+  await wait(20);
+  assert.equal(requests.length, baseline);
+
+  signals.setListeningActive(true);
+  await wait(20);
+  assert.ok(requests.length > baseline);
+  assert.ok(requests.some((url) => url.includes("/stars/counts") || url.includes("/views/counts") || url.includes("/presence/online")));
+  signals.stop();
+});
+
+test("visitor record updates the amusement-park total once per client", async () => {
+  const bodies = [];
+  const visitorValues = [];
+  const signals = createSignals({
+    fetchImpl: async (url, options) => {
+      if (options?.body) bodies.push(JSON.parse(options.body));
+      const parsed = new URL(url);
+      if (parsed.pathname.endsWith("/presence/online")) {
+        return Response.json({ online: 0 });
+      }
+      if (parsed.pathname.endsWith("/visitors/record")) {
+        return Response.json({ counted: true, total: 19 });
+      }
+      return Response.json({ episodes: {} });
+    },
+  });
+  signals.subscribeVisitors((total) => visitorValues.push(total));
+  signals.start();
+  await wait(10);
+  assert.deepEqual(visitorValues, [null, 19]);
+  assert.deepEqual(bodies.find((body) => Object.keys(body).join() === "clientId"), { clientId: CLIENT_ID });
+  assert.equal(signals.getVisitorTotal(), 19);
   signals.stop();
 });
 

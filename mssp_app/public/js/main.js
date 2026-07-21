@@ -6,9 +6,9 @@ import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
-import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=eye-icon-b";
+import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=visitors-a";
 import { createViewProgress } from "./community/viewProgress.js";
-import { dom } from "./dom.js?v=a2hs-e";
+import { dom } from "./dom.js?v=visitors-a";
 import { createEpisodeDetails } from "./episodeDetails.js?v=views-rows-b";
 import { createEpisodeList } from "./episodeList.js?v=views-rows-b";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=views-rows-b";
@@ -20,7 +20,7 @@ import { createAudioController } from "./player/audioController.js";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
 import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
-import { createPlayerState } from "./player/playerState.js";
+import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js?v=player-views-only-a";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-e";
@@ -77,6 +77,16 @@ async function init() {
     if (countElement) countElement.textContent = show ? formatCommunityCount(count) : "—";
   }
   communitySignals.subscribeOnline(renderDawgsOnline);
+
+  function renderSiteVisitors(total) {
+    const show = Number.isFinite(total) && total > 0;
+    const label = show ? `${formatCommunityCount(total)} visited` : "Visited";
+    dom.siteVisitors.hidden = !show;
+    dom.siteVisitors.setAttribute("aria-label", label);
+    const countElement = dom.siteVisitors.querySelector("[data-site-visitors-count]");
+    if (countElement) countElement.textContent = show ? formatCommunityCount(total) : "—";
+  }
+  communitySignals.subscribeVisitors(renderSiteVisitors);
   const calendarModal = createCalendarModal({ dom });
   const statsPageView = createStatsPageView({ dom });
   createSealedStoneModal({ dom });
@@ -87,6 +97,11 @@ async function init() {
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
+  playerState.subscribe((snapshot) => {
+    const listening = snapshot.playbackStatus === PLAYBACK_STATUSES.PLAYING;
+    communitySignals.setListeningActive(listening);
+    communityPresence.setListeningActive(listening);
+  });
   const viewProgress = createViewProgress({ playerState, communitySignals });
   viewProgress.start();
   void serviceWorkerRegistration.then((registration) => {

@@ -16,6 +16,8 @@ const ROUTES = new Map([
   ["/v1/stars/counts", { methods: ["GET"], handler: handleStarCounts }],
   ["/v1/views/record", { methods: ["POST"], handler: handleViewRecord }],
   ["/v1/views/counts", { methods: ["GET"], handler: handleViewCounts }],
+  ["/v1/visitors/record", { methods: ["POST"], handler: handleVisitorRecord }],
+  ["/v1/visitors/total", { methods: ["GET"], handler: handleVisitorTotal }],
   ["/v1/presence/heartbeat", { methods: ["POST"], handler: handlePresenceHeartbeat }],
   ["/v1/presence/online", { methods: ["GET"], handler: handlePresenceOnline }],
   ["/v1/presence/peaks", { methods: ["GET"], handler: handlePresencePeaks }],
@@ -149,6 +151,36 @@ async function handleViewCounts(_request, env, origin, url) {
     { views: counts.get(episodeKey) || 0 },
   ]));
   return jsonResponse({ episodes }, 200, origin);
+}
+
+async function handleVisitorRecord(request, env, origin, url) {
+  rejectAnyQuery(url);
+  const payload = await readJsonBody(request, ["clientId"]);
+  validateClientId(payload.clientId);
+
+  const clientHash = await hashClientId(payload.clientId, env.CLIENT_HASH_SALT);
+  const mutation = env.DB.prepare(
+    "INSERT OR IGNORE INTO visitor_edges (client_hash, created_at) VALUES (?1, ?2)",
+  ).bind(clientHash, Math.floor(Date.now() / 1000));
+  const countQuery = env.DB.prepare(
+    "SELECT COALESCE((SELECT total FROM visitor_stats WHERE id = 1), 0) AS total",
+  );
+  const results = await env.DB.batch([mutation, countQuery]);
+  const insertResult = results[0];
+  const total = normalizeCount(results.at(-1)?.results?.[0]?.total);
+  const counted = Number(insertResult?.meta?.changes) > 0;
+
+  return jsonResponse({ counted, total }, 200, origin);
+}
+
+async function handleVisitorTotal(_request, env, origin, url) {
+  rejectAnyQuery(url);
+  const result = await env.DB.prepare(
+    "SELECT COALESCE((SELECT total FROM visitor_stats WHERE id = 1), 0) AS total",
+  ).all();
+  return jsonResponse({
+    total: normalizeCount(result.results?.[0]?.total),
+  }, 200, origin);
 }
 
 async function handlePresenceHeartbeat(request, env, origin, url) {

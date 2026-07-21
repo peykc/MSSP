@@ -11,6 +11,8 @@ Raw browser UUIDs are accepted at the API boundary, validated, immediately hashe
 - `GET /v1/stars/counts?episode=<key>&episode=<key>`
 - `POST /v1/views/record`
 - `GET /v1/views/counts?episode=<key>&episode=<key>`
+- `POST /v1/visitors/record`
+- `GET /v1/visitors/total`
 - `POST /v1/presence/heartbeat`
 - `GET /v1/presence/online`
 - `GET /v1/presence/peaks`
@@ -96,4 +98,4 @@ Catalog seeding is additive and idempotent; historical keys are not deleted auto
 
 ## Production abuse controls
 
-CORS is browser policy, not authentication. When the Worker is attached to a Cloudflare custom domain, configure Cloudflare rate-limiting rules for `/v1/stars/toggle`, `/v1/views/record`, and `/v1/presence/heartbeat`, with separate, more generous limits for the count endpoints. Rate-limit at Cloudflare's edge; do not add IP addresses or user-agent strings to application storage or logs.
+CORS is browser policy, not authentication. When the Worker is attached to a Cloudflare custom domain, configure Cloudflare rate-limiting rules for `/v1/stars/toggle`, `/v1/views/record`, `/v1/visitors/record`, and `/v1/presence/heartbeat`, with separate, more generous limits for the count endpoints. Rate-limit at Cloudflare's edge; do not add IP addresses or user-agent strings to application storage or logs.

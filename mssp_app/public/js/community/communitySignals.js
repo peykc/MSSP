@@ -38,6 +38,7 @@ export function createCommunitySignals({
   const signalsByEpisode = new Map();
   const episodeListeners = new Set();
   const onlineListeners = new Set();
+  const visitorListeners = new Set();
   const trackedScopes = new Map();
   const knownEpisodeKeys = new Set();
   const latestRequestByFieldKey = new Map();
@@ -51,7 +52,9 @@ export function createCommunitySignals({
   let favoriteRetryIndex = 0;
   let backgroundFailureCount = 0;
   let backgroundPollingSuspended = false;
+  let listeningActive = false;
   let onlineCount = null;
+  let visitorTotal = null;
   let latestOnlineRequest = 0;
 
   const setTimeoutFn = windowRef?.setTimeout?.bind(windowRef) || globalThis.setTimeout;
@@ -65,10 +68,12 @@ export function createCommunitySignals({
     windowRef?.addEventListener?.("online", handleResume);
     documentRef?.addEventListener?.("visibilitychange", handleVisibilityChange);
     refreshTimer = setIntervalFn(() => {
+      if (!shouldPoll()) return;
       void refreshTrackedEpisodes({ background: true });
       void refreshOnlineCount({ background: true });
     }, refreshIntervalMs);
     void refreshOnlineCount({ force: true });
+    void recordVisitor();
     flushFavoriteOutbox();
   }
 
@@ -97,8 +102,33 @@ export function createCommunitySignals({
     return () => onlineListeners.delete(listener);
   }
 
+  function subscribeVisitors(listener) {
+    visitorListeners.add(listener);
+    listener(visitorTotal);
+    return () => visitorListeners.delete(listener);
+  }
+
   function getOnlineCount() {
     return onlineCount;
+  }
+
+  function getVisitorTotal() {
+    return visitorTotal;
+  }
+
+  function setListeningActive(next) {
+    const listening = Boolean(next);
+    if (listeningActive === listening) return;
+    listeningActive = listening;
+    if (!started || !listening || !shouldPoll()) return;
+    backgroundFailureCount = 0;
+    backgroundPollingSuspended = false;
+    void refreshTrackedEpisodes({ background: true });
+    void refreshOnlineCount({ background: true });
+  }
+
+  function shouldPoll() {
+    return documentRef?.visibilityState !== "hidden" || listeningActive;
   }
 
   function getEpisodeSignals(episodeKey) {
@@ -125,16 +155,18 @@ export function createCommunitySignals({
       if (archiveDebounceTimer) clearTimeoutFn(archiveDebounceTimer);
       archiveDebounceTimer = setTimeoutFn(() => {
         archiveDebounceTimer = null;
+        if (!shouldPoll()) return;
         void loadCountsForEpisodes([...trackedScopes.get("archive") || []]);
       }, archiveDebounceMs);
       return;
     }
-    if (nextKeys.size) void loadCountsForEpisodes([...nextKeys], { force: true });
+    if (nextKeys.size && shouldPoll()) void loadCountsForEpisodes([...nextKeys], { force: true });
   }
 
   async function loadCountsForEpisodes(episodeKeys, { force = false, background = false } = {}) {
     const keys = uniqueKnownStrings(episodeKeys);
     if (!keys.length) return { successes: 0, failures: 0 };
+    if (!force && !shouldPoll()) return { successes: 0, failures: 0 };
     if (background && backgroundPollingSuspended && !force) return { successes: 0, failures: 0 };
 
     const tasks = [];
@@ -193,6 +225,46 @@ export function createCommunitySignals({
     }
   }
 
+  async function recordVisitor() {
+    try {
+      const response = await fetchImpl(`${normalizedApiBase}/v1/visitors/record`, {
+        method: "POST",
+        cache: "no-store",
+        credentials: "omit",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          clientId: getClientId(),
+        }),
+      });
+      if (!response.ok) return false;
+      const payload = await response.json();
+      if (Number.isFinite(payload.total)) {
+        setVisitorTotal(normalizeCount(payload.total));
+      }
+      return payload?.counted === true;
+    } catch {
+      return false;
+    }
+  }
+
+  async function refreshVisitorTotal({ force = false } = {}) {
+    if (!force && !shouldPoll()) return false;
+    try {
+      const response = await fetchImpl(`${normalizedApiBase}/v1/visitors/total`, {
+        method: "GET",
+        cache: "no-store",
+        credentials: "omit",
+      });
+      if (!response.ok) return false;
+      const payload = await response.json();
+      if (!Number.isFinite(payload.total)) throw new Error("Visitor total response was invalid");
+      setVisitorTotal(normalizeCount(payload.total));
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   async function sendOnlineHeartbeat({ online, keepalive = false } = {}) {
     if (typeof online !== "boolean") return false;
     try {
@@ -219,6 +291,7 @@ export function createCommunitySignals({
   }
 
   async function refreshOnlineCount({ background = false, force = false } = {}) {
+    if (!force && !shouldPoll()) return false;
     if (background && backgroundPollingSuspended && !force) return false;
     const sequence = ++requestSequence;
     latestOnlineRequest = sequence;
@@ -345,7 +418,14 @@ export function createCommunitySignals({
     for (const listener of onlineListeners) listener(onlineCount);
   }
 
+  function setVisitorTotal(value) {
+    if (visitorTotal === value) return;
+    visitorTotal = value;
+    for (const listener of visitorListeners) listener(visitorTotal);
+  }
+
   function refreshTrackedEpisodes({ background = false, force = false } = {}) {
+    if (!force && !shouldPoll()) return Promise.resolve({ successes: 0, failures: 0 });
     const keys = new Set();
     for (const scopeKeys of trackedScopes.values()) {
       for (const key of scopeKeys) keys.add(key);
@@ -362,6 +442,7 @@ export function createCommunitySignals({
     flushFavoriteOutbox();
     void refreshTrackedEpisodes({ force: true });
     void refreshOnlineCount({ force: true });
+    void refreshVisitorTotal({ force: true });
   }
 
   function handleVisibilityChange() {
@@ -404,15 +485,20 @@ export function createCommunitySignals({
     stop,
     subscribe,
     subscribeOnline,
+    subscribeVisitors,
     getOnlineCount,
+    getVisitorTotal,
+    setListeningActive,
     getEpisodeSignals,
     setKnownEpisodeKeys,
     setTrackedEpisodeKeys,
     loadCountsForEpisodes,
     setFavorite,
     recordView,
+    recordVisitor,
     sendOnlineHeartbeat,
     refreshOnlineCount,
+    refreshVisitorTotal,
   };
 }
 

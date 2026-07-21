@@ -5,6 +5,7 @@ export function createCommunityPresence({
   heartbeatIntervalMs = 45_000,
 } = {}) {
   let started = false;
+  let listeningActive = false;
   let desiredOnline = false;
   let activeOnline = false;
   let heartbeatTimer = null;
@@ -34,6 +35,14 @@ export function createCommunityPresence({
       activeOnline = false;
     }
     desiredOnline = false;
+    listeningActive = false;
+  }
+
+  function setListeningActive(next) {
+    const listening = Boolean(next);
+    if (listeningActive === listening) return;
+    listeningActive = listening;
+    reconcilePresence();
   }
 
   function handleVisibilityChange() {
@@ -52,7 +61,7 @@ export function createCommunityPresence({
   }
 
   function reconcilePresence() {
-    desiredOnline = documentRef?.visibilityState === "visible";
+    desiredOnline = documentRef?.visibilityState === "visible" || listeningActive;
     queueReconcile();
   }
 
@@ -82,5 +91,5 @@ export function createCommunityPresence({
     heartbeatTimer = null;
   }
 
-  return { start, stop };
+  return { start, stop, setListeningActive };
 }
