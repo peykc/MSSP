@@ -6,9 +6,9 @@ import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js";
-import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=visitors-a";
+import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=visitors-b";
 import { createViewProgress } from "./community/viewProgress.js";
-import { dom } from "./dom.js?v=visitors-a";
+import { dom } from "./dom.js?v=visitors-b";
 import { createEpisodeDetails } from "./episodeDetails.js?v=views-rows-b";
 import { createEpisodeList } from "./episodeList.js?v=views-rows-b";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=views-rows-b";
@@ -68,25 +68,45 @@ async function init() {
   const communityPresence = createCommunityPresence({ communitySignals });
   communityPresence.start();
 
-  function renderDawgsOnline(count) {
-    const show = Number.isFinite(count) && count > 0;
-    const label = show ? `${formatCommunityCount(count)} dawgs online` : "Dawgs online";
-    dom.dawgsOnline.hidden = !show;
-    dom.dawgsOnline.setAttribute("aria-label", label);
-    const countElement = dom.dawgsOnline.querySelector("[data-dawgs-online-count]");
-    if (countElement) countElement.textContent = show ? formatCommunityCount(count) : "—";
-  }
-  communitySignals.subscribeOnline(renderDawgsOnline);
+  let showLifetimeVisitors = false;
+  let dawgsOnlineCount = null;
+  let siteVisitorTotal = null;
 
-  function renderSiteVisitors(total) {
-    const show = Number.isFinite(total) && total > 0;
-    const label = show ? `${formatCommunityCount(total)} visited` : "Visited";
-    dom.siteVisitors.hidden = !show;
-    dom.siteVisitors.setAttribute("aria-label", label);
-    const countElement = dom.siteVisitors.querySelector("[data-site-visitors-count]");
-    if (countElement) countElement.textContent = show ? formatCommunityCount(total) : "—";
+  function renderDawgsMetric() {
+    const value = showLifetimeVisitors ? siteVisitorTotal : dawgsOnlineCount;
+    const show = Number.isFinite(value) && value > 0;
+    const label = showLifetimeVisitors
+      ? (show ? `${formatCommunityCount(value)} visited` : "Visited")
+      : (show ? `${formatCommunityCount(value)} dawgs online` : "Dawgs online");
+    dom.dawgsOnline.hidden = !show;
+    dom.dawgsOnline.classList.toggle("dawgs-online--visitors", showLifetimeVisitors);
+    dom.dawgsOnline.setAttribute("aria-label", label);
+    dom.dawgsOnline.setAttribute(
+      "title",
+      showLifetimeVisitors ? "Show dawgs online" : "Show lifetime visitors",
+    );
+    const countElement = dom.dawgsOnline.querySelector("[data-dawgs-online-count]");
+    if (countElement) countElement.textContent = show ? formatCommunityCount(value) : "—";
   }
-  communitySignals.subscribeVisitors(renderSiteVisitors);
+
+  communitySignals.subscribeOnline((count) => {
+    dawgsOnlineCount = count;
+    renderDawgsMetric();
+  });
+  communitySignals.subscribeVisitors((total) => {
+    siteVisitorTotal = total;
+    renderDawgsMetric();
+  });
+  dom.dawgsOnline.addEventListener("click", () => {
+    if (showLifetimeVisitors) {
+      showLifetimeVisitors = false;
+      renderDawgsMetric();
+      return;
+    }
+    if (!Number.isFinite(siteVisitorTotal) || siteVisitorTotal <= 0) return;
+    showLifetimeVisitors = true;
+    renderDawgsMetric();
+  });
   const calendarModal = createCalendarModal({ dom });
   const statsPageView = createStatsPageView({ dom });
   createSealedStoneModal({ dom });

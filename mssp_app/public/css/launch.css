@@ -1404,16 +1404,26 @@ p {
   display: inline-flex;
   align-items: center;
   gap: 5px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: #eb4b4b;
   font-family: "IBM Plex Sans", sans-serif;
   font-size: clamp(0.72rem, 1vw, 0.84rem);
   font-weight: 700;
   letter-spacing: 0.02em;
   line-height: 1;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .dawgs-online[hidden] {
   display: none;
+}
+
+.dawgs-online--visitors {
+  color: #e3d9c3;
 }
 
 .dawgs-online__icon {
@@ -1430,33 +1440,6 @@ p {
 
 .dawgs-online__count {
   font-variant-numeric: tabular-nums;
-}
-
-.site-visitors {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 5px;
-  color: rgba(227, 217, 195, 0.72);
-  font-family: "IBM Plex Sans", sans-serif;
-  font-size: clamp(0.72rem, 1vw, 0.84rem);
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  line-height: 1;
-}
-
-.site-visitors[hidden] {
-  display: none;
-}
-
-.site-visitors__count {
-  font-variant-numeric: tabular-nums;
-  color: rgba(240, 230, 210, 0.92);
-}
-
-.site-visitors__label {
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: lowercase;
 }
 
 @supports not (grid-template-rows: subgrid) {
@@ -1531,8 +1514,7 @@ p {
     letter-spacing: 0.06em;
   }
 
-  .launch-footer__meta .dawgs-online,
-  .launch-footer__meta .site-visitors {
+  .launch-footer__meta .dawgs-online {
     flex: 1 0 100%;
     justify-content: center;
     margin-top: 2px;
