@@ -9,9 +9,8 @@ export function createPitchCounter(root, {
   let frameId = null;
 
   function setValue(next, { animate = true } = {}) {
-    cancelPending();
-
     if (!Number.isFinite(next) || next < 0) {
+      cancelPending();
       value = null;
       root.replaceChildren();
       root.textContent = "—";
@@ -19,12 +18,19 @@ export function createPitchCounter(root, {
     }
 
     const to = Math.floor(next);
+    if (to === value) return;
+
     const previous = value;
     value = to;
 
     if (root.textContent === "—") root.textContent = "";
 
-    const canAnimate = animate && previous !== null && previous !== to && !preferReducedMotion();
+    const canAnimate = animate
+      && previous !== null
+      && previous !== to
+      && !preferReducedMotion();
+
+    cancelPending();
     paint(to, previous, { animate: canAnimate });
   }
 
@@ -45,6 +51,7 @@ export function createPitchCounter(root, {
 
     for (let index = 0; index < nextDigits.length; index += 1) {
       const column = columns[index];
+      const reel = column.firstElementChild;
       const digit = nextDigits[index];
       const lengthOffset = nextDigits.length - previousDigits.length;
       const previousIndex = index - lengthOffset;
@@ -53,23 +60,25 @@ export function createPitchCounter(root, {
         : 0;
       const changed = previous === null || previousDigit !== digit;
 
+      if (!reel) continue;
+
       if (!animate || !changed) {
-        setColumnDigit(column, digit, { instant: true });
+        setReelDigit(column, reel, digit, { instant: true });
         continue;
       }
 
-      // Restart the reel at the previous digit, then ease to the new one.
-      setColumnDigit(column, previousDigit, { instant: true });
-      pending.push({ column, digit });
+      setReelDigit(column, reel, previousDigit, { instant: true });
+      pending.push({ column, reel, digit });
     }
 
     if (!pending.length) return;
 
     frameId = requestFrame(() => {
+      void root.offsetHeight;
       frameId = requestFrame(() => {
         frameId = null;
         for (const item of pending) {
-          setColumnDigit(item.column, item.digit, { instant: false });
+          setReelDigit(item.column, item.reel, item.digit, { instant: false });
         }
       });
     });
@@ -86,24 +95,29 @@ export function createPitchCounter(root, {
 
   function createDigitColumn() {
     const column = document.createElement("span");
+    column.className = "pitch-counter__digit";
     column.dataset.value = "0";
     column.setAttribute("aria-hidden", "true");
-    column.classList.add("is-instant");
-    column.style.transform = "translateY(0%)";
+
+    const reel = document.createElement("span");
+    reel.className = "pitch-counter__reel is-instant";
+    reel.style.transform = "translateY(0em)";
 
     for (let digit = 0; digit <= 9; digit += 1) {
       const slot = document.createElement("span");
+      slot.className = "pitch-counter__slot";
       slot.textContent = String(digit);
-      column.append(slot);
+      reel.append(slot);
     }
 
+    column.append(reel);
     return column;
   }
 
-  function setColumnDigit(column, digit, { instant }) {
+  function setReelDigit(column, reel, digit, { instant }) {
     column.dataset.value = String(digit);
-    column.classList.toggle("is-instant", instant);
-    column.style.transform = `translateY(-${digit * 100}%)`;
+    reel.classList.toggle("is-instant", instant);
+    reel.style.transform = `translateY(${-digit}em)`;
   }
 
   function cancelPending() {

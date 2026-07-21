@@ -1440,49 +1440,50 @@ p {
 
 .dawgs-online__count,
 .pitch-counter {
-  --digit-pad: 0.18em;
-  --digit-height: calc(1em + (var(--digit-pad) * 2));
   display: inline-flex;
   align-items: center;
-  height: var(--digit-height);
+  height: 1em;
   line-height: 1;
   overflow: hidden;
-  padding-block: var(--digit-pad);
   font-variant-numeric: tabular-nums;
   mask-image: linear-gradient(
     to bottom,
     transparent 0,
-    black var(--digit-pad),
-    black calc(100% - var(--digit-pad)),
+    black 18%,
+    black 82%,
     transparent 100%
   );
 }
 
-.pitch-counter > span[data-value] {
+.pitch-counter__digit {
+  display: block;
+  width: 0.62em;
+  height: 1em;
+  overflow: hidden;
+}
+
+.pitch-counter__reel {
   display: flex;
   flex-direction: column;
-  width: 0.62em;
-  height: var(--digit-height);
-  line-height: 1;
-  text-align: center;
-  transform: translateY(0%);
+  transform: translateY(0em);
   transition: transform 2s ease;
-  z-index: 1;
+  will-change: transform;
 }
 
-.pitch-counter > span[data-value] > span {
-  flex: 0 0 var(--digit-height);
-  display: grid;
-  place-items: center;
-  height: var(--digit-height);
-}
-
-.pitch-counter > span[data-value].is-instant {
+.pitch-counter__reel.is-instant {
   transition: none;
 }
 
+.pitch-counter__slot {
+  flex: 0 0 1em;
+  display: grid;
+  place-items: center;
+  height: 1em;
+  line-height: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .pitch-counter > span[data-value] {
+  .pitch-counter__reel {
     transition: none;
   }
 }

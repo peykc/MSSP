@@ -16,19 +16,20 @@ test("only changed digits animate on single-digit updates", () => {
   });
 
   counter.setValue(52);
-  assert.deepEqual(transforms(root), ["translateY(-500%)", "translateY(-200%)"]);
+  assert.deepEqual(transforms(root), ["translateY(-5em)", "translateY(-2em)"]);
 
   counter.setValue(51, { animate: true });
   assert.equal(root.children.length, 2);
-  assert.equal(root.children[0].style.transform, "translateY(-500%)");
-  assert.equal(root.children[1].style.transform, "translateY(-200%)");
+  assert.equal(reel(root, 0).style.transform, "translateY(-5em)");
+  assert.equal(reel(root, 1).style.transform, "translateY(-2em)");
   assert.ok(frames.length >= 1);
 
   frames.shift()();
+  void root.offsetHeight;
   frames.shift()();
-  assert.deepEqual(transforms(root), ["translateY(-500%)", "translateY(-100%)"]);
-  assert.equal(root.children[0].classList.values.has("is-instant"), true);
-  assert.equal(root.children[1].classList.values.has("is-instant"), false);
+  assert.deepEqual(transforms(root), ["translateY(-5em)", "translateY(-1em)"]);
+  assert.equal(reel(root, 0).classList.values.has("is-instant"), true);
+  assert.equal(reel(root, 1).classList.values.has("is-instant"), false);
   counter.destroy();
 });
 
@@ -46,13 +47,34 @@ test("multiple changed digits all animate", () => {
 
   counter.setValue(49);
   counter.setValue(51, { animate: true });
-  assert.deepEqual(transforms(root), ["translateY(-400%)", "translateY(-900%)"]);
+  assert.deepEqual(transforms(root), ["translateY(-4em)", "translateY(-9em)"]);
 
   frames.shift()();
+  void root.offsetHeight;
   frames.shift()();
-  assert.deepEqual(transforms(root), ["translateY(-500%)", "translateY(-100%)"]);
-  assert.equal(root.children[0].classList.values.has("is-instant"), false);
-  assert.equal(root.children[1].classList.values.has("is-instant"), false);
+  assert.deepEqual(transforms(root), ["translateY(-5em)", "translateY(-1em)"]);
+  assert.equal(reel(root, 0).classList.values.has("is-instant"), false);
+  assert.equal(reel(root, 1).classList.values.has("is-instant"), false);
+  counter.destroy();
+});
+
+test("pitch counter ignores repeat values during animation", () => {
+  const root = createRoot();
+  const frames = [];
+  const counter = createPitchCounter(root, {
+    preferReducedMotion: () => false,
+    requestFrame: (callback) => {
+      frames.push(callback);
+      return frames.length;
+    },
+    cancelFrame: () => {},
+  });
+
+  counter.setValue(10);
+  counter.setValue(19, { animate: true });
+  const pending = frames.length;
+  counter.setValue(19, { animate: true });
+  assert.equal(frames.length, pending);
   counter.destroy();
 });
 
@@ -71,15 +93,19 @@ test("pitch counter respects reduced motion", () => {
     ["9", "0", "0"],
   );
   assert.deepEqual(transforms(root), [
-    "translateY(-900%)",
-    "translateY(-0%)",
-    "translateY(-0%)",
+    "translateY(-9em)",
+    "translateY(0em)",
+    "translateY(0em)",
   ]);
   counter.destroy();
 });
 
+function reel(root, index) {
+  return root.children[index].firstElementChild;
+}
+
 function transforms(root) {
-  return [...root.children].map((column) => column.style.transform);
+  return [...root.children].map((column) => column.firstElementChild.style.transform);
 }
 
 function createRoot() {
@@ -87,6 +113,7 @@ function createRoot() {
   return {
     children,
     textContent: "",
+    offsetHeight: 1,
     replaceChildren(...nodes) {
       children.length = 0;
       this.textContent = "";
