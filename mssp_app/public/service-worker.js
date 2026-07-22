@@ -1,4 +1,4 @@
-const RELEASE_ID = "v412";
+const RELEASE_ID = "v413";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -24,13 +24,13 @@ const SHELL_PATHS = [
   "./css/tooltip.css",
   "./css/responsive.css?v=fav-empty-a",
   "./css/utilities.css",
-  "./css/player.css?v=ambient-stamp-b",
+  "./css/player.css?v=ambient-stamp-c",
   "./css/pwa-update.css?v=a2hs-b",
   "./css/patreon-rss.css?v=a2hs-f",
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=ambient-stamp-b",
+  "./js/main.js?v=ambient-stamp-c",
   "./js/a2hsModal.js?v=a2hs-e",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
@@ -54,10 +54,10 @@ const SHELL_PATHS = [
   "./js/libraryView.js?v=mini-scroll-a",
   "./js/launchSplash.js",
   "./js/player/audioController.js?v=playback-speed-p",
-  "./js/player/coverAmbient.js?v=ambient-stamp-b",
+  "./js/player/coverAmbient.js?v=ambient-stamp-c",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js?v=ambient-stamp-b",
+  "./js/player/playerView.js?v=ambient-stamp-c",
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",

@@ -22,7 +22,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=ambient-stamp-b";
+import { createPlayerView } from "./player/playerView.js?v=ambient-stamp-c";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-e";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=pull-overscroll-a";

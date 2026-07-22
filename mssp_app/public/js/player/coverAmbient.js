@@ -13,11 +13,12 @@ const FRAME_MS = 1000 / TARGET_FPS;
 const CROSSFADE_MS = 1100;
 const BASE_FILL = "#1f1d1c";
 
-/** Soft discs via radial gradients + luminosity, painted at postage-stamp res then CSS-scaled. */
+/** Soft discs via oversized radial gradients + screen blend (Safari-safe separable mode). */
+const GLOW_SCALE = 2.75;
 const BLOBS = Object.freeze([
-  { x: 0.18, y: 0.12, radius: 0.42, orbit: 0.06, spin: 0.00022, phase: 0.0, composite: "source-over" },
-  { x: 0.88, y: 0.92, radius: 0.46, orbit: 0.07, spin: -0.00018, phase: 1.7, composite: "luminosity" },
-  { x: 0.48, y: 0.46, radius: 0.38, orbit: 0.05, spin: 0.00014, phase: 3.1, composite: "luminosity" },
+  { x: 0.18, y: 0.12, radius: 0.42, orbit: 0.06, spin: 0.00022, phase: 0.0 },
+  { x: 0.88, y: 0.92, radius: 0.46, orbit: 0.07, spin: -0.00018, phase: 1.7 },
+  { x: 0.48, y: 0.46, radius: 0.38, orbit: 0.05, spin: 0.00014, phase: 3.1 },
 ]);
 
 export function createCoverAmbient({ root }) {
@@ -44,8 +45,10 @@ export function createCoverAmbient({ root }) {
     context = canvas.getContext("2d", { alpha: false });
   }
 
-  // Note: do not use ctx.filter here. Safari often exposes the property but silently
-  // ignores blur — soft discs use createRadialGradient instead (luminosity blend stays).
+  // Safari canvas landmines (both fail silently):
+  // 1) ctx.filter blur is ignored on older WebKit — softness is radial-gradient.
+  // 2) Non-separable blends (luminosity/hue/saturation/color) fall back to source-over —
+  //    use separable `screen` and bake brightness into the gradient stops.
 
   function syncAmbientPause() {
     root.classList.toggle("is-ambient-paused", document.hidden);
@@ -81,6 +84,7 @@ export function createCoverAmbient({ root }) {
     }
 
     const elapsed = now - startTime;
+    const stampMin = Math.min(STAMP_WIDTH, STAMP_HEIGHT);
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.globalCompositeOperation = "source-over";
     context.fillStyle = BASE_FILL;
@@ -93,15 +97,16 @@ export function createCoverAmbient({ root }) {
       const driftY = Math.cos((elapsed * blob.spin * 1.8) + blob.phase) * blob.orbit;
       const cx = (blob.x + driftX) * STAMP_WIDTH;
       const cy = (blob.y + driftY) * STAMP_HEIGHT;
-      const radius = blob.radius * Math.min(STAMP_WIDTH, STAMP_HEIGHT);
+      // Gradients end at their radius; blur bled ~3× past the edge. Expand so tails fuse.
+      const glowRadius = blob.radius * stampMin * GLOW_SCALE;
 
       context.save();
-      context.globalCompositeOperation = blob.composite;
+      context.globalCompositeOperation = "screen";
       context.translate(cx, cy);
       context.rotate(elapsed * blob.spin);
-      context.fillStyle = createSoftDiscGradient(context, color, radius);
+      context.fillStyle = createSoftDiscGradient(context, color, glowRadius);
       context.beginPath();
-      context.arc(0, 0, radius, 0, Math.PI * 2);
+      context.arc(0, 0, glowRadius, 0, Math.PI * 2);
       context.fill();
       context.restore();
     }
@@ -189,15 +194,18 @@ export function createCoverAmbient({ root }) {
   };
 }
 
-/** Gaussian-ish soft disc — full color through ~30%, transparent by ~75–80%. */
+/**
+ * Soft disc falloff sized for blur-like bleed.
+ * Center alpha is kept modest so 2.75× radius + screen doesn't blow out.
+ */
 function createSoftDiscGradient(context, color, radius) {
   const gradient = context.createRadialGradient(0, 0, 0, 0, 0, radius);
-  gradient.addColorStop(0, toRgba(color, 1));
-  gradient.addColorStop(0.18, toRgba(color, 0.92));
-  gradient.addColorStop(0.3, toRgba(color, 0.72));
-  gradient.addColorStop(0.48, toRgba(color, 0.38));
-  gradient.addColorStop(0.65, toRgba(color, 0.14));
-  gradient.addColorStop(0.78, toRgba(color, 0.04));
+  gradient.addColorStop(0, toRgba(color, 0.62));
+  gradient.addColorStop(0.18, toRgba(color, 0.48));
+  gradient.addColorStop(0.3, toRgba(color, 0.34));
+  gradient.addColorStop(0.48, toRgba(color, 0.18));
+  gradient.addColorStop(0.65, toRgba(color, 0.07));
+  gradient.addColorStop(0.78, toRgba(color, 0.02));
   gradient.addColorStop(1, toRgba(color, 0));
   return gradient;
 }
