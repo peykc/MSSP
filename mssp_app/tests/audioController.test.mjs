@@ -47,6 +47,7 @@ class FakeAudio extends EventTarget {
     if (!this._src) {
       this.readyState = 0;
       this.networkState = 0;
+      this.playbackRate = 1;
       return;
     }
     this.readyState = 3;
@@ -96,7 +97,7 @@ class FakeAudio extends EventTarget {
   remove() {}
 }
 
-function installBrowserGlobals() {
+function installBrowserGlobals({ resetStorage = true } = {}) {
   const documentEvents = new EventTarget();
   const windowEvents = new EventTarget();
   const navigatorValue = { maxTouchPoints: 1, standalone: true };
@@ -104,6 +105,17 @@ function installBrowserGlobals() {
     configurable: true,
     value: navigatorValue,
   });
+  if (!globalThis.localStorage?.getItem || !globalThis.localStorage?.setItem) {
+    const storage = new Map();
+    globalThis.localStorage = {
+      getItem: (key) => (storage.has(key) ? storage.get(key) : null),
+      setItem(key, value) { storage.set(String(key), String(value)); },
+      removeItem: (key) => storage.delete(key),
+      clear: () => storage.clear(),
+    };
+  } else if (resetStorage) {
+    globalThis.localStorage.removeItem("mssp:playbackRate");
+  }
   globalThis.document = Object.assign(documentEvents, {
     visibilityState: "visible",
     body: { appendChild() {} },
@@ -153,8 +165,8 @@ function createFakePlayerState(episode, source) {
   };
 }
 
-function createHarness({ standby = true } = {}) {
-  installBrowserGlobals();
+function createHarness({ standby = true, resetStorage = true } = {}) {
+  installBrowserGlobals({ resetStorage });
   const events = [];
   const tasks = [];
   const audios = [];
@@ -234,6 +246,35 @@ test("invokes promoted play before committing continuation state and copies sett
   harness.audios[1].advance();
   assert.equal(harness.playerState.state.playbackStatus, PLAYBACK_STATUSES.PLAYING);
   assert.equal(harness.controller.getAudioSnapshot().pendingHandoff, false);
+});
+
+test("keeps preferred playback rate when loading a different episode", async () => {
+  const harness = createHarness();
+  await harness.controller.loadSelected({ playbackIntent: true });
+  harness.controller.setPlaybackRate(1.5);
+  assert.equal(harness.controller.getPlaybackRate(), 1.5);
+  assert.equal(harness.audios[0].playbackRate, 1.5);
+
+  harness.playerState.state.selectedEpisode = { episodeKey: "ep-3", title: "Three" };
+  harness.playerState.state.source = { url: "https://audio.test/three.mp3", sourceType: "r2_audio" };
+  await harness.controller.loadSelected({ playbackIntent: true });
+
+  assert.equal(harness.controller.getPlaybackRate(), 1.5);
+  assert.equal(harness.audios[0].playbackRate, 1.5);
+});
+
+test("restores preferred playback rate from localStorage on relaunch", async () => {
+  const first = createHarness();
+  await first.controller.loadSelected({ playbackIntent: true });
+  first.controller.setPlaybackRate(1.25);
+  assert.equal(globalThis.localStorage.getItem("mssp:playbackRate"), "1.25");
+  first.controller.destroy();
+
+  const second = createHarness({ resetStorage: false });
+  assert.equal(second.controller.getPlaybackRate(), 1.25);
+  assert.equal(second.audios[0].playbackRate, 1.25);
+  await second.controller.loadSelected({ playbackIntent: true });
+  assert.equal(second.audios[0].playbackRate, 1.25);
 });
 
 test("invalid context token falls back instead of promoting standby", async () => {

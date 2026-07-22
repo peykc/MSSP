@@ -7,6 +7,9 @@ const HAVE_FUTURE_DATA = 3;
 const HAVE_ENOUGH_DATA = 4;
 const HANDOFF_ADVANCE_SECONDS = 0.1;
 const DIAGNOSTIC_LIMIT = 40;
+const PLAYBACK_RATE_STORAGE_KEY = "mssp:playbackRate";
+const DEFAULT_PLAYBACK_RATE = 1;
+const ALLOWED_PLAYBACK_RATES = Object.freeze([2, 1.75, 1.5, 1.25, 1, 0.75, 0.5]);
 const RECONCILABLE_STATUSES = new Set([
   PLAYBACK_STATUSES.LOADING_SOURCE,
   PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
@@ -41,14 +44,18 @@ export function createAudioController({
   let fallbackTriedToken = null;
   let standbyGeneration = 0;
   let playbackSettingsVersion = 0;
+  let preferredPlaybackRate = readPersistedPlaybackRate();
   let pendingHandoff = null;
   let destroyed = false;
   let lastContextFingerprint = contextFingerprint();
   const diagnostics = [];
   const debugPlayback = isPlaybackDebugEnabled();
+  applyPreferredPlaybackRate(audio);
+  if (standbyDeck?.audio) applyPreferredPlaybackRate(standbyDeck.audio);
   recordDiagnostic("controller-init", {
     standbyEnabled,
     deckCount: standbyDeck ? 2 : 1,
+    playbackRate: preferredPlaybackRate,
   });
 
   function createDeck(role) {
@@ -307,6 +314,7 @@ export function createAudioController({
     if (loadedEpisodeKey) savePlaybackPositionNow({ episodeKey: loadedEpisodeKey });
     invalidateLoad();
     resetAudioElement(audio);
+    applyPreferredPlaybackRate(audio);
     configureCrossOrigin(source, audio);
     audio.preload = shouldPlay ? "auto" : "metadata";
 
@@ -323,6 +331,7 @@ export function createAudioController({
     playerState.setPlaybackError("");
     playerState.setPlaybackStatus(PLAYBACK_STATUSES.LOADING_SOURCE);
     audio.load();
+    applyPreferredPlaybackRate(audio);
     return token;
   }
 
@@ -339,6 +348,7 @@ export function createAudioController({
     };
 
     targetAudio.addEventListener("loadedmetadata", current(() => {
+      applyPreferredPlaybackRate(targetAudio);
       updateTimeline();
       if (restoredLoadToken !== token) {
         restoredLoadToken = token;
@@ -595,6 +605,7 @@ export function createAudioController({
     standbyAudio.addEventListener("error", failStandby, options);
     standbyAudio.src = token.sourceUrl;
     standbyAudio.load();
+    applyPreferredPlaybackRate(standbyAudio);
     recordDiagnostic("standby-prepared", { episodeKey: token.episodeKey, generation: token.generation });
   }
 
@@ -660,18 +671,28 @@ export function createAudioController({
   }
 
   function setPlaybackRate(value) {
-    const rate = Number(value);
-    if (!Number.isFinite(rate) || rate <= 0) return audio.playbackRate;
-    if (audio.playbackRate === rate) return rate;
-    audio.playbackRate = rate;
+    const rate = normalizePlaybackRate(value);
+    if (preferredPlaybackRate === rate && audio.playbackRate === rate) return rate;
+    preferredPlaybackRate = rate;
+    persistPlaybackRate(rate);
+    applyPreferredPlaybackRate(audio);
+    if (standbyDeck?.audio) applyPreferredPlaybackRate(standbyDeck.audio);
     playbackSettingsVersion += 1;
     invalidateStandby("playback-rate-changed");
     if (playbackIntent && !pendingHandoff) prepareStandby();
     return rate;
   }
 
+  function applyPreferredPlaybackRate(targetAudio) {
+    if (!targetAudio) return preferredPlaybackRate;
+    if (targetAudio.playbackRate !== preferredPlaybackRate) {
+      targetAudio.playbackRate = preferredPlaybackRate;
+    }
+    return preferredPlaybackRate;
+  }
+
   function copyPlaybackSettings(fromAudio, toAudio) {
-    toAudio.playbackRate = Number.isFinite(fromAudio.playbackRate) ? fromAudio.playbackRate : 1;
+    applyPreferredPlaybackRate(toAudio);
     for (const property of ["preservesPitch", "webkitPreservesPitch"]) {
       if (property in fromAudio && property in toAudio) {
         try {
@@ -763,6 +784,7 @@ export function createAudioController({
     invalidateStandby("clear-audio");
     invalidateLoad();
     resetAudioElement(audio);
+    applyPreferredPlaybackRate(audio);
     loadedEpisodeKey = null;
     loadedSourceUrl = null;
     activeDeck.assignedEpisodeKey = null;
@@ -820,7 +842,7 @@ export function createAudioController({
   }
 
   function getPlaybackRate() {
-    return Number.isFinite(audio.playbackRate) ? audio.playbackRate : 1;
+    return preferredPlaybackRate;
   }
 
   function reconcilePlaybackState() {
@@ -910,6 +932,39 @@ export function createAudioController({
 
 function defaultCreateAudioElement() {
   return document.createElement("audio");
+}
+
+function normalizePlaybackRate(value) {
+  const rate = Number(value);
+  if (!Number.isFinite(rate) || rate <= 0) return DEFAULT_PLAYBACK_RATE;
+  let closest = ALLOWED_PLAYBACK_RATES[0];
+  let closestDelta = Math.abs(rate - closest);
+  for (const option of ALLOWED_PLAYBACK_RATES) {
+    const delta = Math.abs(rate - option);
+    if (delta < closestDelta) {
+      closest = option;
+      closestDelta = delta;
+    }
+  }
+  return closest;
+}
+
+function readPersistedPlaybackRate() {
+  try {
+    const saved = localStorage.getItem(PLAYBACK_RATE_STORAGE_KEY);
+    if (saved == null) return DEFAULT_PLAYBACK_RATE;
+    return normalizePlaybackRate(JSON.parse(saved));
+  } catch {
+    return DEFAULT_PLAYBACK_RATE;
+  }
+}
+
+function persistPlaybackRate(rate) {
+  try {
+    localStorage.setItem(PLAYBACK_RATE_STORAGE_KEY, JSON.stringify(normalizePlaybackRate(rate)));
+  } catch (error) {
+    console.warn("[MSSP] Could not persist playback rate.", error);
+  }
 }
 
 function attachAudioElement(audio) {

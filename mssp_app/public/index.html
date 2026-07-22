@@ -38,7 +38,7 @@
     <link rel="stylesheet" href="./css/tooltip.css">
     <link rel="stylesheet" href="./css/responsive.css?v=fav-empty-a">
     <link rel="stylesheet" href="./css/utilities.css">
-    <link rel="stylesheet" href="./css/player.css?v=views-pending-a">
+    <link rel="stylesheet" href="./css/player.css?v=ambient-stamp-b">
     <link rel="stylesheet" href="./css/pwa-update.css?v=a2hs-b">
     <link rel="stylesheet" href="./css/patreon-rss.css?v=a2hs-f">
     <link rel="stylesheet" href="./css/transcript.css?v=cover-ambient-g">
@@ -600,16 +600,7 @@
     <button class="player-backdrop" id="playerBackdrop" type="button" aria-label="Collapse full player" hidden></button>
     <section class="full-player" id="fullPlayer" role="dialog" aria-modal="true" aria-labelledby="fullPlayerTitle" tabindex="-1" data-mode="player" hidden>
       <div class="full-player__ambient" aria-hidden="true">
-        <div class="full-player__ambient-layer is-active">
-          <span class="full-player__ambient-blob full-player__ambient-blob--one"></span>
-          <span class="full-player__ambient-blob full-player__ambient-blob--two"></span>
-          <span class="full-player__ambient-blob full-player__ambient-blob--three"></span>
-        </div>
-        <div class="full-player__ambient-layer">
-          <span class="full-player__ambient-blob full-player__ambient-blob--one"></span>
-          <span class="full-player__ambient-blob full-player__ambient-blob--two"></span>
-          <span class="full-player__ambient-blob full-player__ambient-blob--three"></span>
-        </div>
+        <canvas class="full-player__ambient-canvas" width="80" height="142"></canvas>
       </div>
       <button class="full-player__collapse" id="fullPlayerCollapse" type="button" aria-label="Collapse full player">
         <span class="full-player__grabber" aria-hidden="true"></span>
@@ -687,12 +678,46 @@
             </p>
           </div>
           <div class="full-player__timeline" aria-label="Playback timeline">
-            <span id="playerTimelineStart">00:00</span>
+            <span class="full-player__time full-player__time--start" id="playerTimelineStart">00:00</span>
             <span class="player-timeline__scrubber">
               <input id="playerTimeline" type="range" min="0" max="0" value="0" disabled aria-label="Playback position unavailable">
               <output class="player-timeline__tooltip" id="playerTimelineTooltip" hidden>0:00</output>
             </span>
-            <span id="playerTimelineEnd">--:--</span>
+            <div class="full-player__speed" id="playerSpeedControl">
+              <button
+                class="full-player__speed-toggle"
+                id="playerSpeedToggle"
+                type="button"
+                aria-label="Playback speed 1x"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-controls="playerSpeedPanel"
+              >
+                <span class="full-player__speed-value" id="playerSpeedValue">1x</span>
+                <span class="full-player__speed-sizer" aria-hidden="true">1.75x</span>
+              </button>
+              <div class="full-player__speed-panel" id="playerSpeedPanel" hidden>
+                <div class="full-player__speed-barrel">
+                  <div class="full-player__speed-barrel-visor" aria-hidden="true"></div>
+                  <ul
+                    class="full-player__speed-barrel-list"
+                    id="playerSpeedBarrel"
+                    role="listbox"
+                    tabindex="0"
+                    aria-label="Playback speed"
+                  >
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="2" aria-selected="false">2x</li>
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="1.75" aria-selected="false">1.75x</li>
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="1.5" aria-selected="false">1.5x</li>
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="1.25" aria-selected="false">1.25x</li>
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="1" aria-selected="true">1x</li>
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="0.75" aria-selected="false">0.75x</li>
+                    <li class="full-player__speed-barrel-option" role="option" data-rate="0.5" aria-selected="false">0.5x</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <span class="full-player__time full-player__time--end" id="playerTimelineEnd">--:--</span>
           </div>
         </div>
         <div class="full-player__controls">
@@ -770,6 +795,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=poll-cut-a"></script>
+    <script type="module" src="./js/main.js?v=ambient-stamp-b"></script>
   </body>
 </html>

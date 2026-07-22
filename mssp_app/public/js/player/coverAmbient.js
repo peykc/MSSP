@@ -6,12 +6,132 @@ const CURATED_PALETTES = Object.freeze({
   default: ["#64748b", "#855f76", "#6a8067"],
 });
 
+const STAMP_WIDTH = 80;
+const STAMP_HEIGHT = 142;
+const TARGET_FPS = 30;
+const FRAME_MS = 1000 / TARGET_FPS;
+const CROSSFADE_MS = 1100;
+const BASE_FILL = "#1f1d1c";
+
+/** Soft discs via radial gradients + luminosity, painted at postage-stamp res then CSS-scaled. */
+const BLOBS = Object.freeze([
+  { x: 0.18, y: 0.12, radius: 0.42, orbit: 0.06, spin: 0.00022, phase: 0.0, composite: "source-over" },
+  { x: 0.88, y: 0.92, radius: 0.46, orbit: 0.07, spin: -0.00018, phase: 1.7, composite: "luminosity" },
+  { x: 0.48, y: 0.46, radius: 0.38, orbit: 0.05, spin: 0.00014, phase: 3.1, composite: "luminosity" },
+]);
+
 export function createCoverAmbient({ root }) {
-  const layers = [...root.querySelectorAll(".full-player__ambient-layer")];
+  const stage = root.querySelector(".full-player__ambient");
+  const canvas = root.querySelector(".full-player__ambient-canvas");
   const paletteCache = new Map();
-  let activeLayerIndex = Math.max(0, layers.findIndex((layer) => layer.classList.contains("is-active")));
+  const reducedMotionQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   let activeCoverUrl = "";
   let requestVersion = 0;
+  let frameId = 0;
+  let lastPaintAt = 0;
+  let startTime = performance.now();
+  let displayColors = CURATED_PALETTES.default.map(parseColor);
+  let fromColors = displayColors.map((color) => ({ ...color }));
+  let toColors = displayColors.map((color) => ({ ...color }));
+  let crossfadeStartedAt = 0;
+  let crossfading = false;
+  let context = null;
+
+  if (canvas) {
+    canvas.width = STAMP_WIDTH;
+    canvas.height = STAMP_HEIGHT;
+    context = canvas.getContext("2d", { alpha: false });
+  }
+
+  // Note: do not use ctx.filter here. Safari often exposes the property but silently
+  // ignores blur — soft discs use createRadialGradient instead (luminosity blend stays).
+
+  function syncAmbientPause() {
+    root.classList.toggle("is-ambient-paused", document.hidden);
+  }
+
+  function prefersReducedMotion() {
+    return reducedMotionQuery.matches;
+  }
+
+  function shouldAnimate() {
+    return Boolean(
+      context
+      && root.classList.contains("is-open")
+      && !root.classList.contains("is-dragging")
+      && !root.classList.contains("is-ambient-paused")
+      && root.getAttribute("data-mode") !== "queue"
+      && !prefersReducedMotion()
+    );
+  }
+
+  function ensureLoop() {
+    if (frameId || !context) return;
+    frameId = window.requestAnimationFrame(tick);
+  }
+
+  function paint(now = performance.now()) {
+    if (!context) return;
+
+    if (crossfading) {
+      const progress = Math.min(1, (now - crossfadeStartedAt) / CROSSFADE_MS);
+      displayColors = fromColors.map((from, index) => lerpColor(from, toColors[index], progress));
+      if (progress >= 1) crossfading = false;
+    }
+
+    const elapsed = now - startTime;
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.globalCompositeOperation = "source-over";
+    context.fillStyle = BASE_FILL;
+    context.fillRect(0, 0, STAMP_WIDTH, STAMP_HEIGHT);
+
+    for (let index = 0; index < BLOBS.length; index += 1) {
+      const blob = BLOBS[index];
+      const color = displayColors[index] || displayColors[0];
+      const driftX = Math.sin((elapsed * blob.spin * 2.4) + blob.phase) * blob.orbit;
+      const driftY = Math.cos((elapsed * blob.spin * 1.8) + blob.phase) * blob.orbit;
+      const cx = (blob.x + driftX) * STAMP_WIDTH;
+      const cy = (blob.y + driftY) * STAMP_HEIGHT;
+      const radius = blob.radius * Math.min(STAMP_WIDTH, STAMP_HEIGHT);
+
+      context.save();
+      context.globalCompositeOperation = blob.composite;
+      context.translate(cx, cy);
+      context.rotate(elapsed * blob.spin);
+      context.fillStyle = createSoftDiscGradient(context, color, radius);
+      context.beginPath();
+      context.arc(0, 0, radius, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    }
+
+    context.globalCompositeOperation = "source-over";
+  }
+
+  function tick(now) {
+    frameId = 0;
+    const animate = shouldAnimate();
+    if (!animate && !crossfading) return;
+
+    if (now - lastPaintAt >= FRAME_MS) {
+      lastPaintAt = now;
+      paint(now);
+    }
+
+    if (shouldAnimate() || crossfading) {
+      frameId = window.requestAnimationFrame(tick);
+    }
+  }
+
+  function beginCrossfade(palette) {
+    fromColors = displayColors.map((color) => ({ ...color }));
+    toColors = palette.map(parseColor);
+    crossfadeStartedAt = performance.now();
+    crossfading = true;
+    if (!shouldAnimate()) paint(crossfadeStartedAt);
+    else ensureLoop();
+  }
 
   async function setCover(coverUrl) {
     if (!coverUrl || coverUrl === activeCoverUrl) return;
@@ -33,29 +153,92 @@ export function createCoverAmbient({ root }) {
     }
 
     if (version !== requestVersion) return;
-    applyPalette(palette);
+    beginCrossfade(palette);
   }
 
-  function applyPalette(palette) {
-    if (!layers.length) return;
-
-    const nextLayerIndex = layers.length > 1
-      ? (activeLayerIndex + 1) % layers.length
-      : activeLayerIndex;
-    const nextLayer = layers[nextLayerIndex];
-    const [first, second, third] = palette;
-
-    nextLayer.style.setProperty("--ambient-one", first);
-    nextLayer.style.setProperty("--ambient-two", second);
-    nextLayer.style.setProperty("--ambient-three", third);
-
-    if (nextLayerIndex === activeLayerIndex) return;
-    nextLayer.classList.add("is-active");
-    layers[activeLayerIndex].classList.remove("is-active");
-    activeLayerIndex = nextLayerIndex;
+  function onAmbientStateChange() {
+    syncAmbientPause();
+    if (shouldAnimate() || crossfading) ensureLoop();
   }
 
-  return { setCover };
+  syncAmbientPause();
+  document.addEventListener("visibilitychange", onAmbientStateChange);
+  reducedMotionQuery.addEventListener?.("change", () => {
+    if (!shouldAnimate()) paint(performance.now());
+    else ensureLoop();
+  });
+
+  const stateObserver = new MutationObserver(onAmbientStateChange);
+  stateObserver.observe(root, {
+    attributes: true,
+    attributeFilter: ["class", "data-mode"],
+  });
+
+  if (stage) stage.hidden = !context;
+  paint(performance.now());
+  if (shouldAnimate()) ensureLoop();
+
+  return {
+    setCover,
+    destroy() {
+      window.cancelAnimationFrame(frameId);
+      frameId = 0;
+      document.removeEventListener("visibilitychange", onAmbientStateChange);
+      stateObserver.disconnect();
+    },
+  };
+}
+
+/** Gaussian-ish soft disc — full color through ~30%, transparent by ~75–80%. */
+function createSoftDiscGradient(context, color, radius) {
+  const gradient = context.createRadialGradient(0, 0, 0, 0, 0, radius);
+  gradient.addColorStop(0, toRgba(color, 1));
+  gradient.addColorStop(0.18, toRgba(color, 0.92));
+  gradient.addColorStop(0.3, toRgba(color, 0.72));
+  gradient.addColorStop(0.48, toRgba(color, 0.38));
+  gradient.addColorStop(0.65, toRgba(color, 0.14));
+  gradient.addColorStop(0.78, toRgba(color, 0.04));
+  gradient.addColorStop(1, toRgba(color, 0));
+  return gradient;
+}
+
+function toRgba({ red, green, blue }, alpha) {
+  return `rgba(${red}, ${green}, ${blue}, ${alpha})`;
+}
+
+function parseColor(value) {
+  const text = String(value).trim();
+  const hex = text.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+  if (hex) {
+    const raw = hex[1];
+    const full = raw.length === 3
+      ? raw.split("").map((part) => part + part).join("")
+      : raw;
+    return {
+      red: Number.parseInt(full.slice(0, 2), 16),
+      green: Number.parseInt(full.slice(2, 4), 16),
+      blue: Number.parseInt(full.slice(4, 6), 16),
+    };
+  }
+
+  const rgb = text.match(/rgba?\(\s*([0-9.]+)\s*[, ]\s*([0-9.]+)\s*[, ]\s*([0-9.]+)/i);
+  if (rgb) {
+    return {
+      red: Math.round(Number(rgb[1])),
+      green: Math.round(Number(rgb[2])),
+      blue: Math.round(Number(rgb[3])),
+    };
+  }
+
+  return { red: 100, green: 116, blue: 139 };
+}
+
+function lerpColor(from, to, progress) {
+  return {
+    red: Math.round(from.red + ((to.red - from.red) * progress)),
+    green: Math.round(from.green + ((to.green - from.green) * progress)),
+    blue: Math.round(from.blue + ((to.blue - from.blue) * progress)),
+  };
 }
 
 async function extractCoverPalette(coverUrl) {
@@ -140,12 +323,11 @@ function getCuratedPalette(coverUrl) {
 
 function normalizeAmbientColor({ red, green, blue }) {
   const { hue, saturation, lightness } = rgbToHsl(red, green, blue);
-  const normalized = hslToRgb(
+  return hslToRgb(
     hue,
     clamp(saturation * 1.08, 0.38, 0.8),
     clamp(lightness, 0.34, 0.62),
   );
-  return normalized;
 }
 
 function shiftHue(color, degrees) {

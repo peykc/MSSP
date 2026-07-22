@@ -1,6 +1,6 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
-import { createCoverAmbient } from "./coverAmbient.js?v=cover-ambient-g";
+import { createCoverAmbient } from "./coverAmbient.js?v=ambient-stamp-b";
 import { createTranscriptView } from "./transcriptView.js?v=scroll-hydrate-m";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";
@@ -19,6 +19,8 @@ import {
 const SEEK_BACK_SECONDS = 15;
 const SEEK_FORWARD_SECONDS = 30;
 const SEEK_BURST_MS = 1200;
+const PLAYBACK_RATES = Object.freeze([2, 1.75, 1.5, 1.25, 1, 0.75, 0.5]);
+const DEFAULT_PLAYBACK_RATE = 1;
 const ACTIVE_PLAYBACK_STATUSES = new Set([
   PLAYBACK_STATUSES.LOADING_SOURCE,
   PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
@@ -91,6 +93,11 @@ export function createPlayerView({
   let queueReindexAnimationActive = false;
   let queueRenderLocked = false;
   let compactQueueRow = null;
+  let speedMenuListeners = null;
+  let speedMenuIgnoreOutsideUntil = 0;
+  let speedBarrelScrollTimer = null;
+  let speedBarrelSyncing = false;
+  let speedBarrelPointer = null;
   const coverAmbient = createCoverAmbient({ root: dom.fullPlayer });
   const queueMenuManager = createEpisodeRowMenuManager({ scrollRoot: dom.fullPlayerQueueList });
   const transcriptView = createTranscriptView({
@@ -471,6 +478,248 @@ export function createPlayerView({
       "aria-label",
       seekable ? "Playback position" : "Playback position unavailable"
     );
+    syncPlaybackSpeedUi();
+  }
+
+  function formatPlaybackRateLabel(rate) {
+    const normalized = Number(rate);
+    if (!Number.isFinite(normalized)) return "1x";
+    const rounded = Math.round(normalized * 100) / 100;
+    return `${rounded}x`;
+  }
+
+  function normalizePlaybackRate(rate) {
+    const value = Number(rate);
+    if (!Number.isFinite(value) || value <= 0) return DEFAULT_PLAYBACK_RATE;
+    let closest = PLAYBACK_RATES[0];
+    let closestDelta = Math.abs(value - closest);
+    for (const option of PLAYBACK_RATES) {
+      const delta = Math.abs(value - option);
+      if (delta < closestDelta) {
+        closest = option;
+        closestDelta = delta;
+      }
+    }
+    return closest;
+  }
+
+  function syncPlaybackSpeedUi(rate = audioController.getPlaybackRate?.()) {
+    const selected = normalizePlaybackRate(rate);
+    const label = formatPlaybackRateLabel(selected);
+    dom.playerSpeedValue.textContent = label;
+    dom.playerSpeedToggle.setAttribute("aria-label", `Playback speed ${label}`);
+    for (const option of dom.playerSpeedBarrel.querySelectorAll(".full-player__speed-barrel-option")) {
+      const optionRate = Number(option.dataset.rate);
+      option.setAttribute("aria-selected", String(optionRate === selected));
+    }
+  }
+
+  function getSpeedBarrelRowHeight() {
+    const option = dom.playerSpeedBarrel.querySelector(".full-player__speed-barrel-option");
+    const measured = option?.getBoundingClientRect().height || 0;
+    if (measured > 0) return measured;
+    const raw = getComputedStyle(dom.playerSpeedPanel).getPropertyValue("--speed-row").trim();
+    const parsed = Number.parseFloat(raw);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 22;
+  }
+
+  function getSpeedBarrelIndexFromScroll() {
+    const row = getSpeedBarrelRowHeight();
+    if (row <= 0) return 0;
+    return Math.max(0, Math.min(PLAYBACK_RATES.length - 1, Math.round(dom.playerSpeedBarrel.scrollTop / row)));
+  }
+
+  function scrollSpeedBarrelToRate(rate, { smooth = false } = {}) {
+    const selected = normalizePlaybackRate(rate);
+    const index = PLAYBACK_RATES.indexOf(selected);
+    if (index < 0) return;
+    const row = getSpeedBarrelRowHeight();
+    const top = index * row;
+    window.clearTimeout(speedBarrelScrollTimer);
+    speedBarrelSyncing = true;
+    if (smooth && typeof dom.playerSpeedBarrel.scrollTo === "function") {
+      setSpeedBarrelSnapEnabled(false);
+      dom.playerSpeedBarrel.scrollTo({ top, behavior: "smooth" });
+      speedBarrelScrollTimer = window.setTimeout(() => {
+        speedBarrelSyncing = false;
+        setSpeedBarrelSnapEnabled(true);
+        if (Math.abs(dom.playerSpeedBarrel.scrollTop - top) > 1) {
+          dom.playerSpeedBarrel.scrollTop = top;
+        }
+      }, 280);
+      return;
+    }
+    dom.playerSpeedBarrel.scrollTop = top;
+    window.requestAnimationFrame(() => {
+      speedBarrelSyncing = false;
+    });
+  }
+
+  function commitSpeedBarrelSelection(rate, { close = false } = {}) {
+    const nextRate = normalizePlaybackRate(rate);
+    audioController.setPlaybackRate?.(nextRate);
+    syncPlaybackSpeedUi(nextRate);
+    if (close) closePlaybackSpeedMenu();
+  }
+
+  function setSpeedBarrelSnapEnabled(enabled) {
+    dom.playerSpeedBarrel.classList.toggle("is-dragging", !enabled);
+  }
+
+  function settleSpeedBarrelSelection({ smooth = true } = {}) {
+    if (!speedMenuListeners) return;
+    const index = getSpeedBarrelIndexFromScroll();
+    const rate = PLAYBACK_RATES[index];
+    if (rate == null) return;
+    scrollSpeedBarrelToRate(rate, { smooth });
+    commitSpeedBarrelSelection(rate);
+  }
+
+  function handleSpeedBarrelScroll() {
+    if (speedBarrelSyncing || !speedMenuListeners || speedBarrelPointer) return;
+    window.clearTimeout(speedBarrelScrollTimer);
+    speedBarrelScrollTimer = window.setTimeout(() => {
+      if (!speedMenuListeners || speedBarrelPointer) return;
+      settleSpeedBarrelSelection();
+    }, 140);
+  }
+
+  function onSpeedBarrelPointerDown(event) {
+    if (!speedMenuListeners) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
+    event.stopPropagation();
+    window.clearTimeout(speedBarrelScrollTimer);
+    speedBarrelPointer = {
+      id: event.pointerId,
+      startY: event.clientY,
+      startScroll: dom.playerSpeedBarrel.scrollTop,
+      didMove: false,
+    };
+    setSpeedBarrelSnapEnabled(false);
+    dom.playerSpeedBarrel.setPointerCapture?.(event.pointerId);
+  }
+
+  function onSpeedBarrelPointerMove(event) {
+    if (!speedBarrelPointer || event.pointerId !== speedBarrelPointer.id) return;
+    const dy = event.clientY - speedBarrelPointer.startY;
+    if (!speedBarrelPointer.didMove && Math.abs(dy) > 3) {
+      speedBarrelPointer.didMove = true;
+    }
+    if (!speedBarrelPointer.didMove) return;
+    event.preventDefault();
+    speedBarrelSyncing = true;
+    dom.playerSpeedBarrel.scrollTop = speedBarrelPointer.startScroll - dy;
+    speedBarrelSyncing = false;
+  }
+
+  function onSpeedBarrelPointerUp(event) {
+    if (!speedBarrelPointer || event.pointerId !== speedBarrelPointer.id) return;
+    const didMove = speedBarrelPointer.didMove;
+    const option = didMove
+      ? null
+      : event.target.closest?.(".full-player__speed-barrel-option");
+    speedBarrelPointer = null;
+    if (!didMove && option && dom.playerSpeedBarrel.contains(option)) {
+      const rate = Number(option.dataset.rate);
+      scrollSpeedBarrelToRate(rate, { smooth: true });
+      commitSpeedBarrelSelection(rate);
+      return;
+    }
+    settleSpeedBarrelSelection({ smooth: true });
+  }
+
+  function resetSpeedMenuPanelPosition() {
+    const panel = dom.playerSpeedPanel;
+    panel.style.position = "";
+    panel.style.top = "";
+    panel.style.left = "";
+    panel.style.right = "";
+    panel.style.width = "";
+    panel.style.height = "";
+    panel.style.bottom = "";
+    panel.style.setProperty("--speed-row", "");
+    delete panel.dataset.placement;
+  }
+
+  function positionSpeedMenuPanel() {
+    const panel = dom.playerSpeedPanel;
+    const toggleButton = dom.playerSpeedToggle;
+    const rect = toggleButton.getBoundingClientRect();
+    const row = Math.max(18, Math.round(rect.height));
+    const width = Math.max(rect.width, 44);
+    const height = row * 3;
+    const left = rect.left + (rect.width / 2) - (width / 2);
+    const top = rect.top + (rect.height / 2) - (height / 2);
+
+    panel.style.setProperty("--speed-row", `${row}px`);
+    panel.style.position = "fixed";
+    panel.style.width = `${width}px`;
+    panel.style.height = `${height}px`;
+    panel.style.left = `${Math.max(8, left)}px`;
+    panel.style.right = "auto";
+    panel.style.bottom = "auto";
+    panel.style.top = `${Math.max(8, top)}px`;
+    panel.dataset.placement = "overlay";
+  }
+
+  function closePlaybackSpeedMenu() {
+    if (!speedMenuListeners) return;
+    window.clearTimeout(speedBarrelScrollTimer);
+    speedBarrelScrollTimer = null;
+    speedBarrelPointer = null;
+    setSpeedBarrelSnapEnabled(true);
+    dom.playerSpeedToggle.setAttribute("aria-expanded", "false");
+    dom.playerSpeedPanel.setAttribute("hidden", "");
+    dom.playerSpeedControl.append(dom.playerSpeedPanel);
+    dom.playerSpeedControl.classList.remove("is-open");
+    resetSpeedMenuPanelPosition();
+    document.removeEventListener("pointerdown", speedMenuListeners.outside, true);
+    document.removeEventListener("click", speedMenuListeners.outside, true);
+    window.removeEventListener("resize", speedMenuListeners.resize);
+    dom.playerSpeedBarrel.removeEventListener("scroll", speedMenuListeners.scroll);
+    speedMenuListeners = null;
+    speedMenuIgnoreOutsideUntil = 0;
+  }
+
+  function openPlaybackSpeedMenu() {
+    closePlaybackSpeedMenu();
+    const currentRate = normalizePlaybackRate(audioController.getPlaybackRate?.());
+    syncPlaybackSpeedUi(currentRate);
+    dom.playerSpeedToggle.setAttribute("aria-expanded", "true");
+    dom.playerSpeedPanel.removeAttribute("hidden");
+    dom.playerSpeedControl.classList.add("is-open");
+    document.body.append(dom.playerSpeedPanel);
+    positionSpeedMenuPanel();
+    scrollSpeedBarrelToRate(currentRate);
+    speedMenuIgnoreOutsideUntil = Date.now() + 320;
+
+    const listeners = {
+      outside: (event) => {
+        if (Date.now() < speedMenuIgnoreOutsideUntil) return;
+        if (dom.playerSpeedControl.contains(event.target) || dom.playerSpeedPanel.contains(event.target)) return;
+        closePlaybackSpeedMenu();
+      },
+      resize: () => closePlaybackSpeedMenu(),
+      scroll: () => handleSpeedBarrelScroll(),
+    };
+
+    speedMenuListeners = listeners;
+    dom.playerSpeedBarrel.addEventListener("scroll", listeners.scroll, { passive: true });
+    window.setTimeout(() => {
+      if (speedMenuListeners !== listeners) return;
+      positionSpeedMenuPanel();
+      scrollSpeedBarrelToRate(currentRate);
+      document.addEventListener("pointerdown", listeners.outside, true);
+      document.addEventListener("click", listeners.outside, true);
+      window.addEventListener("resize", listeners.resize, { passive: true });
+      const finePointer = window.matchMedia?.("(hover: hover) and (pointer: fine)")?.matches;
+      if (finePointer) dom.playerSpeedBarrel.focus({ preventScroll: true });
+    }, 0);
+  }
+
+  function togglePlaybackSpeedMenu() {
+    if (speedMenuListeners) closePlaybackSpeedMenu();
+    else openPlaybackSpeedMenu();
   }
 
   function expand(trigger = document.activeElement) {
@@ -820,6 +1069,9 @@ export function createPlayerView({
       queueMenuManager.closeEpisodeMenu();
       communitySignals?.setTrackedEpisodeKeys("queue", []);
     }
+    if (nextMode !== FULL_PLAYER_MODES.PLAYER) {
+      closePlaybackSpeedMenu();
+    }
     fullPlayerMode = nextMode;
     const isQueueMode = fullPlayerMode === FULL_PLAYER_MODES.QUEUE;
     const isTranscriptMode = fullPlayerMode === FULL_PLAYER_MODES.TRANSCRIPT;
@@ -884,6 +1136,7 @@ export function createPlayerView({
 
   function collapse() {
     if (!playerState.getState().isExpanded) return;
+    closePlaybackSpeedMenu();
     setFullPlayerMode(FULL_PLAYER_MODES.PLAYER);
     playerState.setExpanded(false);
     requestAnimationFrame(() => {
@@ -895,6 +1148,7 @@ export function createPlayerView({
 
   function setExpandedUi(isExpanded) {
     if (isDragging) return;
+    if (!isExpanded) closePlaybackSpeedMenu();
     dom.fullPlayer.classList.toggle("is-open", isExpanded);
     dom.playerBackdrop.classList.toggle("is-open", isExpanded);
     dom.fullPlayer.setAttribute("aria-hidden", String(!isExpanded));
@@ -1193,6 +1447,11 @@ export function createPlayerView({
 
   function trapFocus(event) {
     if (event.key === "Escape") {
+      if (speedMenuListeners) {
+        closePlaybackSpeedMenu();
+        dom.playerSpeedToggle.focus();
+        return;
+      }
       collapse();
       return;
     }
@@ -1200,6 +1459,9 @@ export function createPlayerView({
 
     const focusable = [...dom.fullPlayer.querySelectorAll("button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex='-1'])")]
       .filter((element) => !element.closest("[aria-hidden='true']") && element.offsetParent !== null);
+    if (speedMenuListeners) {
+      focusable.push(dom.playerSpeedBarrel);
+    }
     if (!focusable.length) return;
     const first = focusable[0];
     const last = focusable[focusable.length - 1];
@@ -1245,6 +1507,56 @@ export function createPlayerView({
   dom.playerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "full"));
   dom.miniPlayerSeekBack.addEventListener("click", () => seekBy(-SEEK_BACK_SECONDS, "mini"));
   dom.miniPlayerSeekForward.addEventListener("click", () => seekBy(SEEK_FORWARD_SECONDS, "mini"));
+  dom.playerSpeedToggle.addEventListener("click", (event) => {
+    event.stopPropagation();
+    togglePlaybackSpeedMenu();
+  });
+  dom.playerSpeedPanel.addEventListener("pointerdown", (event) => {
+    event.stopPropagation();
+  });
+  dom.playerSpeedBarrel.addEventListener("pointerdown", onSpeedBarrelPointerDown);
+  dom.playerSpeedBarrel.addEventListener("pointermove", onSpeedBarrelPointerMove, { passive: false });
+  dom.playerSpeedBarrel.addEventListener("pointerup", onSpeedBarrelPointerUp);
+  dom.playerSpeedBarrel.addEventListener("pointercancel", onSpeedBarrelPointerUp);
+  dom.playerSpeedBarrel.addEventListener("lostpointercapture", onSpeedBarrelPointerUp);
+  dom.playerSpeedBarrel.addEventListener("keydown", (event) => {
+    if (!speedMenuListeners) return;
+    const currentIndex = getSpeedBarrelIndexFromScroll();
+    if (event.key === "ArrowUp" || event.key === "ArrowLeft") {
+      event.preventDefault();
+      const nextIndex = Math.max(0, currentIndex - 1);
+      const rate = PLAYBACK_RATES[nextIndex];
+      scrollSpeedBarrelToRate(rate, { smooth: true });
+      commitSpeedBarrelSelection(rate);
+      return;
+    }
+    if (event.key === "ArrowDown" || event.key === "ArrowRight") {
+      event.preventDefault();
+      const nextIndex = Math.min(PLAYBACK_RATES.length - 1, currentIndex + 1);
+      const rate = PLAYBACK_RATES[nextIndex];
+      scrollSpeedBarrelToRate(rate, { smooth: true });
+      commitSpeedBarrelSelection(rate);
+      return;
+    }
+    if (event.key === "Home") {
+      event.preventDefault();
+      scrollSpeedBarrelToRate(PLAYBACK_RATES[0], { smooth: true });
+      commitSpeedBarrelSelection(PLAYBACK_RATES[0]);
+      return;
+    }
+    if (event.key === "End") {
+      event.preventDefault();
+      const rate = PLAYBACK_RATES[PLAYBACK_RATES.length - 1];
+      scrollSpeedBarrelToRate(rate, { smooth: true });
+      commitSpeedBarrelSelection(rate);
+      return;
+    }
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      closePlaybackSpeedMenu();
+      dom.playerSpeedToggle.focus();
+    }
+  });
   function handlePlaybackControl(event) {
     const state = playerState.getState();
     if (state.sourceStatus?.id === SOURCE_STATUSES.RSS_REQUIRED) {
