@@ -360,3 +360,12 @@
 | 2026-05-15 | MSSP |  | 614 | iNasty |
 | 2026-05-20 | MSSP |  | 615 | Slim Goodie (feat. Sheryl Underwood) |
 | 2026-05-27 | MSSP |  | 616 | The Four Heavens (feat. David Stuart) |
+| 2026-05-29 | MSSP |  | 617 | Irish Good Morning |
+| 2026-06-06 | MSSP |  | 618 | Officer Lemaire (feat. Charles Blyzniuk & Lemaire Lee) |
+| 2026-06-11 | MSSP |  | 619 | Plus-Sized Problems (feat. Nate Marshall & Lemaire Lee) |
+| 2026-06-18 | MSSP |  | 620 | In Defense of Sunlight (feat. Rowan Jacobsen) |
+| 2026-06-26 | MSSP |  | 621 | Landlubbers |
+| 2026-06-30 | MSSP |  | 622 | Am-I.Film (feat. Milo Reed) |
+| 2026-07-02 | MSSP |  | 623 | The Good Guy Weed (feat. Lemaire Lee) |
+| 2026-07-09 | MSSP |  | 624 | Big Boy (feat. Nate Marshall) |
+| 2026-07-17 | MSSP |  | 625 | The Big Show (feat. Billy & Spud) |

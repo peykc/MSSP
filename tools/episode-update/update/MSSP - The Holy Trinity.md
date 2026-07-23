@@ -276,6 +276,7 @@
 | 2020-08-18 | MSSP |  | 310 | RIP Cleveland |
 | 2020-08-18 | MSSP | PAYTCH | 310 | RIP Cleveland |
 | 2020-08-25 | MSSP |  | 311 | USA 2.0 PAYTCH |
+| 2020-08-25 | MSSP | PAYTCH | 311 | USA 2.0 |
 | 2020-09-02 | MSSP |  | 312 | Fat Attack |
 | 2020-09-02 | MSSP | PAYTCH | 312 | Fat Attack |
 | 2020-09-09 | MSSP |  | 313 | Return of the Stoner Dads |

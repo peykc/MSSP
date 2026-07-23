@@ -46,11 +46,10 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Refresh collection files
-        run: python ../data/organizefilepath.py
-
-      - name: Export static data
-        run: npm run export:all
+      - name: Run update pipeline
+        env:
+          PATREON_RSS_URL: ${{ secrets.PATREON_RSS_URL }}
+        run: node ../tools/run_update.mjs
 
       - name: Upload static site
         uses: actions/upload-pages-artifact@v3

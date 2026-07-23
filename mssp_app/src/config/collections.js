@@ -1,8 +1,8 @@
 const EXPECTED_COUNTS = {
-  anthology: 896,
+  anthology: 913,
   old: 145,
-  new: 360,
-  paytch: 391,
+  new: 369,
+  paytch: 399,
 };
 
 const COLLECTIONS = [

@@ -1,0 +1,7 @@
+.env
+cookies.txt
+download_archive.txt
+*.mp3
+*.webm
+*.part
+*.m4a
