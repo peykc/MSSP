@@ -5,6 +5,9 @@ const STORAGE_KEY = "mssp:patreonRss";
 const STORAGE_SCHEMA_VERSION = 1;
 const OVERRIDES_URL = "./data/patreon-rss-overrides.json";
 const RSS_WORKER_URL = "https://paytch.pkcollection.net/feed";
+// Free/public Patreon feeds only include a small public set. Membership feeds
+// return roughly the full catalog (often more, because of doubles).
+const PUBLIC_FEED_MAX_RATIO = 0.25;
 
 export function createPatreonRssSources() {
   let sources = {};
@@ -53,6 +56,20 @@ export function createPatreonRssSources() {
       throw privateConnectionError("No playable audio items were found in that RSS feed.");
     }
 
+    const eligiblePaytchEpisodes = episodes.filter((episode) => episode?.paytch === "PAYTCH");
+    const eligibleEpisodes = eligiblePaytchEpisodes.length;
+    if (isPublicOnlyPatreonFeed({ feedItems: candidates.length, eligibleEpisodes })) {
+      // Drop a stored free feed on reconnect so the UI doesn't stay "linked".
+      // Leave an existing good connection alone if the user tried to replace it.
+      if (!persist && preserveStored) {
+        clearStoredUrl();
+        sources = {};
+        summary = null;
+        notify();
+      }
+      throw privateConnectionError("You must have a paid active PAYTCH subscription to the cast.");
+    }
+
     const overrides = await loadOverrides();
     const rssEpisodes = episodes.filter((episode) => !hasPatreonR2Source(episode));
     const result = matchPatreonSources({ episodes: rssEpisodes, candidates, overrides });
@@ -73,8 +90,6 @@ export function createPatreonRssSources() {
     // These R2 objects are intentionally exposed only after a valid Patreon feed
     // has been retrieved and parsed. They never pass through the RSS Worker.
     const privateR2Matched = addPatreonR2Sources(episodes, nextSources);
-    const eligiblePaytchEpisodes = episodes.filter((episode) => episode?.paytch === "PAYTCH");
-    const eligibleEpisodes = eligiblePaytchEpisodes.length;
     const matched = Object.keys(nextSources).length;
     const unmatchedEpisodeKeys = eligiblePaytchEpisodes
       .filter((episode) => !nextSources[episode.episodeKey])
@@ -137,6 +152,13 @@ export function createPatreonRssSources() {
       .catch(() => ({}));
     return overridesPromise;
   }
+}
+
+export function isPublicOnlyPatreonFeed({ feedItems = 0, eligibleEpisodes = 0 } = {}) {
+  const items = Number(feedItems) || 0;
+  const eligible = Number(eligibleEpisodes) || 0;
+  if (items <= 0 || eligible <= 0) return false;
+  return items < eligible * PUBLIC_FEED_MAX_RATIO;
 }
 
 export function parsePatreonFeed(xmlText) {

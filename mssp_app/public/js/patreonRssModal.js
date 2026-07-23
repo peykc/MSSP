@@ -375,12 +375,17 @@ export function createPatreonRssModal({ dom, patreonSources, getEpisodes, onSour
       dom.patreonRssSubmit.textContent = "Replace";
       dom.patreonRssRemove.hidden = false;
       if (result.unmatchedEpisodeKeys?.length) {
-        console.warn("[MSSP] PAYTCH episodes still unmatched:", result.unmatchedEpisodeKeys);
+        console.warn("[MSSP] PAYTCH unlock incomplete:", {
+          catalogEpisodes: result.eligibleEpisodes,
+          feedItems: result.feedItems,
+          unlocked: result.matched,
+          unmatchedEpisodeKeys: result.unmatchedEpisodeKeys,
+        });
       }
       setStatus(
         result.unmatchedEpisodes === 0
           ? "All PAYTCH episodes unlocked."
-          : `${result.matched} PAYTCH episodes unlocked. ${result.unmatchedEpisodes} still need a match.`,
+          : `${result.eligibleEpisodes ?? 0} PAYTCH episodes found → ${result.matched} unlocked.`,
         "success",
       );
       syncLaunchButton();
