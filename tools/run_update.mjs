@@ -225,6 +225,32 @@ async function auditPaytch() {
       title: episode.title,
     }));
 
+  const nearMisses = [];
+  for (const episode of unmatchedEpisodes) {
+    const scored = candidates
+      .map((candidate) => {
+        const dayDiff = (() => {
+          if (!episode.date || !candidate.pubDate) return null;
+          const left = Date.parse(`${episode.date}T00:00:00Z`);
+          const right = Date.parse(`${candidate.pubDate}T00:00:00Z`);
+          if (!Number.isFinite(left) || !Number.isFinite(right)) return null;
+          return Math.abs(Math.round((left - right) / 86400000));
+        })();
+        return {
+          guid: String(candidate.guid).replace(/^https?:\/\/www\.patreon\.com\/posts\//, ""),
+          title: candidate.title,
+          pubDate: candidate.pubDate,
+          dayDiff,
+        };
+      })
+      .filter((row) => row.dayDiff != null && row.dayDiff <= 3)
+      .sort((left, right) => left.dayDiff - right.dayDiff || String(left.title).localeCompare(String(right.title)))
+      .slice(0, 5);
+    if (scored.length) {
+      nearMisses.push({ episodeKey: episode.episodeKey, candidates: scored });
+    }
+  }
+
   const report = {
     generatedAt: new Date().toISOString(),
     note: "Audit only. No enclosure URLs are stored. Playback still uses each visitor's private RSS link.",
@@ -238,6 +264,7 @@ async function auditPaytch() {
       unmatchedEpisodes: unmatchedEpisodes.length,
     },
     unmatchedEpisodes,
+    nearMisses,
   };
 
   writeFileSync(PAYTCH_REPORT, `${JSON.stringify(report, null, 2)}\n`, "utf8");
@@ -400,6 +427,14 @@ function printLeftovers(paytchReport) {
         kind: "paytch-unmatched",
         detail: item.episodeKey,
       });
+    }
+    for (const miss of paytch.nearMisses || []) {
+      for (const candidate of miss.candidates || []) {
+        todos.push({
+          kind: "paytch-near-miss",
+          detail: `${miss.episodeKey} ↔ guid=${candidate.guid} title=${JSON.stringify(candidate.title)} pub=${candidate.pubDate} dayDiff=${candidate.dayDiff}`,
+        });
+      }
     }
   } else if (!skipPatreon) {
     todos.push({

@@ -1,4 +1,4 @@
-const RELEASE_ID = "v414";
+const RELEASE_ID = "v415";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -30,13 +30,13 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=sort-reveal-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=ambient-stamp-c",
+  "./js/main.js?v=audio-twin-a",
   "./js/a2hsModal.js?v=a2hs-e",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
   "./js/community/communitySignals.js?v=poll-cut-a",
   "./js/community/viewProgress.js",
-  "./js/patreonRssModal.js",
+  "./js/patreonRssModal.js?v=audio-twin-a",
   "./js/archiveStats.js",
   "./js/calendarModal.js?v=heatmap-full-labels-a",
   "./js/collectionGlyphs.js",
@@ -64,8 +64,8 @@ const SHELL_PATHS = [
   "./js/pwa.js?v=pull-overscroll-a",
   "./js/search.js",
   "./js/sources/publicSources.js",
-  "./js/sources/patreonRssMatcher.js",
-  "./js/sources/patreonRssSources.js",
+  "./js/sources/patreonRssMatcher.js?v=audio-twin-a",
+  "./js/sources/patreonRssSources.js?v=audio-twin-a",
   "./js/sources/patreonR2Sources.js",
   "./js/state.js",
   "./js/tooltip.js?v=search-no-tip-a",

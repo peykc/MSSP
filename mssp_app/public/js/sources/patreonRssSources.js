@@ -1,4 +1,4 @@
-import { matchPatreonSources, normalizePatreonTitle } from "./patreonRssMatcher.js";
+import { matchPatreonSources, normalizePatreonTitle } from "./patreonRssMatcher.js?v=audio-twin-a";
 import { addPatreonR2Sources, hasPatreonR2Source } from "./patreonR2Sources.js";
 
 const STORAGE_KEY = "mssp:patreonRss";
