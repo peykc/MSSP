@@ -86,6 +86,49 @@ test("ignores non-PAYTCH episodes", async () => {
   assert.equal(result.summary.matched, 0);
 });
 
+test("prefers *audio* over *vid* twin for the same title/date", async () => {
+  const { matchPatreonSources } = await loadMatcher();
+  const result = matchPatreonSources({
+    episodes: [
+      episode({
+        episodeKey: "2026-06-05 MSSP PAYTCH Ep. EX - THAT DIRTY PAYTCH",
+        date: "2026-06-05",
+        episode: "EX",
+        title: "THAT DIRTY PAYTCH",
+      }),
+    ],
+    candidates: [
+      candidate({
+        guid: "vid-1",
+        pubDate: "2026-06-05",
+        title: "THAT DIRTY PAYTCH *vid*",
+        mimeType: "video/mp4",
+      }),
+      candidate({
+        guid: "audio-1",
+        pubDate: "2026-06-05",
+        title: "THAT DIRTY PAYTCH *audio*",
+        mimeType: "audio/mpeg",
+      }),
+    ],
+  });
+  assert.equal(result.summary.matched, 1);
+  assert.equal(result.matches[0].candidate.guid, "audio-1");
+});
+
+test("manual overrides resolve bare numeric guids against URL-style feed guids", async () => {
+  const { matchPatreonSources } = await loadMatcher();
+  const result = matchPatreonSources({
+    episodes: [episode()],
+    candidates: [candidate({ guid: "https://www.patreon.com/posts/123456789" })],
+    overrides: {
+      "2024-01-10 MSSP PAYTCH Ep. 500 - The Great Cast": { guid: "123456789" },
+    },
+  });
+  assert.equal(result.summary.matched, 1);
+  assert.equal(result.matches[0].kind, "manual");
+});
+
 test("manual override keys reference catalog PAYTCH episodes", () => {
   const episodesPayload = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/data/episodes.json"), "utf8"));
   const overridesPayload = JSON.parse(fs.readFileSync(path.join(__dirname, "../public/data/patreon-rss-overrides.json"), "utf8"));

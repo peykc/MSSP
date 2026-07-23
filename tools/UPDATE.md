@@ -47,6 +47,6 @@ At the end it prints **MANUAL LEFTOVERS** (Megaphone misses, PAYTCH misses, prom
 | `megaphone-unmatched` | Add guid in `data/source-overrides.public.json`, re-run |
 | `paytch-unmatched` | Add guid in `mssp_app/public/data/patreon-rss-overrides.json`, re-run |
 | `ads` | Local only: `cd mssp_audio_proxy` → `cuts:align` → `cuts:distill` → `cuts:generate` → `deploy` |
-| `deploy-workers` | Deploy `mssp_signals_worker` (and audio proxy if you cut promos) |
+| `deploy-workers` | `cd mssp_signals_worker` → `catalog:generate` → `db:seed:remote` → `deploy` (seed is required or views stay null). Also deploy audio proxy if you cut promos. |
 
 Then push `main`.

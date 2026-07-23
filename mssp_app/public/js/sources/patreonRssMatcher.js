@@ -7,6 +7,8 @@ export function normalizePatreonTitle(value) {
     .replace(/&amp;/g, " and ")
     .replace(/&/g, " and ")
     .replace(/[’']/g, "")
+    // Patreon often tags posts as "*audio*" / "*vid*" / "=audio=" / "(paytch audio)".
+    .replace(/[*_=()\[\]-]{0,3}\b(?:audio|vid|video)\b[*_=()\[\]-]{0,3}/g, " ")
     .replace(/\b(?:mssp|paytch|patreon|bonus|podcast)\b/g, " ")
     .replace(/\b(?:episode|ep)\.?\s*#?\s*\d+(?:\.\d+)?\b/g, " ")
     .replace(/[^a-z0-9]+/g, " ")
@@ -22,7 +24,7 @@ export function extractEpisodeNumber(value) {
 export function matchPatreonSources({ episodes, candidates, overrides = {} }) {
   const eligibleEpisodes = episodes.filter((episode) => episode?.paytch === "PAYTCH");
   const episodeByKey = new Map(eligibleEpisodes.map((episode) => [episode.episodeKey, episode]));
-  const candidateByGuid = new Map(candidates.map((candidate) => [String(candidate.guid), candidate]));
+  const candidateByGuid = indexCandidatesByGuid(candidates);
   const assignedEpisodes = new Set();
   const assignedCandidates = new Set();
   const matches = [];
@@ -45,7 +47,12 @@ export function matchPatreonSources({ episodes, candidates, overrides = {} }) {
     }
   }
 
-  pairs.sort((left, right) => right.score - left.score || left.episode.episodeKey.localeCompare(right.episode.episodeKey));
+  // Prefer audio enclosures/titles over video twins when scores tie.
+  pairs.sort((left, right) => (
+    right.score - left.score
+    || mediaPreference(right.candidate) - mediaPreference(left.candidate)
+    || left.episode.episodeKey.localeCompare(right.episode.episodeKey)
+  ));
   for (const pair of pairs) {
     const episodeKey = pair.episode.episodeKey;
     const candidateGuid = pair.candidate.guid;
@@ -69,6 +76,18 @@ export function matchPatreonSources({ episodes, candidates, overrides = {} }) {
       unmatchedEpisodes: eligibleEpisodes.length - matches.length,
     },
   };
+}
+
+function indexCandidatesByGuid(candidates) {
+  const map = new Map();
+  for (const candidate of candidates) {
+    const guid = String(candidate.guid);
+    map.set(guid, candidate);
+    // Overrides store bare numeric Patreon post ids; feeds sometimes use full URLs.
+    const numeric = guid.match(/(\d{6,})(?:\D*)?$/);
+    if (numeric) map.set(numeric[1], candidate);
+  }
+  return map;
 }
 
 function scorePair(episode, candidate) {
@@ -106,6 +125,15 @@ function scorePair(episode, candidate) {
     reasons.push("episode-number");
   }
 
+  const media = mediaPreference(candidate);
+  if (media > 0) {
+    score += 25;
+    reasons.push("audio-preferred");
+  } else if (media < 0) {
+    score -= 25;
+    reasons.push("video-depreferred");
+  }
+
   return { episode, candidate, score, reasons };
 }
 
@@ -115,7 +143,9 @@ function isSafeAutoMatch(pair, pairs) {
 
   const episodeCompetitor = bestOtherScore(
     pairs,
-    (other) => other.episode.episodeKey === pair.episode.episodeKey && other.candidate.guid !== pair.candidate.guid,
+    (other) => other.episode.episodeKey === pair.episode.episodeKey
+      && other.candidate.guid !== pair.candidate.guid
+      && !isWeakerMediaTwin(pair, other),
   );
   const candidateCompetitor = bestOtherScore(
     pairs,
@@ -123,6 +153,25 @@ function isSafeAutoMatch(pair, pairs) {
   );
   return pair.score - episodeCompetitor >= AMBIGUITY_MARGIN
     && pair.score - candidateCompetitor >= AMBIGUITY_MARGIN;
+}
+
+function isWeakerMediaTwin(preferred, other) {
+  const preferredMedia = mediaPreference(preferred.candidate);
+  const otherMedia = mediaPreference(other.candidate);
+  if (preferredMedia <= 0 || otherMedia >= 0) return false;
+  const preferredTitle = normalizePatreonTitle(preferred.candidate.title);
+  const otherTitle = normalizePatreonTitle(other.candidate.title);
+  return Boolean(preferredTitle) && preferredTitle === otherTitle;
+}
+
+function mediaPreference(candidate) {
+  const title = String(candidate?.title || "").toLowerCase();
+  const mime = String(candidate?.mimeType || "").toLowerCase();
+  const markedAudio = /(?:^|[^a-z])audio(?:[^a-z]|$)/.test(title) || mime.startsWith("audio/");
+  const markedVideo = /(?:^|[^a-z])(?:vid|video)(?:[^a-z]|$)/.test(title) || mime.startsWith("video/");
+  if (markedAudio && !markedVideo) return 1;
+  if (markedVideo && !markedAudio) return -1;
+  return 0;
 }
 
 function bestOtherScore(pairs, predicate) {

@@ -414,7 +414,7 @@ function printLeftovers(paytchReport) {
   });
   todos.push({
     kind: "deploy-workers",
-    detail: "If episode keys changed: commit signals catalog + deploy mssp_signals_worker. After promo cuts: deploy mssp_audio_proxy.",
+    detail: "If episode keys changed: cd mssp_signals_worker && npm run catalog:generate && npm run db:seed:remote && npm run deploy. After promo cuts: deploy mssp_audio_proxy.",
   });
 
   if (!todos.length) {
