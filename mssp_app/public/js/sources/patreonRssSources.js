@@ -1,5 +1,5 @@
-import { matchPatreonSources, normalizePatreonTitle } from "./patreonRssMatcher.js?v=audio-twin-a";
-import { addPatreonR2Sources, hasPatreonR2Source } from "./patreonR2Sources.js";
+import { matchPatreonSources, normalizePatreonTitle } from "./patreonRssMatcher.js?v=dirty-r2-a";
+import { addPatreonR2Sources, hasPatreonR2Source } from "./patreonR2Sources.js?v=dirty-r2-a";
 
 const STORAGE_KEY = "mssp:patreonRss";
 const STORAGE_SCHEMA_VERSION = 1;
@@ -94,6 +94,37 @@ export function createPatreonRssSources() {
     const unmatchedEpisodeKeys = eligiblePaytchEpisodes
       .filter((episode) => !nextSources[episode.episodeKey])
       .map((episode) => episode.episodeKey);
+
+    if (unmatchedEpisodeKeys.length) {
+      const unmatchedSet = new Set(unmatchedEpisodeKeys);
+      const nearMisses = eligiblePaytchEpisodes
+        .filter((episode) => unmatchedSet.has(episode.episodeKey))
+        .map((episode) => {
+          const scored = candidates
+            .map((candidate) => {
+              const dayDiff = daysBetweenLocal(episode.date, candidate.pubDate);
+              const hay = `${candidate.title || ""} ${candidate.guid || ""}`.toLowerCase();
+              const needle = String(episode.title || "").toLowerCase().replace(/\bpaytch\b/g, "").trim();
+              const titleHit = needle && hay.includes(needle.split(/\s+/).filter((t) => t.length > 2).slice(0, 2).join(" "));
+              return {
+                guid: String(candidate.guid || "").replace(/^https?:\/\/www\.patreon\.com\/posts\//i, ""),
+                title: candidate.title,
+                pubDate: candidate.pubDate,
+                dayDiff,
+                titleHit: Boolean(titleHit),
+              };
+            })
+            .filter((row) => (row.dayDiff != null && row.dayDiff <= 14) || row.titleHit)
+            .sort((left, right) => {
+              if (left.titleHit !== right.titleHit) return left.titleHit ? -1 : 1;
+              return (left.dayDiff ?? 99) - (right.dayDiff ?? 99);
+            })
+            .slice(0, 8)
+            .map(({ guid, title, pubDate, dayDiff }) => ({ guid, title, pubDate, dayDiff }));
+          return { episodeKey: episode.episodeKey, nearMisses: scored };
+        });
+      console.warn("[MSSP] PAYTCH unmatched near-misses (no audio URLs):", nearMisses);
+    }
 
     if (persist) persistUrl(url.href);
     else if (!preserveStored) clearStoredUrl();
@@ -291,4 +322,12 @@ function privateConnectionError(message) {
   const error = new Error(message);
   error.name = "PatreonRssConnectionError";
   return error;
+}
+
+function daysBetweenLocal(left, right) {
+  if (!left || !right) return null;
+  const leftTime = Date.parse(`${left}T00:00:00Z`);
+  const rightTime = Date.parse(`${right}T00:00:00Z`);
+  if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) return null;
+  return Math.abs(Math.round((leftTime - rightTime) / 86400000));
 }
