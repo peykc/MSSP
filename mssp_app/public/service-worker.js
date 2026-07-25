@@ -1,4 +1,4 @@
-const RELEASE_ID = "v417";
+const RELEASE_ID = "v418";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;

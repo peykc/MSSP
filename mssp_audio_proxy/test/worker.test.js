@@ -473,6 +473,21 @@ test("resolveBakedCuts guards fail open on any mismatch", () => {
   assert.deepEqual(resolveBakedCuts(target, 1000, [[450, 470]], { GLT123: { updated: "1", postDaiBytes: 980, cuts: [[440, 480]] } }), []);
 });
 
+test("resolveBakedCuts shifts end-anchored cuts for small post-DAI EOF drift", () => {
+  const target = { id: "GLT123", updated: null };
+  const dai = [[100, 200]];
+  // Measured post-DAI 900; live master is 2 bytes shorter at EOF.
+  const entry = { updated: null, postDaiBytes: 900, cuts: [[800, 900]] };
+  assert.deepEqual(resolveBakedCuts(target, 998, dai, { GLT123: entry }), [[900, 998]]);
+  // Mid-file cuts are not end-anchored: small drift still fails open.
+  assert.deepEqual(
+    resolveBakedCuts(target, 998, dai, { GLT123: { updated: null, postDaiBytes: 900, cuts: [[300, 400]] } }),
+    [],
+  );
+  // Huge EOF drift fails open.
+  assert.deepEqual(resolveBakedCuts(target, 998 - 100_000, dai, { GLT123: entry }), []);
+});
+
 test("mergeRanges coalesces touching ranges", () => {
   assert.deepEqual(mergeRanges([[400, 500], [100, 200]]), [[100, 200], [400, 500]]);
   assert.deepEqual(mergeRanges([[100, 200], [200, 300]]), [[100, 300]]);

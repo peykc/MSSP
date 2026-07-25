@@ -1,4 +1,4 @@
-// Proxies New Testament episode audio from Megaphone through the Cloudflare edge
+﻿// Proxies New Testament episode audio from Megaphone through the Cloudflare edge
 // cache so every listener receives byte-identical, range-capable files instead of
 // per-request dynamic-ad-insertion stitches.
 import { BAKED_PROMO_CUTS } from "./generated/bakedPromoCuts.js";
@@ -18,7 +18,11 @@ const EDGE_TTL_SECONDS = 86400;
 // (e.g. when the transformation applied to upstream audio changes, or the baked
 // promo cut list is regenerated). v4: baked-in promos are excised alongside DAI
 // slots using the aligned cut list in src/generated/bakedPromoCuts.js.
-const CACHE_KEY_VERSION = 4;
+// v5: regenerated cut list after full NT re-align (2026-07-25).
+// v6: re-align via upstream post-DAI (not proxy); prior proxy HEADs undercounted ads.
+// v7: Ep 623 re-measure after Megaphone post-DAI drift.
+// v8: end-anchored postDaiBytes drift tolerance so baked cuts survive trailing-pad skew.
+const CACHE_KEY_VERSION = 8;
 
 // Test seam: lets the test suite install synthetic cut entries without
 // bundling multi-megabyte fixtures. Production always uses the generated map.
@@ -124,7 +128,7 @@ async function serveAudio(request, target, origin) {
   return finalizeAudio(served ?? cacheable, request.method, origin);
 }
 
-// Removes the promo byte ranges WITHOUT the bytes ever entering JavaScript —
+// Removes the promo byte ranges WITHOUT the bytes ever entering JavaScript â€”
 // mandatory on the Workers free plan, whose 10 ms CPU budget a JS TransformStream
 // over a ~100 MB file blows through. The raw stitched file is cached under a
 // throwaway key (a native copy), then the clean file is assembled from native
@@ -326,20 +330,31 @@ function parseNtTarget(url) {
 
 // Looks up baked-promo cuts for this episode and translates them from post-DAI
 // coordinates into this response's raw coordinates. Guards make every mismatch
-// fail open to unmodified audio: the cut list only applies when the episode's
-// `updated` value and exact post-DAI byte length both match what the cuts were
-// measured against.
+// fail open to unmodified audio. Exact post-DAI length must match what the cuts
+// were measured against, except a small trailing-pad drift when every cut ends
+// at the measured EOF (typical baked end-promo) — Megaphone masters sometimes
+// shrink/grow by a few KB of pad between align and serve.
+const POST_DAI_EOF_DRIFT_MAX = 64 * 1024;
+
 export function resolveBakedCuts(target, contentLength, daiRanges, cutsMap = bakedPromoCuts) {
   const entry = cutsMap[target.id];
   if (!entry || !Array.isArray(entry.cuts) || !entry.cuts.length) return [];
   if ((entry.updated ?? null) !== (target.updated ?? null)) return [];
 
   const daiBytes = daiRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
-  if (entry.postDaiBytes !== contentLength - daiBytes) return [];
+  const postDaiBytes = contentLength - daiBytes;
+  let cuts = entry.cuts;
+  if (entry.postDaiBytes !== postDaiBytes) {
+    const delta = postDaiBytes - entry.postDaiBytes;
+    const endAnchored = cuts.every(([, end]) => end === entry.postDaiBytes);
+    if (!endAnchored || !Number.isInteger(delta) || Math.abs(delta) > POST_DAI_EOF_DRIFT_MAX) return [];
+    cuts = cuts.map(([start, end]) => [start, end + delta]);
+  }
 
   const raw = [];
-  for (const [start, end] of entry.cuts) {
+  for (const [start, end] of cuts) {
     if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end <= start) return [];
+    if (end > postDaiBytes) return [];
     const rawStart = mapPostDaiToRaw(start, daiRanges, false);
     const rawEnd = mapPostDaiToRaw(end, daiRanges, true);
     if (rawEnd > contentLength) return [];

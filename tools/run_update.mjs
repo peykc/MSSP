@@ -451,6 +451,10 @@ function printLeftovers(paytchReport) {
     kind: "deploy-workers",
     detail: "If episode keys changed: cd mssp_signals_worker && npm run catalog:generate && npm run db:seed:remote && npm run deploy. After promo cuts: deploy mssp_audio_proxy.",
   });
+  todos.push({
+    kind: "transcript-search",
+    detail: "After new transcripts are uploaded: cd mssp_app && npm run build:search-index, then upload search-index-dist/v1 to transcripts R2 (footer 816/896 is the old manifest).",
+  });
 
   if (!todos.length) {
     console.log("Nothing left. Ship it.");

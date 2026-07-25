@@ -1,32 +1,33 @@
 ﻿// Batch baked-promo aligner.
 //
-// Phase 1: HEAD every NT episode through the proxy (warms the edge cache and
-//   returns the exact post-DAI byte length the worker will serve). Estimate the
-//   duration delta vs the archive rip; anything within the estimator's noise is
-//   provisionally clean.
-// Phase 2: for candidates, download the proxied bytes, measure exactly with
-//   ffprobe, find insertions by envelope alignment, refine boundaries, snap to
-//   MP3 frames, apply the cuts locally, and verify duration + splice continuity
-//   before emitting a cut-list entry. Anything that fails a check is flagged,
-//   never guessed.
+// Phase 1: HEAD Megaphone upstream, parse x-megaphone-payload-2, and compute the
+//   exact post-DAI byte length (same quantity resolveBakedCuts guards on). Do NOT
+//   HEAD the proxy — once baked cuts are deployed, proxy Content-Length is
+//   post-DAI-minus-baked and would poison postDaiBytes / skip real ads.
+// Phase 2: for candidates, download upstream Megaphone, strip DAI slots locally,
+//   measure with ffprobe, find insertions by envelope alignment, refine
+//   boundaries, snap to MP3 frames, apply the cuts locally, and verify duration
+//   + splice continuity before emitting a cut-list entry. Anything that fails a
+//   check is flagged, never guessed.
 //
 // The archive folder is READ ONLY (ffmpeg/ffprobe inputs only).
 //
-// Usage: node batch.mjs [--limit N] [--only ep1,ep2]
+// Usage: node scripts/alignBakedPromos.mjs [--limit N] [--only ep1,ep2]
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
-import { createWriteStream } from "node:fs";
 import { readFile, writeFile, appendFile, unlink, access, mkdir } from "node:fs/promises";
-import { Readable } from "node:stream";
-import { pipeline } from "node:stream/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { randomUUID } from "node:crypto";
 
 const run = promisify(execFile);
 
 const APP = "C:/Users/peyto/Desktop/Matt and Shane's Secret Podcast/MSSP/mssp_app";
 const ARCHIVE_DIR = "C:/Users/peyto/Desktop/The Holy Trinity";
-const WORK = new URL("../.align-work/", import.meta.url);
-const STATE_FILE = new URL("state.jsonl", WORK);
-const PROGRESS_FILE = new URL("progress.txt", WORK);
+// fileURLToPath so spaces in the repo path are real FS paths, not %20.
+const WORK = fileURLToPath(new URL("../.align-work/", import.meta.url));
+const STATE_FILE = path.join(WORK, "state.jsonl");
+const PROGRESS_FILE = path.join(WORK, "progress.txt");
 
 const HEAD_CONCURRENCY = 6;
 const ALIGN_CONCURRENCY = 2;
@@ -60,11 +61,12 @@ let targets = episodes
       archiveDuration: e.durationSeconds,
       archivePath: `${ARCHIVE_DIR}/${e.filename}`,
       proxiedUrl: src.url,
+      upstreamUrl: src.upstreamUrl,
       id: idMatch?.[1],
       updated,
     };
   })
-  .filter((t) => t.id);
+  .filter((t) => t.id && t.upstreamUrl);
 if (only) targets = targets.filter((t) => only.has(t.episode));
 targets = targets.slice(0, limit);
 
@@ -157,22 +159,69 @@ async function offsetAt(archivePath, proxiedPath, t, maxOffset) {
   return { offset: windowStart + lagSeconds - t, corr };
 }
 
-// ---------- phase 1: proxy HEAD + estimate ----------
+// Same rules as mssp_audio_proxy/src/index.js parsePromoRanges — keep in sync.
+function parsePromoRanges(payloadHeader, contentLength) {
+  if (!payloadHeader || !Number.isInteger(contentLength) || contentLength <= 0) return [];
+  const ranges = [];
+  for (const slot of payloadHeader.split("@")[0].split(",")) {
+    const fields = slot.split("#");
+    if (fields.length < 6) continue;
+    const [adId, lastByteRaw, , , firstByteRaw, creativeId] = fields;
+    if (!adId || !creativeId) continue;
+    const firstByte = Number(firstByteRaw);
+    const lastByte = Number(lastByteRaw);
+    if (!Number.isInteger(firstByte) || !Number.isInteger(lastByte)) return [];
+    if (firstByte < 0 || lastByte < firstByte || lastByte + 1 > contentLength) return [];
+    ranges.push([firstByte, lastByte + 1]);
+  }
+  ranges.sort((left, right) => left[0] - right[0]);
+  for (let i = 1; i < ranges.length; i += 1) {
+    if (ranges[i][0] < ranges[i - 1][1]) return [];
+  }
+  return ranges;
+}
+
+// ---------- phase 1: upstream HEAD + post-DAI length ----------
 
 async function phase1(t) {
-  const res = await fetch(t.proxiedUrl, { method: "HEAD" });
-  if (res.status !== 200) throw new Error(`proxy HEAD ${res.status}`);
-  const postDaiBytes = Number(res.headers.get("content-length"));
-  if (!Number.isInteger(postDaiBytes) || postDaiBytes <= 0) throw new Error("no content-length from proxy");
-  return { postDaiBytes, promosRemoved: res.headers.get("x-mssp-promos-removed") || "" };
+  const res = await fetch(t.upstreamUrl, { method: "HEAD", redirect: "follow" });
+  if (res.status !== 200) throw new Error(`upstream HEAD ${res.status}`);
+  const contentLength = Number(res.headers.get("content-length"));
+  if (!Number.isInteger(contentLength) || contentLength <= 0) {
+    throw new Error("no content-length from upstream");
+  }
+  const daiRanges = parsePromoRanges(res.headers.get("x-megaphone-payload-2"), contentLength);
+  const daiBytes = daiRanges.reduce((sum, [start, end]) => sum + (end - start), 0);
+  const postDaiBytes = contentLength - daiBytes;
+  if (!Number.isInteger(postDaiBytes) || postDaiBytes <= 0) {
+    throw new Error("invalid post-DAI length from upstream");
+  }
+  return { postDaiBytes, daiSlots: daiRanges.length, upstreamBytes: contentLength };
 }
 
 // ---------- phase 2: download + align + cut + verify ----------
 
-async function download(url, dest) {
-  const res = await fetch(url);
-  if (res.status !== 200) throw new Error(`proxy GET ${res.status}`);
-  await pipeline(Readable.fromWeb(res.body), createWriteStream(dest));
+// Fetch Megaphone master and write the post-DAI bytes (DAI slots excised), matching
+// what the worker serves before baked-promo cuts apply.
+async function downloadPostDai(upstreamUrl, dest) {
+  const res = await fetch(upstreamUrl, { redirect: "follow" });
+  if (res.status !== 200) throw new Error(`upstream GET ${res.status}`);
+  const raw = Buffer.from(await res.arrayBuffer());
+  const daiRanges = parsePromoRanges(res.headers.get("x-megaphone-payload-2"), raw.length);
+  if (!daiRanges.length) {
+    await writeFile(dest, raw);
+    return raw.length;
+  }
+  const parts = [];
+  let pos = 0;
+  for (const [start, end] of daiRanges) {
+    if (start > pos) parts.push(raw.subarray(pos, start));
+    pos = end;
+  }
+  if (pos < raw.length) parts.push(raw.subarray(pos));
+  const postDai = Buffer.concat(parts);
+  await writeFile(dest, postDai);
+  return postDai.length;
 }
 
 // ID3v2 tags (embedded artwork can be ~100 KB) sit before the first MP3 frame;
@@ -363,11 +412,11 @@ async function verifyCuts(t, proxiedPath, bytes, cuts) {
     cursor = e;
   }
   cutParts.push(bytes.subarray(cursor));
-  const cutFile = new URL(`cutcheck-${t.episode}.mp3`, WORK);
+  const cutFile = path.join(WORK, `cutcheck-${t.episode}-${randomUUID()}.mp3`);
   await writeFile(cutFile, Buffer.concat(cutParts));
 
   try {
-    const cutDur = await ffprobeDuration(cutFile.pathname.slice(1));
+    const cutDur = await ffprobeDuration(cutFile);
     const durDelta = cutDur - t.archiveDuration;
     if (Math.abs(durDelta) > 0.8) return { ok: false, reason: `cut duration delta ${durDelta.toFixed(2)}s` };
 
@@ -381,7 +430,7 @@ async function verifyCuts(t, proxiedPath, bytes, cuts) {
     for (let i = 0; i <= N; i += 1) {
       const at = Math.min(cutDur - SNIPPET_S - 2, 2 + (i * (cutDur - 10)) / N);
       const hayStart = Math.max(0, at - 3);
-      const needle = await envelope(cutFile.pathname.slice(1), at, SNIPPET_S);
+      const needle = await envelope(cutFile, at, SNIPPET_S);
       const hay = await envelope(t.archivePath, hayStart, SNIPPET_S + 6);
       const { corr, lagSeconds } = bestLag(needle, hay);
       checkpoints.push({ t: Number(at.toFixed(1)), corr: Number(corr.toFixed(3)), lag: Number((hayStart + lagSeconds - at).toFixed(3)) });
@@ -401,9 +450,13 @@ async function verifyCuts(t, proxiedPath, bytes, cuts) {
 }
 
 async function phase2(t, head) {
-  const tmp = new URL(`dl-${t.episode}.mp3`, WORK).pathname.slice(1);
+  const tmp = path.join(WORK, `dl-${t.episode}-${randomUUID()}.mp3`);
   try {
-    await download(t.proxiedUrl, tmp);
+    const localBytes = await downloadPostDai(t.upstreamUrl, tmp);
+    if (localBytes !== head.postDaiBytes) {
+      // Upstream can restitch DAI between HEAD and GET; prefer the bytes we align.
+      head = { ...head, postDaiBytes: localBytes };
+    }
     const exactDur = await ffprobeDuration(tmp);
     const exactDelta = exactDur - t.archiveDuration;
 

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-15T02:57:01.876Z",
+  "generatedAt": "2026-07-25T01:20:28.617Z",
   "schemaVersion": 1,
   "sourceBaseUrl": "https://mssp.pkcollection.net",
   "sources": {
@@ -5126,6 +5126,97 @@
       "rssPubDate": "2026-05-27",
       "matchConfidence": 0.95
     },
+    "2026-05-29 MSSP Ep. 617 - Irish Good Morning": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT7026172279.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT7026172279.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "8e7851c6-5b0b-11f1-80eb-373be815f64f",
+      "rssTitle": "Ep 617 - Irish Good Morning",
+      "rssPubDate": "2026-05-29",
+      "matchConfidence": 0.95
+    },
+    "2026-06-11 MSSP Ep. 619 - Plus-Sized Problems (feat. Nate Marshall & Lemaire Lee)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6843635646.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6843635646.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "6e87162e-654f-11f1-b73d-475f18d2ffb8",
+      "rssTitle": "Ep 619 - Plus-Sized Problems (feat. Nate Marshall & Lemaire Lee)",
+      "rssPubDate": "2026-06-11",
+      "matchConfidence": 0.95
+    },
+    "2026-06-18 MSSP Ep. 620 - In Defense of Sunlight (feat. Rowan Jacobsen)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9875711637.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9875711637.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "03f7e26e-6aab-11f1-b00f-7fb9a3160677",
+      "rssTitle": "Ep 620 - In Defense of Sunlight (feat. Rowan Jacobsen)",
+      "rssPubDate": "2026-06-18",
+      "matchConfidence": 0.95
+    },
+    "2026-06-26 MSSP Ep. 621 - Landlubbers": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9075846780.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9075846780.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "7280cab4-710b-11f1-935c-17da4987def2",
+      "rssTitle": "Ep 621 - Landlubbers",
+      "rssPubDate": "2026-06-26",
+      "matchConfidence": 0.95
+    },
+    "2026-06-30 MSSP Ep. 622 - Am-I.Film (feat. Milo Reed)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9195471376.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9195471376.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "e3cc9572-7417-11f1-9fe4-6fc02de21f1c",
+      "rssTitle": "Ep 622 - Am-I.Film (feat. Milo Reed)",
+      "rssPubDate": "2026-06-30",
+      "matchConfidence": 0.95
+    },
+    "2026-07-02 MSSP Ep. 623 - The Good Guy Weed (feat. Lemaire Lee)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT8133066011.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT8133066011.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "f9ceddce-75cc-11f1-8579-c316335202a9",
+      "rssTitle": "Ep 623 - The Good Guy Weed (feat. Lemaire Lee)",
+      "rssPubDate": "2026-07-02",
+      "matchConfidence": 0.95
+    },
+    "2026-07-17 MSSP Ep. 625 - The Big Show (feat. Billy & Spud)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT4814529603.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT4814529603.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "f4e5dbd6-81df-11f1-9f94-ff994e30df27",
+      "rssTitle": "Ep 625 - The Big Show (feat. Billy & Spud)",
+      "rssPubDate": "2026-07-17",
+      "matchConfidence": 0.95
+    },
     "2020-07-07 MSSP Ep. 304 - Green Skins and Vampires": {
       "sourceType": "public_rss_audio",
       "url": "https://nt-audio.pkcollection.net/nt/GLT9151188692.mp3?updated=1738625764",
@@ -5267,6 +5358,32 @@
       "rssGuid": "011ac0ca-68ca-4ff9-9f69-33a55c1919b9",
       "rssTitle": "Ep 392 - Suss Al (feat. LeMaire Lee, Andy Malafarina, and mystery guest))",
       "rssPubDate": "2022-04-19",
+      "matchConfidence": 0.65
+    },
+    "2026-06-06 MSSP Ep. 618 - Officer Lemaire (feat. Charles Blyzniuk & Lemaire Lee)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT6305668784.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT6305668784.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "a08c8c2e-613c-11f1-b207-1f6d642e3d89",
+      "rssTitle": "Ep 618 - Officer Lemaire (feat. Charles Blyzniuk & Lemaire Lee)",
+      "rssPubDate": "2026-06-08",
+      "matchConfidence": 0.65
+    },
+    "2026-07-09 MSSP Ep. 624 - Big Boy (feat. Nate Marshall)": {
+      "sourceType": "public_rss_audio",
+      "url": "https://nt-audio.pkcollection.net/nt/GLT9719222132.mp3",
+      "upstreamUrl": "https://traffic.megaphone.fm/GLT9719222132.mp3",
+      "mimeType": "audio/mpeg",
+      "isOfficial": true,
+      "credit": "Official public podcast RSS",
+      "feedId": "mssp-public-current",
+      "rssGuid": "59121974-7bcf-11f1-9bdf-bffa68d3cb81",
+      "rssTitle": "Ep 624 - Big Boy (feat. Nate Marshall)",
+      "rssPubDate": "2026-07-16",
       "matchConfidence": 0.65
     },
     "2019-09-24 MSSP Ep. 148 - Comedy Podcast": {

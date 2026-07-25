@@ -1,22 +1,22 @@
 {
-  "generatedAt": "2026-07-15T02:57:01.881Z",
+  "generatedAt": "2026-07-25T01:20:28.623Z",
   "feeds": [
     {
       "id": "mssp-public-current",
       "url": "https://feeds.megaphone.fm/GLT1158789509",
-      "itemCount": 372
+      "itemCount": 374
     }
   ],
   "summary": {
-    "eligibleEpisodes": 360,
-    "autoMatched": 354,
+    "eligibleEpisodes": 369,
+    "autoMatched": 363,
     "manualMatched": 3,
     "unmatchedEpisodes": 0,
-    "unmatchedRssItems": 15,
+    "unmatchedRssItems": 8,
     "lowConfidence": 0,
-    "rssMatched": 357,
+    "rssMatched": 366,
     "r2OverrideMatched": 3,
-    "playableNewTestament": 360,
+    "playableNewTestament": 369,
     "unresolvedEpisodes": 0,
     "unresolvedNewTestament": 0
   },
@@ -60,66 +60,10 @@
   "unmatchedRssItems": [
     {
       "feedId": "mssp-public-current",
-      "guid": "59121974-7bcf-11f1-9bdf-bffa68d3cb81",
-      "rssTitle": "Ep 624 - Big Boy (feat. Nate Marshall)",
-      "pubDate": "2026-07-14",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT9719222132.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "f9ceddce-75cc-11f1-8579-c316335202a9",
-      "rssTitle": "Ep 623 - The Good Guy Weed (feat. Lemaire Lee)",
-      "pubDate": "2026-07-02",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT8133066011.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "e3cc9572-7417-11f1-9fe4-6fc02de21f1c",
-      "rssTitle": "Ep 622 - Am-I.Film (feat. Milo Reed)",
-      "pubDate": "2026-06-30",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT9195471376.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "7280cab4-710b-11f1-935c-17da4987def2",
-      "rssTitle": "Ep 621 - Landlubbers",
-      "pubDate": "2026-06-26",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT9075846780.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "03f7e26e-6aab-11f1-b00f-7fb9a3160677",
-      "rssTitle": "Ep 620 - In Defense of Sunlight (feat. Rowan Jacobsen)",
-      "pubDate": "2026-06-18",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT9875711637.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "6e87162e-654f-11f1-b73d-475f18d2ffb8",
-      "rssTitle": "Ep 619 - Plus-Sized Problems (feat. Nate Marshall & Lemaire Lee)",
-      "pubDate": "2026-06-11",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT6843635646.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "a08c8c2e-613c-11f1-b207-1f6d642e3d89",
-      "rssTitle": "Ep 618 - Officer Lemaire (feat. Charles Blyzniuk & Lemaire Lee)",
-      "pubDate": "2026-06-08",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT6305668784.mp3",
-      "reason": "No eligible anthology episode matched this RSS item"
-    },
-    {
-      "feedId": "mssp-public-current",
-      "guid": "8e7851c6-5b0b-11f1-80eb-373be815f64f",
-      "rssTitle": "Ep 617 - Irish Good Morning",
-      "pubDate": "2026-05-29",
-      "enclosureUrl": "https://traffic.megaphone.fm/GLT7026172279.mp3",
+      "guid": "bfb3dc9e-8700-11f1-b9e5-a38c03bda2b8",
+      "rssTitle": "Ep 626 - Oil Boy (feat. Dru Montana & Lemaire Lee)",
+      "pubDate": "2026-07-24",
+      "enclosureUrl": "https://traffic.megaphone.fm/GLT3776617634.mp3",
       "reason": "No eligible anthology episode matched this RSS item"
     },
     {
