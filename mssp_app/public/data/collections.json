@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-06-24T21:47:06.510Z",
+  "generatedAt": "2026-07-25T03:53:26.544Z",
   "schemaVersion": 2,
   "sourceFile": "data/The Holy Trinity/MSSP - The Holy Trinity.txt",
-  "total": 896,
+  "total": 913,
   "collections": [
     {
       "id": "anthology",
@@ -11,9 +11,9 @@
       "coverUrl": "./assets/covers/anthology.webp",
       "hoverCoverUrl": "./assets/covers/anthology-hover.webp",
       "accent": "#7fc1ad",
-      "count": 896,
+      "count": 913,
       "startDate": "2016-11-16",
-      "endDate": "2026-05-27"
+      "endDate": "2026-07-17"
     },
     {
       "id": "old",
@@ -33,9 +33,9 @@
       "coverUrl": "./assets/covers/new.webp",
       "hoverCoverUrl": "",
       "accent": "#c79457",
-      "count": 360,
+      "count": 369,
       "startDate": "2019-09-24",
-      "endDate": "2026-05-27"
+      "endDate": "2026-07-17"
     },
     {
       "id": "paytch",
@@ -44,9 +44,9 @@
       "coverUrl": "./assets/covers/paytch.webp",
       "hoverCoverUrl": "",
       "accent": "#f96854",
-      "count": 391,
+      "count": 399,
       "startDate": "2017-08-14",
-      "endDate": "2026-05-20"
+      "endDate": "2026-07-10"
     }
   ]
 }

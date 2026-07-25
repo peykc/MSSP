@@ -648,7 +648,7 @@ export const EPISODE_KEYS = new Set([
   "2024-03-28 MSSP Ep. 487 - Sus Patrol",
   "2024-03-28 MSSP PAYTCH Ep. 487 - SUS PATROL",
   "2024-04-03 MSSP PAYTCH Ep. EX - Overton Window 1",
-  "2024-04-03 MSSP PAYTCH Ep. EX - Overton Winodw pt 2 ft Egan Robinson",
+  "2024-04-03 MSSP PAYTCH Ep. EX - Overton Window pt 2 ft Egan Robinson",
   "2024-04-04 MSSP Ep. 488 - The Spirit of Pearl Jam (feat. Andrew Callaghan)",
   "2024-04-11 MSSP Ep. 489 - The Council",
   "2024-04-11 MSSP PAYTCH Ep. 489 - THE COUNCIL",

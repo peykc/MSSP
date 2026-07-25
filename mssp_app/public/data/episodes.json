@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-23T21:48:34.022Z",
+  "generatedAt": "2026-07-25T03:53:26.544Z",
   "schemaVersion": 2,
   "sourceFile": "data/The Holy Trinity/MSSP - The Holy Trinity.txt",
   "collection": "anthology",
@@ -11032,16 +11032,16 @@
     {
       "id": 649,
       "globalIndex": 649,
-      "episodeKey": "2024-04-03 MSSP PAYTCH Ep. EX - Overton Winodw pt 2 ft Egan Robinson",
-      "filename": "2024-04-03 MSSP PAYTCH Ep. EX - Overton Winodw pt 2 ft Egan Robinson.mp3",
-      "sourcePath": "\\Matt and Shane's Secret Podcast\\The Holy Trinity\\2024-04-03 MSSP PAYTCH Ep. EX - Overton Winodw pt 2 ft Egan Robinson.mp3",
+      "episodeKey": "2024-04-03 MSSP PAYTCH Ep. EX - Overton Window pt 2 ft Egan Robinson",
+      "filename": "2024-04-03 MSSP PAYTCH Ep. EX - Overton Window pt 2 ft Egan Robinson.mp3",
+      "sourcePath": "\\Matt and Shane's Secret Podcast\\The Holy Trinity\\2024-04-03 MSSP PAYTCH Ep. EX - Overton Window pt 2 ft Egan Robinson.mp3",
       "durationSeconds": 5150.285,
       "fileSizeBytes": 123615468,
       "date": "2024-04-03",
       "type": "MSSP",
       "paytch": "PAYTCH",
       "episode": "EX",
-      "title": "Overton Winodw pt 2 ft Egan Robinson",
+      "title": "Overton Window pt 2 ft Egan Robinson",
       "collectionKind": "paytch",
       "coverKind": "paytch",
       "coverUrl": "./assets/covers/paytch.webp"
