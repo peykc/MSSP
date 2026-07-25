@@ -1,4 +1,4 @@
-const RELEASE_ID = "v418";
+const RELEASE_ID = "v419";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -28,9 +28,9 @@ const SHELL_PATHS = [
   "./css/pwa-update.css?v=a2hs-b",
   "./css/patreon-rss.css?v=a2hs-f",
   "./css/transcript.css?v=cover-ambient-g",
-  "./css/global-search.css?v=sort-reveal-a",
+  "./css/global-search.css?v=hydrate-ready-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=dirty-r2-a",
+  "./js/main.js?v=hydrate-ready-a",
   "./js/a2hsModal.js?v=a2hs-e",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
@@ -48,7 +48,7 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js?v=scroll-bottom-b",
-  "./js/globalSearch.js?v=sort-reveal-a",
+  "./js/globalSearch.js?v=hydrate-ready-a",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js?v=mini-scroll-a",

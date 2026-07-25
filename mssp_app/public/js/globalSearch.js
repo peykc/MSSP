@@ -12,7 +12,9 @@ const SEARCH_DEBOUNCE_MS = 250;
 const MIN_QUERY_LENGTH = 2;
 const TRANSCRIPT_BATCH_SIZE = 8;
 const TRANSCRIPT_HYDRATE_CONCURRENCY = 4;
-const TRANSCRIPT_INITIAL_HEADERS = 16;
+// Keep hydrating batches until this many match-bearing episodes are ready (or
+// candidates run out). Further results load on scroll — no placeholder rows.
+const TRANSCRIPT_AUTO_FILL_READY = 10;
 const PREFIX_EXPANSION_LIMIT = 50;
 const TIMELINE_CACHE_LIMIT = 48;
 const SNIPPET_WORDS_BEFORE = 6;
@@ -188,7 +190,6 @@ export function createGlobalSearch({
   let transcriptCandidates = [];
   let transcriptCandidateMeta = [];
   let transcriptHydrateCursor = 0;
-  let transcriptHeaderThrough = 0;
   let transcriptStatus = "idle";
   let transcriptLoadingMore = false;
   let coverageStats = null;
@@ -388,7 +389,6 @@ export function createGlobalSearch({
       state: "pending",
     }));
     transcriptHydrateCursor = 0;
-    transcriptHeaderThrough = Math.min(TRANSCRIPT_INITIAL_HEADERS, episodeSlots.length);
     transcriptLoadingMore = false;
     collapsedEpisodeKeys.clear();
     renderedTranscriptKeys.clear();
@@ -401,7 +401,7 @@ export function createGlobalSearch({
     transcriptStatus = "loading";
     paintActiveMode();
     const token = queryToken;
-    await loadTranscriptBatch(activeParsedQuery, () => token !== queryToken);
+    await hydrateTranscriptResults(activeParsedQuery, () => token !== queryToken);
     if (token !== queryToken) return;
     syncTranscriptStatusAfterHydration();
     paintActiveMode();
@@ -465,12 +465,15 @@ export function createGlobalSearch({
       state: "pending",
     }));
     transcriptHydrateCursor = 0;
-    transcriptHeaderThrough = Math.min(TRANSCRIPT_INITIAL_HEADERS, episodeSlots.length);
   }
 
   function getDisplaySlots() {
-    const limit = Math.max(transcriptHydrateCursor, transcriptHeaderThrough);
-    return episodeSlots.slice(0, limit).filter((slot) => slot.state !== "empty");
+    // Only match-bearing episodes — never pending shells or the old load skeleton.
+    return episodeSlots.filter((slot) => slot.state === "ready");
+  }
+
+  function hasMoreTranscriptCandidates() {
+    return transcriptHydrateCursor < transcriptCandidates.length;
   }
 
   function transcriptGroupSelector(episodeKey) {
@@ -479,9 +482,7 @@ export function createGlobalSearch({
 
   function insertTranscriptGroup(group) {
     if (!panelEl || !group) return;
-    const skeleton = panelEl.querySelector(".launch-search__load-skeleton");
-    if (skeleton) panelEl.insertBefore(group, skeleton);
-    else panelEl.append(group);
+    panelEl.append(group);
   }
 
   function appendHitsToGroup(group, slot) {
@@ -518,7 +519,7 @@ export function createGlobalSearch({
 
   function createTranscriptGroupFromSlot(slot) {
     const episode = getEpisodeByKey(slot.episodeKey);
-    if (!episode) return null;
+    if (!episode || slot.state !== "ready") return null;
 
     const group = document.createElement("div");
     const coverKind = episode.coverKind || episode.collectionKind || "anthology";
@@ -527,9 +528,6 @@ export function createGlobalSearch({
 
     const collapsed = collapsedEpisodeKeys.has(slot.episodeKey);
     if (collapsed) group.classList.add("is-collapsed");
-    if (slot.state === "pending" || slot.state === "loading") {
-      group.classList.add("is-hydrating");
-    }
 
     const head = document.createElement("div");
     head.className = "launch-search__group-head";
@@ -553,17 +551,17 @@ export function createGlobalSearch({
     head.append(toggle, main, play);
     group.append(head);
 
-    if (slot.state === "ready" && !collapsed) {
+    if (!collapsed) {
       appendHitsToGroup(group, slot);
       group.dataset.hitsRendered = "true";
     }
-    if (slot.state === "ready") syncCollapsedMatchSummary(group, slot);
+    syncCollapsedMatchSummary(group, slot);
 
     return group;
   }
 
   function upsertTranscriptGroup(slot) {
-    if (!panelEl || !slot) return;
+    if (!panelEl || !slot || slot.state !== "ready") return;
 
     let group = panelEl.querySelector(transcriptGroupSelector(slot.episodeKey));
     if (!group) {
@@ -574,28 +572,22 @@ export function createGlobalSearch({
       return;
     }
 
-    group.classList.toggle("is-hydrating", slot.state === "pending" || slot.state === "loading");
     group.classList.toggle("is-collapsed", collapsedEpisodeKeys.has(slot.episodeKey));
 
-    if (slot.state === "ready" && group.dataset.hitsRendered !== "true" && !collapsedEpisodeKeys.has(slot.episodeKey)) {
+    if (group.dataset.hitsRendered !== "true" && !collapsedEpisodeKeys.has(slot.episodeKey)) {
       appendHitsToGroup(group, slot);
       group.dataset.hitsRendered = "true";
     }
-    if (slot.state === "ready") syncCollapsedMatchSummary(group, slot);
+    syncCollapsedMatchSummary(group, slot);
   }
 
   async function hydrateEpisodeSlot(slot, query) {
     slot.state = "loading";
-    if (activeMode === MODE_TRANSCRIPTS) upsertTranscriptGroup(slot);
     try {
       const timeline = await getTimeline(slot.episodeKey);
       const matches = pickAllSegmentMatches(buildSearchIndex(timeline, query));
       if (!matches.length) {
         slot.state = "empty";
-        if (activeMode === MODE_TRANSCRIPTS) {
-          panelEl?.querySelector(transcriptGroupSelector(slot.episodeKey))?.remove();
-          renderedTranscriptKeys.delete(slot.episodeKey);
-        }
         return;
       }
       slot.state = "ready";
@@ -603,26 +595,24 @@ export function createGlobalSearch({
       slot.matches = matches;
     } catch {
       slot.state = "empty";
-      if (activeMode === MODE_TRANSCRIPTS) {
-        panelEl?.querySelector(transcriptGroupSelector(slot.episodeKey))?.remove();
-        renderedTranscriptKeys.delete(slot.episodeKey);
-      }
     }
-    if (activeMode === MODE_TRANSCRIPTS) upsertTranscriptGroup(slot);
+    if (activeMode === MODE_TRANSCRIPTS && slot.state === "ready") {
+      panelEl?.querySelector(".launch-search__status")?.remove();
+      upsertTranscriptGroup(slot);
+    }
   }
 
   async function loadTranscriptBatch(query, isStale) {
-    if (transcriptLoadingMore) return;
-    if (transcriptHydrateCursor >= transcriptCandidates.length) return;
+    if (transcriptLoadingMore) return false;
+    if (!hasMoreTranscriptCandidates()) return false;
 
     transcriptLoadingMore = true;
     const batchStart = transcriptHydrateCursor;
     const batchEnd = Math.min(transcriptCandidates.length, batchStart + TRANSCRIPT_BATCH_SIZE);
     const batchSlots = episodeSlots.slice(batchStart, batchEnd);
     transcriptHydrateCursor = batchEnd;
-    transcriptHeaderThrough = Math.max(transcriptHeaderThrough, batchEnd);
 
-    const hydrated = await mapConcurrent(
+    await mapConcurrent(
       batchSlots,
       TRANSCRIPT_HYDRATE_CONCURRENCY,
       async (slot) => {
@@ -631,24 +621,30 @@ export function createGlobalSearch({
       },
     );
 
-    if (isStale()) {
-      transcriptLoadingMore = false;
-      return;
-    }
-
-    void hydrated;
     transcriptLoadingMore = false;
+    if (isStale()) return false;
+
     syncTranscriptStatusAfterHydration();
 
     if (activeMode === MODE_TRANSCRIPTS) {
       for (const slot of batchSlots) {
-        if (slot.state !== "empty") upsertTranscriptGroup(slot);
+        if (slot.state === "ready") upsertTranscriptGroup(slot);
       }
-      syncLoadMoreRow();
       updateSwitcherLabels();
       updateFooter();
     } else {
       updateSwitcherLabels();
+    }
+    return true;
+  }
+
+  // Hydrate until we have a screenful of match groups (or run out of candidates).
+  // Empty index hits are skipped without ever painting placeholder episode cards.
+  async function hydrateTranscriptResults(query, isStale) {
+    while (!isStale() && hasMoreTranscriptCandidates()) {
+      const progressed = await loadTranscriptBatch(query, isStale);
+      if (!progressed || isStale()) return;
+      if (getReadyEpisodeSlotCount() >= TRANSCRIPT_AUTO_FILL_READY) return;
     }
   }
 
@@ -894,7 +890,11 @@ export function createGlobalSearch({
       footerEl.hidden = false;
       const withTx = coverageStats.episodesWithTranscripts ?? "?";
       const total = coverageStats.episodesTotal ?? "?";
-      footerEl.textContent = `${withTx}/${total} episodes indexed`;
+      const base = `${withTx}/${total} episodes indexed`;
+      const loadingMore = hasMoreTranscriptCandidates() || transcriptLoadingMore;
+      footerEl.textContent = loadingMore && getReadyEpisodeSlotCount()
+        ? `${base} · loading matches…`
+        : base;
       return;
     }
     footerEl.hidden = true;
@@ -966,6 +966,9 @@ export function createGlobalSearch({
       clearPanelForModeSwitch();
     }
 
+    // Drop any leftover skeleton from older builds still in memory/cache.
+    panelEl.querySelector(".launch-search__load-skeleton")?.remove();
+
     if (transcriptStatus === "loading" && !getDisplaySlots().length) {
       clearPanelForModeSwitch();
       panelEl.append(createStatusRow("Searching transcripts…"));
@@ -976,50 +979,20 @@ export function createGlobalSearch({
       panelEl.append(createStatusRow("Transcript search unavailable", { error: true }));
       return;
     }
-    if (!getDisplaySlots().length && transcriptHydrateCursor >= transcriptCandidates.length) {
+    if (!getDisplaySlots().length && !hasMoreTranscriptCandidates() && !transcriptLoadingMore) {
       clearPanelForModeSwitch();
       panelEl.append(createStatusRow("No transcript matches"));
       return;
     }
 
+    // Remove the temporary "Searching…" row once real matches arrive.
+    if (getDisplaySlots().length) {
+      panelEl.querySelector(".launch-search__status")?.remove();
+    }
+
     for (const slot of getDisplaySlots()) {
       upsertTranscriptGroup(slot);
     }
-    syncLoadMoreRow();
-  }
-
-  function syncLoadMoreRow() {
-    if (!panelEl) return;
-    const existing = panelEl.querySelector(".launch-search__load-skeleton");
-    if (existing) existing.remove();
-
-    if (transcriptHydrateCursor >= transcriptCandidates.length && !transcriptLoadingMore) return;
-
-    const skeleton = document.createElement("div");
-    skeleton.className = "launch-search__load-skeleton";
-    skeleton.setAttribute("aria-hidden", "true");
-
-    const collapse = document.createElement("span");
-    collapse.className = "launch-search__load-skeleton-control";
-
-    const main = document.createElement("div");
-    main.className = "launch-search__load-skeleton-main";
-    const cover = document.createElement("span");
-    cover.className = "launch-search__load-skeleton-cover";
-    const copy = document.createElement("div");
-    copy.className = "launch-search__load-skeleton-copy";
-    const meta = document.createElement("span");
-    meta.className = "launch-search__load-skeleton-meta";
-    const title = document.createElement("span");
-    title.className = "launch-search__load-skeleton-title";
-    copy.append(meta, title);
-    main.append(cover, copy);
-
-    const play = document.createElement("span");
-    play.className = "launch-search__load-skeleton-control launch-search__load-skeleton-control--play";
-
-    skeleton.append(collapse, main, play);
-    panelEl.append(skeleton);
   }
 
   function renderEpisodeResults() {
@@ -1068,12 +1041,19 @@ export function createGlobalSearch({
 
   async function maybeLoadMoreFromScroll() {
     if (activeMode !== MODE_TRANSCRIPTS || !panelEl) return;
-    if (transcriptLoadingMore) return;
-    if (transcriptHydrateCursor >= transcriptCandidates.length) return;
+    if (transcriptLoadingMore || !hasMoreTranscriptCandidates()) return;
     const remaining = panelEl.scrollHeight - panelEl.scrollTop - panelEl.clientHeight;
     if (remaining > 120) return;
     const token = queryToken;
-    await loadTranscriptBatch(activeParsedQuery || activeQuery, () => token !== queryToken);
+    const query = activeParsedQuery || activeQuery;
+    // Fill another screenful from where the cursor left off.
+    const readyBefore = getReadyEpisodeSlotCount();
+    while (token === queryToken && hasMoreTranscriptCandidates()) {
+      const progressed = await loadTranscriptBatch(query, () => token !== queryToken);
+      if (!progressed || token !== queryToken) return;
+      if (getReadyEpisodeSlotCount() > readyBefore) return;
+      // Batch was all empty index misses — keep going without requiring more scroll.
+    }
   }
 
   function buildShell() {
@@ -1142,7 +1122,6 @@ export function createGlobalSearch({
     transcriptCandidates = [];
     transcriptCandidateMeta = [];
     transcriptHydrateCursor = 0;
-    transcriptHeaderThrough = 0;
     transcriptStatus = "loading";
     transcriptLoadingMore = false;
     coverageStats = null;
@@ -1210,7 +1189,12 @@ export function createGlobalSearch({
       }
       updateSwitcherLabels();
       transcriptStatus = "loading";
-      void loadTranscriptBatch(parsed, isStale);
+      void hydrateTranscriptResults(parsed, isStale).then(() => {
+        if (isStale()) return;
+        syncTranscriptStatusAfterHydration();
+        if (activeMode === MODE_TRANSCRIPTS) paintActiveMode();
+        else updateSwitcherLabels();
+      });
     } catch {
       if (isStale()) return;
       transcriptStatus = "error";
@@ -1232,7 +1216,6 @@ export function createGlobalSearch({
     transcriptCandidates = [];
     transcriptCandidateMeta = [];
     transcriptHydrateCursor = 0;
-    transcriptHeaderThrough = 0;
     transcriptStatus = "idle";
     coverageStats = null;
     collapsedEpisodeKeys.clear();
