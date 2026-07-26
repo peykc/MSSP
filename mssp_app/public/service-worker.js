@@ -1,4 +1,4 @@
-const RELEASE_ID = "v422";
+const RELEASE_ID = "v424";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -14,7 +14,7 @@ const SHELL_PATHS = [
   "./site.webmanifest",
   "./css/base.css?v=list-unify-a",
   "./css/layout.css?v=a2hs-b",
-  "./css/launch.css?v=a2hs-d",
+  "./css/launch.css?v=open-bar-a",
   "./css/archive.css?v=tip-nav-c",
   "./css/sealed-stone.css",
   "./css/library.css?v=archive-iowan-a",
@@ -30,17 +30,17 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=hydrate-ready-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=index-bust-a",
-  "./js/a2hsModal.js?v=a2hs-e",
+  "./js/main.js?v=splash-ready-a",
+  "./js/a2hsModal.js?v=splash-ready-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
   "./js/community/communitySignals.js?v=poll-cut-a",
   "./js/community/viewProgress.js",
-  "./js/patreonRssModal.js?v=dirty-r2-a",
+  "./js/patreonRssModal.js?v=splash-ready-a",
   "./js/archiveStats.js",
   "./js/calendarModal.js?v=heatmap-full-labels-a",
   "./js/collectionGlyphs.js",
-  "./js/collectionsView.js?v=cal-preview-b",
+  "./js/collectionsView.js?v=splash-ready-a",
   "./js/dom.js?v=playback-speed-l",
   "./js/episodeDetails.js?v=poll-cut-a",
   "./js/episodeRow.js?v=poll-cut-a",

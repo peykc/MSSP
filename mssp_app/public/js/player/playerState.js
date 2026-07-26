@@ -261,12 +261,17 @@ export function createPlayerState({ getPublicSourceForEpisode = () => null } = {
     }
   }
 
+  function hasPersistedState() {
+    return Boolean(readPersistedState());
+  }
+
   return {
     beginContinuation,
     getNextPlayableEpisode,
     getQueuePosition,
     getUpNextWindow,
     getState,
+    hasPersistedState,
     loadEpisode,
     persistCurrentState,
     refreshSource,

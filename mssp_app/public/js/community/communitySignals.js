@@ -298,6 +298,30 @@ export function createCommunitySignals({
     }
   }
 
+  async function fetchPresencePeaks() {
+    const response = await fetchImpl(`${normalizedApiBase}/v1/presence/peaks`, {
+      method: "GET",
+      cache: "no-store",
+      credentials: "omit",
+    });
+    if (!response.ok) throw new Error("Presence peaks request failed");
+    const payload = await response.json();
+    if (!payload || !Array.isArray(payload.days) || !Number.isFinite(payload.peak)) {
+      throw new Error("Presence peaks response was invalid");
+    }
+    return {
+      peak: normalizeCount(payload.peak),
+      peakAt: typeof payload.peakAt === "string" ? payload.peakAt : null,
+      days: payload.days
+        .filter((entry) => entry && typeof entry.day === "string" && Number.isFinite(entry.peak))
+        .map((entry) => ({
+          day: entry.day,
+          peak: normalizeCount(entry.peak),
+          peakAt: typeof entry.peakAt === "string" ? entry.peakAt : null,
+        })),
+    };
+  }
+
   async function refreshOnlineCount({ background = false, force = false } = {}) {
     if (!force && !shouldPoll()) return false;
     if (background && backgroundPollingSuspended && !force) return false;
@@ -506,6 +530,7 @@ export function createCommunitySignals({
     sendOnlineHeartbeat,
     refreshOnlineCount,
     refreshVisitorTotal,
+    fetchPresencePeaks,
   };
 }
 

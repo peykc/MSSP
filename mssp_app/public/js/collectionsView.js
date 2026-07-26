@@ -149,7 +149,7 @@ export function createCollectionsView({
       button.style.setProperty("--accent", collection.accent);
       button.innerHTML = `
         <span class="collection-card__art">
-          <img class="collection-card__cover" src="${collection.coverUrl}" alt="" decoding="async" width="768" height="768">
+          <img class="collection-card__cover" src="${collection.coverUrl}" alt="" decoding="async" loading="lazy" width="768" height="768">
         </span>
         <span class="collection-card__relic">
           <span class="collection-card__seal" aria-hidden="true">
@@ -200,10 +200,7 @@ export function createCollectionsView({
     hero.innerHTML = `
       <article class="collection-hero">
         <div class="collection-hero__art">
-        <img class="collection-hero__cover" src="${anthology.coverUrl}" alt="Matt and Shane's Secret Podcast" decoding="async" width="1536" height="960">
-        ${anthology.hoverCoverUrl
-          ? `<img class="collection-hero__cover collection-hero__cover--hover" src="${anthology.hoverCoverUrl}" alt="" decoding="async" width="1536" height="960">`
-          : ""}
+        <img class="collection-hero__cover" src="${anthology.coverUrl}" alt="Matt and Shane's Secret Podcast" decoding="async" fetchpriority="high" width="1536" height="960">
         <span class="collection-hero__fade" aria-hidden="true"></span>
       </div>
       <div class="collection-hero__date">
@@ -263,20 +260,53 @@ export function createCollectionsView({
       </section>
     `;
     hero.querySelector(".collection-hero__open").addEventListener("click", () => onOpenCollection(anthology.id));
+    if (anthology.hoverCoverUrl) {
+      const art = hero.querySelector(".collection-hero__art");
+      const ensureHoverCover = () => {
+        if (art.querySelector(".collection-hero__cover--hover")) return;
+        const hover = document.createElement("img");
+        hover.className = "collection-hero__cover collection-hero__cover--hover";
+        hover.src = anthology.hoverCoverUrl;
+        hover.alt = "";
+        hover.decoding = "async";
+        hover.width = 1536;
+        hover.height = 960;
+        art.insertBefore(hover, art.querySelector(".collection-hero__fade"));
+      };
+      hero.addEventListener("pointerenter", ensureHoverCover, { once: true });
+      hero.addEventListener("focusin", ensureHoverCover, { once: true });
+    }
     dom.launchHero.append(hero);
   }
 
+  async function awaitHeroCoverDecode(timeoutMs = 400) {
+    const img = dom.launchHero.querySelector(".collection-hero__cover:not(.collection-hero__cover--hover)");
+    if (!img?.src) return;
+    const decodePromise = typeof img.decode === "function"
+      ? img.decode().catch(() => {})
+      : Promise.resolve();
+    await Promise.race([
+      decodePromise,
+      new Promise((resolve) => window.setTimeout(resolve, timeoutMs)),
+    ]);
+  }
+
   function renderExplore() {
+    const hoursReady = state.archiveEpisodes.length > 0;
     const durationByCollection = Object.fromEntries(COLLECTION_ORDER.map((id) => [id, 0]));
     let totalDurationSeconds = 0;
-    for (const episode of state.archiveEpisodes) {
-      const duration = Number(episode.durationSeconds) || 0;
-      totalDurationSeconds += duration;
-      if (episode.collectionKind in durationByCollection) {
-        durationByCollection[episode.collectionKind] += duration;
+    if (hoursReady) {
+      for (const episode of state.archiveEpisodes) {
+        const duration = Number(episode.durationSeconds) || 0;
+        totalDurationSeconds += duration;
+        if (episode.collectionKind in durationByCollection) {
+          durationByCollection[episode.collectionKind] += duration;
+        }
       }
     }
-    const totalHours = Math.round(totalDurationSeconds / 3600).toLocaleString();
+    const totalHours = hoursReady
+      ? Math.round(totalDurationSeconds / 3600).toLocaleString()
+      : "…";
     const widthDenominator = Math.max(totalDurationSeconds, 1);
     const hourSegments = COLLECTION_ORDER.map((id) => {
       const collection = state.collections.find((item) => item.id === id);
@@ -285,13 +315,13 @@ export function createCollectionsView({
         id,
         name: collection?.name || id,
         accent: collection?.accent || "#f8f2ec",
-        hours: Math.round(seconds / 3600).toLocaleString(),
-        width: `${((seconds / widthDenominator) * 100).toFixed(2)}%`,
+        hours: hoursReady ? Math.round(seconds / 3600).toLocaleString() : "…",
+        width: hoursReady ? `${((seconds / widthDenominator) * 100).toFixed(2)}%` : "0%",
       };
     });
-    const graphLabel = hourSegments
-      .map((segment) => `${segment.name}: ${segment.hours} hours`)
-      .join(", ");
+    const graphLabel = hoursReady
+      ? hourSegments.map((segment) => `${segment.name}: ${segment.hours} hours`).join(", ")
+      : "Loading archive hours";
 
     const exploreRule = `
       <span class="explore-button__rule-edge explore-button__rule-edge--start" aria-hidden="true"></span>
@@ -300,7 +330,7 @@ export function createCollectionsView({
       <span class="collection-card__seal-tip explore-button__rule-tip explore-button__rule-tip--end" aria-hidden="true"></span>
       <span class="explore-button__rule-edge explore-button__rule-edge--end" aria-hidden="true"></span>
     `;
-    const exploreDisabled = state.archiveEpisodes.length ? "" : "disabled";
+    const exploreDisabled = hoursReady ? "" : "disabled";
     dom.exploreGrid.innerHTML = `
       <button class="explore-button explore-button--calendar" type="button" data-explore-action="calendar" ${exploreDisabled}>
         <span class="explore-button__copy">
@@ -365,15 +395,18 @@ export function createCollectionsView({
       </section>
     `;
 
+    if (!hoursReady) return;
+
     dom.exploreGrid.querySelector('[data-explore-action="calendar"]').addEventListener("click", (event) => {
-      fullCalendarModal.open(state.archiveEpisodes, event.currentTarget);
+      void fullCalendarModal.open(state.archiveEpisodes, event.currentTarget);
     });
     dom.exploreGrid.querySelector('[data-explore-action="heatmap"]').addEventListener("click", (event) => {
-      calendarModal.open(state.archiveEpisodes, event.currentTarget);
+      void calendarModal.open(state.archiveEpisodes, event.currentTarget);
     });
   }
 
   return {
+    awaitHeroCoverDecode,
     renderCollections,
     renderExplore,
     renderHero,

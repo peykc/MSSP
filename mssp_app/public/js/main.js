@@ -1,30 +1,29 @@
 import { createArchiveStatsView } from "./archiveStats.js";
-import { createCalendarModal } from "./calendarModal.js";
-import { createFullCalendarModal } from "./fullCalendarModal.js?v=scroll-bottom-b";
-import { createGlobalSearch } from "./globalSearch.js?v=index-bust-a";
-import { createSealedStoneModal } from "./sealedStoneModal.js";
-import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
+import { createCollectionsView } from "./collectionsView.js?v=splash-ready-a";
 import { getCommunityClientId } from "./community/communityIdentity.js";
 import { createCommunityPresence } from "./community/communityPresence.js?v=poll-cut-a";
-import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=poll-cut-a";
+import { createCommunitySignals, formatCommunityCount } from "./community/communitySignals.js?v=peaks-secret-a";
 import { createPitchCounter } from "./community/pitchCounter.js?v=pitch-d";
+import {
+  createPresencePeaksChart,
+  createSecretTapGesture,
+} from "./community/presencePeaksChart.js?v=peaks-secret-a";
 import { createViewProgress } from "./community/viewProgress.js";
-import { dom } from "./dom.js?v=playback-speed-l";
+import { dom } from "./dom.js?v=peaks-secret-a";
 import { createEpisodeDetails } from "./episodeDetails.js?v=poll-cut-a";
 import { createEpisodeList } from "./episodeList.js?v=poll-cut-a";
 import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=poll-cut-a";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js?v=mini-scroll-a";
-import { createStatsPageView } from "./statsPageView.js";
 import { createAudioController } from "./player/audioController.js?v=playback-speed-p";
 import { createMediaSessionController } from "./player/mediaSessionController.js";
-import { createPatreonRssModal } from "./patreonRssModal.js?v=dirty-r2-a";
+import { createPatreonRssModal } from "./patreonRssModal.js?v=splash-ready-a";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js?v=ambient-stamp-c";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
-import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=a2hs-e";
+import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=splash-ready-a";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=pull-overscroll-a";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
@@ -52,12 +51,57 @@ function getApiClient() {
   return window.MsspApiClient;
 }
 
-async function init() {
-  const serviceWorkerRegistration = registerServiceWorker();
-  initLaunchPullToRefresh({
-    scroller: dom.app,
-    launchView: dom.launchView,
+function waitFrames(count = 2) {
+  return new Promise((resolve) => {
+    let left = count;
+    const step = () => {
+      left -= 1;
+      if (left <= 0) {
+        resolve();
+        return;
+      }
+      requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   });
+}
+
+async function yieldToMain() {
+  if (typeof globalThis.scheduler?.yield === "function") {
+    await globalThis.scheduler.yield();
+    return;
+  }
+  await waitFrames(1);
+}
+
+function scheduleIdle(task) {
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => {
+      void task();
+    }, { timeout: 2000 });
+    return;
+  }
+  window.setTimeout(() => {
+    void task();
+  }, 1);
+}
+
+function createLazyOpenProxy(loader) {
+  let instancePromise = null;
+  function ensure() {
+    instancePromise ||= Promise.resolve().then(loader);
+    return instancePromise;
+  }
+  return {
+    open: async (...args) => {
+      const instance = await ensure();
+      return instance.open(...args);
+    },
+    ensure,
+  };
+}
+
+async function init() {
   const apiClient = getApiClient();
   const state = createAppState();
   const favoritesStore = createFavoritesStore();
@@ -114,9 +158,23 @@ async function init() {
     showLifetimeVisitors = true;
     renderDawgsMetric();
   });
-  const calendarModal = createCalendarModal({ dom });
-  const statsPageView = createStatsPageView({ dom });
-  createSealedStoneModal({ dom });
+
+  const dawgsPeaksChart = createPresencePeaksChart({
+    root: dom.dawgsPeaks,
+    fetchPeaks: () => communitySignals.fetchPresencePeaks(),
+  });
+  const registerHeartSecretTap = createSecretTapGesture({ tapsRequired: 5, gapMs: 650 });
+  const dawgsPeaksLayoutQuery = window.matchMedia("(max-width: 760px)");
+  const isDawgsPeaksLayout = () => dawgsPeaksLayoutQuery.matches;
+  dom.launchHeartSecret.addEventListener("click", () => {
+    if (!isDawgsPeaksLayout()) return;
+    if (!registerHeartSecretTap()) return;
+    void dawgsPeaksChart.toggle();
+  });
+  dawgsPeaksLayoutQuery.addEventListener("change", (event) => {
+    if (!event.matches && dawgsPeaksChart.isOpen()) dawgsPeaksChart.close();
+  });
+
   const archiveStatsView = createArchiveStatsView({ dom, state });
   const dismissGlobalTooltip = initGlobalTooltip();
   await loadPublicSources();
@@ -124,6 +182,8 @@ async function init() {
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
+  // Sync-read player persist before splash dismiss (network restore runs later).
+  void playerState.hasPersistedState();
   playerState.subscribe((snapshot) => {
     const listening = snapshot.playbackStatus === PLAYBACK_STATUSES.PLAYING;
     communitySignals.setListeningActive(listening);
@@ -131,13 +191,7 @@ async function init() {
   });
   const viewProgress = createViewProgress({ playerState, communitySignals });
   viewProgress.start();
-  void serviceWorkerRegistration.then((registration) => {
-    if (!registration) return;
-    initPwaUpdates(registration, {
-      getPlaybackState: () => playerState.getState(),
-      subscribePlayback: (listener) => playerState.subscribe(listener),
-    });
-  });
+
   let episodeList;
   let patreonRssModal;
   let archiveEpisodes = [];
@@ -391,11 +445,18 @@ async function init() {
     getMiniplayerEpisode: () => playerState.getState().selectedEpisode,
   });
 
-  const fullCalendarModal = createFullCalendarModal({
-    dom,
-    onSelectEpisode: (episode) => {
-      void libraryView.openEpisode(episode);
-    },
+  const calendarModal = createLazyOpenProxy(async () => {
+    const { createCalendarModal } = await import("./calendarModal.js?v=heatmap-full-labels-a");
+    return createCalendarModal({ dom });
+  });
+  const fullCalendarModal = createLazyOpenProxy(async () => {
+    const { createFullCalendarModal } = await import("./fullCalendarModal.js?v=scroll-bottom-b");
+    return createFullCalendarModal({
+      dom,
+      onSelectEpisode: (episode) => {
+        void libraryView.openEpisode(episode);
+      },
+    });
   });
 
   const collectionsView = createCollectionsView({
@@ -448,7 +509,9 @@ async function init() {
     dom.launchFavoritesCount.textContent = String(badgeCount);
   }
 
+  // Storage gate: favorites + Paytch URL reflected before splash clears.
   syncLaunchFavoritesButton();
+  patreonRssModal.syncLaunchButton();
 
   const a2hsModal = createA2hsModal({ dom });
   initAddToHomeScreen({ dom, a2hsModal });
@@ -456,55 +519,121 @@ async function init() {
   initSearch({ dom, state, loadEpisodes: libraryView.loadEpisodes });
 
   let episodesByKey = null;
-  createGlobalSearch({
-    dom,
-    searchEpisodes: (query) => apiClient.getEpisodes({ collection: "anthology", query }),
-    getEpisodeByKey: (episodeKey) => {
-      if (!episodesByKey || episodesByKey.size !== archiveEpisodes.length) {
-        episodesByKey = new Map(archiveEpisodes.map((episode) => [episode.episodeKey, episode]));
-      }
-      return episodesByKey.get(episodeKey);
-    },
-    getSourceStatusForEpisode,
-    onSelectEpisode: (episode) => {
-      void libraryView.openEpisode(episode);
-    },
-    onPlayEpisode: requestPlay,
-    onPlayEpisodeAtTime: playEpisodeAtTime,
+  let globalSearchPromise = null;
+  function ensureGlobalSearch() {
+    globalSearchPromise ||= import("./globalSearch.js?v=index-bust-a").then(({ createGlobalSearch }) => {
+      createGlobalSearch({
+        dom,
+        searchEpisodes: (query) => apiClient.getEpisodes({ collection: "anthology", query }),
+        getEpisodeByKey: (episodeKey) => {
+          if (!episodesByKey || episodesByKey.size !== archiveEpisodes.length) {
+            episodesByKey = new Map(archiveEpisodes.map((episode) => [episode.episodeKey, episode]));
+          }
+          return episodesByKey.get(episodeKey);
+        },
+        getSourceStatusForEpisode,
+        onSelectEpisode: (episode) => {
+          void libraryView.openEpisode(episode);
+        },
+        onPlayEpisode: requestPlay,
+        onPlayEpisodeAtTime: playEpisodeAtTime,
+      });
+    });
+    return globalSearchPromise;
+  }
+  dom.globalSearchInput?.addEventListener("focus", () => {
+    void ensureGlobalSearch();
+  }, { once: true });
+  dom.globalSearchInput?.addEventListener("pointerdown", () => {
+    void ensureGlobalSearch();
+  }, { once: true });
+
+  let sealedStonePromise = null;
+  function ensureSealedStone() {
+    sealedStonePromise ||= import("./sealedStoneModal.js").then(({ createSealedStoneModal }) => {
+      createSealedStoneModal({ dom });
+    });
+    return sealedStonePromise;
+  }
+
+  let statsPagePromise = null;
+  function ensureStatsPageView() {
+    statsPagePromise ||= import("./statsPageView.js").then(({ createStatsPageView }) => {
+      return createStatsPageView({ dom });
+    });
+    return statsPagePromise;
+  }
+
+  favoritesStore.subscribe(() => {
+    syncLaunchFavoritesButton();
+    collectionsView.renderHero();
+    if (dom.libraryView.classList.contains("is-hidden")) return;
+    if (state.favoritesOnly) {
+      episodeList.applyEpisodeFilters({ preserveScroll: true });
+    }
+    episodeDetails.renderDetails();
+    episodeList.renderVisibleRows();
   });
 
   try {
-    const [data, archiveResult] = await Promise.all([
-      apiClient.getCollections(),
-      apiClient.getEpisodes({ collection: "anthology", query: "" })
-        .then((value) => ({ value }))
-        .catch((error) => ({ error })),
-    ]);
+    const data = await apiClient.getCollections();
     console.info("[MSSP] Data mode:", apiClient.getMode());
     state.collections = data.collections;
+    collectionsView.renderCollections();
+    void logMetadataDiagnostics(apiClient);
+
+    await waitFrames(2);
+    await collectionsView.awaitHeroCoverDecode(400);
+  } catch (error) {
+    console.error("[MSSP] Failed to start frontend.", error);
+  } finally {
+    dismissLaunchSplash();
+  }
+
+  // Let the browser accept the first scroll before deferred heavy work.
+  await yieldToMain();
+
+  scheduleIdle(() => {
+    initLaunchPullToRefresh({
+      scroller: dom.app,
+      launchView: dom.launchView,
+    });
+  });
+
+  scheduleIdle(async () => {
+    const registration = await registerServiceWorker();
+    if (!registration) return;
+    initPwaUpdates(registration, {
+      getPlaybackState: () => playerState.getState(),
+      subscribePlayback: (listener) => playerState.subscribe(listener),
+    });
+  });
+
+  scheduleIdle(() => {
+    void ensureSealedStone();
+    void ensureStatsPageView();
+  });
+
+  try {
+    const archiveResult = await apiClient.getEpisodes({ collection: "anthology", query: "" })
+      .then((value) => ({ value }))
+      .catch((error) => ({ error }));
+
+    await yieldToMain();
+
     if (archiveResult.value) {
       archiveEpisodes = archiveResult.value.episodes || [];
       communitySignals.setKnownEpisodeKeys(archiveEpisodes.map((episode) => episode.episodeKey));
       favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
       archiveStatsView.setEpisodes(archiveEpisodes);
+      collectionsView.renderExplore();
     } else {
       communitySignals.setKnownEpisodeKeys([]);
       console.error("[MSSP] Could not load archive statistics.", archiveResult.error);
       archiveStatsView.renderError();
     }
-    collectionsView.renderCollections();
-    void logMetadataDiagnostics(apiClient);
 
-    favoritesStore.subscribe(() => {
-      syncLaunchFavoritesButton();
-      collectionsView.renderHero();
-      if (dom.libraryView.classList.contains("is-hidden")) return;
-      if (state.favoritesOnly) {
-        episodeList.applyEpisodeFilters({ preserveScroll: true });
-      }
-      episodeDetails.renderDetails();
-      episodeList.renderVisibleRows();
-    });
+    await yieldToMain();
     await playerState.restore(apiClient);
 
     if (patreonSources.getStoredUrl()) {
@@ -512,17 +641,9 @@ async function init() {
         .then(() => refreshPrivateSources())
         .catch(() => {})
         .finally(() => patreonRssModal?.syncLaunchButton?.());
-    } else {
-      patreonRssModal?.syncLaunchButton?.();
     }
-
-    await new Promise((resolve) => {
-      requestAnimationFrame(() => requestAnimationFrame(resolve));
-    });
   } catch (error) {
-    console.error("[MSSP] Failed to start frontend.", error);
-  } finally {
-    dismissLaunchSplash();
+    console.error("[MSSP] Failed to finish deferred launch bootstrap.", error);
   }
 
   const sharedEpisodeKey = readSharedEpisodeKey();

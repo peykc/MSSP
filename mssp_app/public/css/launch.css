@@ -1343,7 +1343,18 @@ p {
 }
 
 .launch-footer__icon--heart {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
   color: var(--paytch);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.launch-footer__icon--heart:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 4px;
 }
 
 .launch-footer__icon--shield,
@@ -1435,6 +1446,15 @@ p {
 
 .dawgs-online--visitors {
   color: #e3d9c3;
+}
+
+/* Desktop: keep dawgs-online inline with the meta row; peaks chart does not exist. */
+.launch-footer__presence {
+  display: contents;
+}
+
+.dawgs-peaks {
+  display: none !important;
 }
 
 .dawgs-online__icon {
@@ -1571,10 +1591,100 @@ p {
     letter-spacing: 0.06em;
   }
 
-  .launch-footer__meta .dawgs-online {
+  .launch-footer__meta .launch-footer__presence {
+    display: flex;
     flex: 1 0 100%;
-    justify-content: center;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+    width: min(100%, 15rem);
     margin-top: 2px;
+  }
+
+  .launch-footer__meta .dawgs-online {
+    justify-content: center;
+  }
+
+  .dawgs-peaks {
+    display: grid !important;
+    grid-template-rows: 0fr;
+    width: 100%;
+    margin-top: 0;
+    opacity: 0;
+    transform: translateY(-4px);
+    transition:
+      grid-template-rows 280ms ease,
+      opacity 220ms ease,
+      transform 280ms ease,
+      margin-top 280ms ease;
+    pointer-events: none;
+  }
+
+  .dawgs-peaks[hidden] {
+    display: none !important;
+  }
+
+  .dawgs-peaks.is-open {
+    grid-template-rows: 1fr;
+    margin-top: 8px;
+    pointer-events: auto;
+  }
+
+  .dawgs-peaks.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .dawgs-peaks__meta,
+  .dawgs-peaks__chart {
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .dawgs-peaks__meta {
+    margin: 0 0 4px;
+    color: rgba(227, 217, 195, 0.62);
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 0.66rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-align: center;
+    text-transform: uppercase;
+  }
+
+  .dawgs-peaks__chart {
+    display: block;
+    width: 100%;
+    height: 72px;
+  }
+
+  .dawgs-peaks__area {
+    fill: rgba(235, 75, 75, 0.16);
+  }
+
+  .dawgs-peaks__line {
+    stroke: #eb4b4b;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .dawgs-peaks__dot {
+    fill: #eb4b4b;
+  }
+
+  .dawgs-peaks__label {
+    fill: rgba(227, 217, 195, 0.55);
+    font-family: "IBM Plex Sans", sans-serif;
+    font-size: 7.5px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dawgs-peaks {
+      transition: none;
+    }
   }
 
   @supports not (grid-template-rows: subgrid) {
