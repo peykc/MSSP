@@ -888,13 +888,13 @@ export function createGlobalSearch({
     if (!footerEl) return;
     if (activeMode === MODE_TRANSCRIPTS && coverageStats) {
       footerEl.hidden = false;
-      const withTx = coverageStats.episodesWithTranscripts ?? "?";
-      const total = coverageStats.episodesTotal ?? "?";
-      const base = `${withTx}/${total} episodes indexed`;
-      const loadingMore = hasMoreTranscriptCandidates() || transcriptLoadingMore;
-      footerEl.textContent = loadingMore && getReadyEpisodeSlotCount()
-        ? `${base} · loading matches…`
-        : base;
+      const withTx = coverageStats.episodesWithTranscripts;
+      const total = coverageStats.episodesTotal;
+      if (Number.isFinite(withTx) && Number.isFinite(total) && total > 0 && withTx === total) {
+        footerEl.textContent = "All episodes indexed";
+      } else {
+        footerEl.textContent = `${withTx ?? "?"}/${total ?? "?"} episodes indexed`;
+      }
       return;
     }
     footerEl.hidden = true;

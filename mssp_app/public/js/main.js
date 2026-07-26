@@ -1,7 +1,7 @@
 import { createArchiveStatsView } from "./archiveStats.js";
 import { createCalendarModal } from "./calendarModal.js";
 import { createFullCalendarModal } from "./fullCalendarModal.js?v=scroll-bottom-b";
-import { createGlobalSearch } from "./globalSearch.js?v=hydrate-ready-a";
+import { createGlobalSearch } from "./globalSearch.js?v=index-footer-a";
 import { createSealedStoneModal } from "./sealedStoneModal.js";
 import { createCollectionsView } from "./collectionsView.js?v=cal-preview-b";
 import { getCommunityClientId } from "./community/communityIdentity.js";
