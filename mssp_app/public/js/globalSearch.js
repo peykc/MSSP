@@ -4,8 +4,9 @@ import {
   parseSearchQuery,
   episodeMatchesSearchQuery,
 } from "./player/transcriptSearch.js?v=search-ops-a";
-import { buildTranscriptTimeline } from "./player/transcriptView.js";
+import { buildTranscriptTimeline } from "./player/transcriptView.js?v=share-moment-h";
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
+import { bindShareMoment } from "./shareMoment.js?v=share-moment-h";
 import { debounce, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
 
 const SEARCH_DEBOUNCE_MS = 250;
@@ -502,16 +503,45 @@ export function createGlobalSearch({
     for (const match of slot.matches) {
       const startTime = slot.timeline[match.entryIndex].words[match.wordIndex].startTime;
       const episode = getEpisodeByKey(slot.episodeKey);
-      const hit = createResultButton(
-        () => onPlayEpisodeAtTime(episode, Math.max(0, startTime - PLAY_PRE_ROLL_SECONDS), {
-          timeline: slot.timeline,
-          openTranscript: true,
-        }),
-        "launch-search__result launch-search__hit",
-      );
-      hit.append(createSnippet(slot.timeline, match));
+      const hit = createHitRow(episode, startTime, slot.timeline, match);
       group.append(hit);
     }
+  }
+
+  function createHitRow(episode, startTime, timeline, match) {
+    const hit = document.createElement("div");
+    hit.className = "launch-search__result launch-search__hit";
+    hit.id = `globalSearchOption-${optionCounter}-${queryToken}`;
+    optionCounter += 1;
+    hit.setAttribute("role", "option");
+    hit.tabIndex = -1;
+
+    const activate = () => {
+      close();
+      onPlayEpisodeAtTime(episode, Math.max(0, startTime - PLAY_PRE_ROLL_SECONDS), {
+        timeline,
+        openTranscript: true,
+      });
+    };
+
+    hit.addEventListener("click", (event) => {
+      if (event.target.closest(".share-moment__button")) return;
+      activate();
+    });
+    hit.addEventListener("keydown", (event) => {
+      if (event.target.closest(".share-moment__button")) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      activate();
+    });
+
+    hit.append(createSnippet(timeline, match));
+    bindShareMoment(hit, {
+      getEpisode: () => episode,
+      getShareTime: () => startTime,
+      variant: "search",
+    });
+    return hit;
   }
 
   function syncCollapsedMatchSummary(group, slot) {

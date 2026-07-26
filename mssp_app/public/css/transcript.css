@@ -160,6 +160,8 @@
   border-radius: 8px;
   transition: color 180ms ease, font-weight 280ms cubic-bezier(0.22, 0.72, 0, 1);
   -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .transcript-passage.is-active {

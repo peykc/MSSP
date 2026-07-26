@@ -11,8 +11,8 @@ import {
 import { createViewProgress } from "./community/viewProgress.js";
 import { dom } from "./dom.js?v=peaks-secret-a";
 import { createEpisodeDetails } from "./episodeDetails.js?v=poll-cut-a";
-import { createEpisodeList } from "./episodeList.js?v=poll-cut-a";
-import { EPISODE_SHARE_PARAM } from "./episodeRow.js?v=poll-cut-a";
+import { createEpisodeList } from "./episodeList.js?v=share-moment-a";
+import { EPISODE_SHARE_PARAM, EPISODE_SHARE_TIME_PARAM } from "./episodeRow.js?v=share-moment-a";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js?v=mini-scroll-a";
@@ -21,7 +21,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js?v=splash-ready-a";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=ambient-stamp-c";
+import { createPlayerView } from "./player/playerView.js?v=share-moment-h";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=splash-ready-a";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=splash-failsafe-a";
@@ -36,10 +36,26 @@ function readSharedEpisodeKey() {
   return new URLSearchParams(window.location.search).get(EPISODE_SHARE_PARAM)?.trim() || "";
 }
 
-function clearSharedEpisodeParam() {
+function readSharedEpisodeTime() {
+  const raw = new URLSearchParams(window.location.search).get(EPISODE_SHARE_TIME_PARAM)?.trim() || "";
+  if (!raw) return null;
+  const seconds = Number(raw);
+  if (!Number.isFinite(seconds) || seconds < 0) return null;
+  return Math.floor(seconds);
+}
+
+function clearSharedEpisodeParams() {
   const url = new URL(window.location.href);
-  if (!url.searchParams.has(EPISODE_SHARE_PARAM)) return;
-  url.searchParams.delete(EPISODE_SHARE_PARAM);
+  let changed = false;
+  if (url.searchParams.has(EPISODE_SHARE_PARAM)) {
+    url.searchParams.delete(EPISODE_SHARE_PARAM);
+    changed = true;
+  }
+  if (url.searchParams.has(EPISODE_SHARE_TIME_PARAM)) {
+    url.searchParams.delete(EPISODE_SHARE_TIME_PARAM);
+    changed = true;
+  }
+  if (!changed) return;
   const next = `${url.pathname}${url.search}${url.hash}`;
   window.history.replaceState({}, "", next);
 }
@@ -261,11 +277,18 @@ async function init() {
       playerView.primeTranscript(episode.episodeKey, options.timeline);
     }
 
+    const playbackIntent = options.playbackIntent !== false;
+    const openRequest = playbackIntent ? requestPlay : requestSelect;
     const snapshot = playerState.getState();
     const alreadyLoaded = snapshot.selectedEpisode?.episodeKey === episode.episodeKey && snapshot.duration > 0;
     if (alreadyLoaded) {
       audioController.seek(seconds);
-      await requestPlay(episode);
+      if (playbackIntent) {
+        await requestPlay(episode);
+      } else {
+        audioController.pause();
+        await requestSelect(episode);
+      }
       if (options.openTranscript) playerView.openTranscript();
       return;
     }
@@ -290,7 +313,7 @@ async function init() {
         }
       });
     }
-    await requestPlay(episode);
+    await openRequest(episode);
     if (options.openTranscript) playerView.openTranscript();
   }
 
@@ -543,7 +566,7 @@ async function init() {
   let episodesByKey = null;
   let globalSearchPromise = null;
   function ensureGlobalSearch() {
-    globalSearchPromise ||= import("./globalSearch.js?v=index-bust-a").then(({ createGlobalSearch }) => {
+    globalSearchPromise ||= import("./globalSearch.js?v=share-moment-h").then(({ createGlobalSearch }) => {
       createGlobalSearch({
         dom,
         searchEpisodes: (query) => apiClient.getEpisodes({ collection: "anthology", query }),
@@ -669,12 +692,20 @@ async function init() {
   }
 
   const sharedEpisodeKey = readSharedEpisodeKey();
+  const sharedEpisodeTime = readSharedEpisodeTime();
   if (sharedEpisodeKey) {
-    clearSharedEpisodeParam();
+    clearSharedEpisodeParams();
     const sharedEpisode = archiveEpisodes.find((episode) => episode.episodeKey === sharedEpisodeKey);
     if (sharedEpisode) {
       try {
-        await libraryView.openEpisode(sharedEpisode);
+        if (sharedEpisodeTime != null) {
+          await playEpisodeAtTime(sharedEpisode, sharedEpisodeTime, {
+            openTranscript: true,
+            playbackIntent: false,
+          });
+        } else {
+          await libraryView.openEpisode(sharedEpisode);
+        }
       } catch (error) {
         console.warn("[MSSP] Could not open shared episode.", error);
       }

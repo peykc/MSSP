@@ -1,3 +1,5 @@
+import { bindShareMoment } from "../shareMoment.js?v=share-moment-h";
+
 const SILENCE_THRESHOLD_SECONDS = 3;
 const SPOKEN_HOLD_SECONDS = 0.5;
 const OVERSCAN = 15;
@@ -37,6 +39,7 @@ export function createTranscriptView({
   let onBeforeApplyTranscript = initialBeforeApplyTranscript;
   const cache = new Map();
   let selectedEpisodeKey = "";
+  let selectedEpisode = null;
   let loadToken = 0;
   let availability = AVAILABILITY.IDLE;
   let timeline = [];
@@ -137,9 +140,13 @@ export function createTranscriptView({
 
   function setSelectedEpisode(episode) {
     const episodeKey = episode?.episodeKey || "";
-    if (episodeKey === selectedEpisodeKey) return;
+    if (episodeKey === selectedEpisodeKey) {
+      selectedEpisode = episode || selectedEpisode;
+      return;
+    }
 
     selectedEpisodeKey = episodeKey;
+    selectedEpisode = episode || null;
     loadToken += 1;
     resetTranscript();
 
@@ -1050,7 +1057,7 @@ export function createTranscriptView({
   }
 
   function createSegmentNode(entry, index, previousSegment) {
-    const button = document.createElement("button");
+    const button = document.createElement("div");
     button.className = "transcript-passage";
     if (
       previousSegment?.type === "segment"
@@ -1060,7 +1067,8 @@ export function createTranscriptView({
     ) {
       button.classList.add("transcript-passage--speaker-change");
     }
-    button.type = "button";
+    button.setAttribute("role", "button");
+    button.tabIndex = 0;
     button.dataset.timelineIndex = String(index);
     button.setAttribute("aria-label", `Seek to ${formatTime(entry.startTime)}. ${entry.body}`);
 
@@ -1090,10 +1098,27 @@ export function createTranscriptView({
       button.append(debug);
     }
 
-    button.addEventListener("click", () => {
+    const seekToPassage = () => {
       resumeFollowing();
       const seekTime = audioController.seek(entry.startTime);
       if (seekTime !== null) update(seekTime, { forceCenter: true, instant: false });
+    };
+
+    button.addEventListener("click", (event) => {
+      if (event.target.closest(".share-moment__button")) return;
+      seekToPassage();
+    });
+    button.addEventListener("keydown", (event) => {
+      if (event.target.closest(".share-moment__button")) return;
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      seekToPassage();
+    });
+
+    bindShareMoment(button, {
+      getEpisode: () => selectedEpisode,
+      getShareTime: () => entry.startTime,
+      variant: "transcript",
     });
 
     return { element: button, wordNodes, dots: [] };

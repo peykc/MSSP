@@ -1,0 +1,102 @@
+.share-moment-host {
+  -webkit-touch-callout: none;
+}
+
+/* Search hits need a positioning context; transcript passages are already absolute. */
+.share-moment-host--search {
+  position: relative;
+}
+
+.share-moment__overlay {
+  position: absolute;
+  z-index: 2;
+  display: none;
+  align-items: center;
+  pointer-events: none;
+  background: transparent;
+}
+
+.share-moment__button {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  color: var(--text, #f8f2ec);
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  pointer-events: auto;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.share-moment__button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.share-moment__button:focus-visible {
+  outline: 1px solid rgba(248, 242, 236, 0.58);
+  outline-offset: 2px;
+}
+
+/* Trailing share control only — no painted gradient scrim. */
+.share-moment__overlay--search,
+.share-moment__overlay--transcript {
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: auto;
+  width: 36px;
+  justify-content: flex-end;
+  padding-right: 2px;
+}
+
+.share-moment__overlay--transcript {
+  bottom: var(--transcript-row-gap, 0px);
+}
+
+.share-moment__overlay--search .share-moment__button,
+.share-moment__overlay--transcript .share-moment__button {
+  color: rgba(248, 242, 236, 0.92);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  /* Hover only — never stick after click/focus. */
+  .share-moment-host--transcript:hover > .share-moment__overlay,
+  .share-moment-host--search:hover > .share-moment__overlay {
+    display: flex;
+  }
+
+  /*
+   * Short trailing mask: full strength until near the button, then a short
+   * ramp to 80% masked (20% content) under the control.
+   * Transcript: only on active rows (inactive are scale-shrunk).
+   */
+  .share-moment-host--transcript.is-active:hover > .transcript-passage__scale,
+  .share-moment-host--search:hover > .launch-search__snippet {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 calc(100% - 56px),
+      rgba(0, 0, 0, 0.2) calc(100% - 30px),
+      rgba(0, 0, 0, 0.2) 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      #000 0%,
+      #000 calc(100% - 56px),
+      rgba(0, 0, 0, 0.2) calc(100% - 30px),
+      rgba(0, 0, 0, 0.2) 100%
+    );
+  }
+
+  .share-moment-host--search .share-moment__button:hover,
+  .share-moment-host--transcript .share-moment__button:hover {
+    background: rgba(12, 11, 11, 0.28);
+  }
+}

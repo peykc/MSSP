@@ -47,7 +47,7 @@ const UNMARK_LISTENED_ICON = `
   </svg>
 `;
 
-const SHARE_ICON = `
+export const SHARE_ICON = `
   <svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
     <polyline points="8 6 12 2 16 6"></polyline>
     <line x1="12" y1="2" x2="12" y2="15"></line>
@@ -56,19 +56,43 @@ const SHARE_ICON = `
 `;
 
 export const EPISODE_SHARE_PARAM = "episode";
+export const EPISODE_SHARE_TIME_PARAM = "t";
 
-function buildShareText(episode) {
-  const label = formatEpisodeLabel(episode);
-  const title = episode.title || "Untitled episode";
-  return `${label} — ${title}`;
+export function formatShareTimestamp(seconds) {
+  const total = Math.max(0, Math.floor(Number(seconds) || 0));
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+  const mm = String(minutes).padStart(hours ? 2 : 1, "0");
+  const ss = String(secs).padStart(2, "0");
+  return hours ? `${hours}:${mm}:${ss}` : `${mm}:${ss}`;
 }
 
-export function buildEpisodeShareUrl(episode) {
+function normalizeShareTime(t) {
+  const seconds = Number(t);
+  if (!Number.isFinite(seconds) || seconds < 0) return null;
+  return Math.floor(seconds);
+}
+
+function buildShareText(episode, { t } = {}) {
+  const label = formatEpisodeLabel(episode);
+  const title = episode.title || "Untitled episode";
+  const base = `${label} — ${title}`;
+  const seconds = normalizeShareTime(t);
+  if (seconds == null) return base;
+  return `${base} @ ${formatShareTimestamp(seconds)}`;
+}
+
+export function buildEpisodeShareUrl(episode, { t } = {}) {
   const url = new URL(window.location.href);
   url.search = "";
   url.hash = "";
   if (episode?.episodeKey) {
     url.searchParams.set(EPISODE_SHARE_PARAM, episode.episodeKey);
+  }
+  const seconds = normalizeShareTime(t);
+  if (seconds != null) {
+    url.searchParams.set(EPISODE_SHARE_TIME_PARAM, String(seconds));
   }
   return url.toString();
 }
@@ -444,9 +468,9 @@ export function createEpisodeRowMenuManager({ scrollRoot } = {}) {
   return { closeEpisodeMenu, openEpisodeMenu, isMenuOpen, getOpenMenuRoot };
 }
 
-export async function shareEpisode(episode) {
-  const text = buildShareText(episode);
-  const url = buildEpisodeShareUrl(episode);
+export async function shareEpisode(episode, { t } = {}) {
+  const text = buildShareText(episode, { t });
+  const url = buildEpisodeShareUrl(episode, { t });
   const shareData = {
     title: text,
     text,

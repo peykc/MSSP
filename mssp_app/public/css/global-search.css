@@ -356,7 +356,10 @@
 }
 
 .launch-search__hit {
+  position: relative;
   padding: 6px 14px;
+  box-sizing: border-box;
+  font: inherit;
 }
 
 .launch-search__episode-row {
