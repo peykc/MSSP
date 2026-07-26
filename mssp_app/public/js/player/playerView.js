@@ -1,7 +1,7 @@
 import { PLAYBACK_STATUSES } from "./playerState.js";
 import { SOURCE_STATUSES } from "./sourceStatus.js";
 import { createCoverAmbient } from "./coverAmbient.js?v=ambient-stamp-c";
-import { createTranscriptView } from "./transcriptView.js?v=share-moment-h";
+import { createTranscriptView } from "./transcriptView.js?v=share-moment-i";
 import { createTranscriptSearch } from "./transcriptSearch.js?v=search-ops-a";
 import { formatPlayerDate } from "../utils.js";
 import { formatViewSignal, VIEW_EYE_ICON, VIEW_PENDING_MARK } from "../community/communitySignals.js?v=poll-cut-a";

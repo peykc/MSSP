@@ -360,6 +360,9 @@
   padding: 6px 14px;
   box-sizing: border-box;
   font: inherit;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .launch-search__episode-row {
@@ -499,6 +502,13 @@
   --kind-accent: #7fc1ad;
 }
 
+.launch-search__snippet,
+.launch-search__snippet-text {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
 .launch-search__timestamp {
   flex: none;
   padding: 2px 7px;
@@ -508,6 +518,9 @@
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid var(--line);
   border-radius: 6px;
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 .launch-search__status {

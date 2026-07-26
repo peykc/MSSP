@@ -128,12 +128,20 @@ export function bindShareMoment(host, {
     }
   }
 
+  function onSelectStart(event) {
+    // Block hold-to-select so long-press share isn't fighting native selection.
+    if (!isFineHoverPointer()) {
+      event.preventDefault();
+    }
+  }
+
   host.addEventListener("pointerdown", onPointerDown);
   host.addEventListener("pointermove", onPointerMove);
   host.addEventListener("pointerup", onPointerUp);
   host.addEventListener("pointercancel", onPointerUp);
   host.addEventListener("click", onClickCapture, true);
   host.addEventListener("contextmenu", onContextMenu);
+  host.addEventListener("selectstart", onSelectStart);
   button.addEventListener("mousedown", onShareMouseDown);
 
   return () => {
@@ -144,6 +152,7 @@ export function bindShareMoment(host, {
     host.removeEventListener("pointercancel", onPointerUp);
     host.removeEventListener("click", onClickCapture, true);
     host.removeEventListener("contextmenu", onContextMenu);
+    host.removeEventListener("selectstart", onSelectStart);
     button.removeEventListener("mousedown", onShareMouseDown);
     overlay.remove();
     host.classList.remove("share-moment-host", `share-moment-host--${variant}`);

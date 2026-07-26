@@ -21,7 +21,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js?v=splash-ready-a";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=share-moment-h";
+import { createPlayerView } from "./player/playerView.js?v=share-moment-i";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=splash-ready-a";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=splash-failsafe-a";
@@ -566,7 +566,7 @@ async function init() {
   let episodesByKey = null;
   let globalSearchPromise = null;
   function ensureGlobalSearch() {
-    globalSearchPromise ||= import("./globalSearch.js?v=share-moment-h").then(({ createGlobalSearch }) => {
+    globalSearchPromise ||= import("./globalSearch.js?v=share-moment-i").then(({ createGlobalSearch }) => {
       createGlobalSearch({
         dom,
         searchEpisodes: (query) => apiClient.getEpisodes({ collection: "anthology", query }),

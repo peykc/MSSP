@@ -1,5 +1,7 @@
 .share-moment-host {
   -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
 }
 
 /* Search hits need a positioning context; transcript passages are already absolute. */

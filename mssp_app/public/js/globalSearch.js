@@ -4,9 +4,9 @@ import {
   parseSearchQuery,
   episodeMatchesSearchQuery,
 } from "./player/transcriptSearch.js?v=search-ops-a";
-import { buildTranscriptTimeline } from "./player/transcriptView.js?v=share-moment-h";
+import { buildTranscriptTimeline } from "./player/transcriptView.js?v=share-moment-i";
 import { SOURCE_STATUSES } from "./player/sourceStatus.js";
-import { bindShareMoment } from "./shareMoment.js?v=share-moment-h";
+import { bindShareMoment } from "./shareMoment.js?v=share-moment-i";
 import { debounce, formatEpisodeLabel, formatPlayerDate } from "./utils.js";
 
 const SEARCH_DEBOUNCE_MS = 250;
