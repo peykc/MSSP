@@ -1,4 +1,4 @@
-const RELEASE_ID = "v420";
+const RELEASE_ID = "v421";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -30,7 +30,7 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=hydrate-ready-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=index-footer-a",
+  "./js/main.js?v=index-bust-a",
   "./js/a2hsModal.js?v=a2hs-e",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
@@ -48,7 +48,7 @@ const SHELL_PATHS = [
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js?v=scroll-bottom-b",
-  "./js/globalSearch.js?v=index-footer-a",
+  "./js/globalSearch.js?v=index-bust-a",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js?v=mini-scroll-a",

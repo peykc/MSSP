@@ -179,6 +179,7 @@ export function createGlobalSearch({
 }) {
   let queryToken = 0;
   let manifestPromise = null;
+  let indexGeneration = null;
   let activeIndex = -1;
   let activeMode = MODE_EPISODES;
   let sortMode = SORT_RELEVANCE;
@@ -206,14 +207,22 @@ export function createGlobalSearch({
   let footerEl = null;
 
   function fetchJson(url) {
-    return fetch(url).then((response) => {
+    // no-store: index shards must not stick after a bad partial R2 upload.
+    return fetch(url, { cache: "no-store" }).then((response) => {
       if (!response.ok) throw new Error(`Request failed: ${response.status}`);
       return response.json();
     });
   }
 
   function getManifest() {
-    manifestPromise ||= fetchJson(`${getIndexBaseUrl()}/manifest.json`).catch((error) => {
+    manifestPromise ||= fetchJson(`${getIndexBaseUrl()}/manifest.json`).then((manifest) => {
+      const generation = manifest.generatedAt || "";
+      if (generation !== indexGeneration) {
+        indexGeneration = generation;
+        shardCache.clear();
+      }
+      return manifest;
+    }).catch((error) => {
       manifestPromise = null;
       throw error;
     });
@@ -221,14 +230,17 @@ export function createGlobalSearch({
   }
 
   function getShard(fileName) {
-    if (!shardCache.has(fileName)) {
-      const request = fetchJson(`${getIndexBaseUrl()}/${fileName}`).catch((error) => {
-        shardCache.delete(fileName);
+    const generation = indexGeneration || "";
+    const cacheKey = `${generation}::${fileName}`;
+    if (!shardCache.has(cacheKey)) {
+      const version = generation ? `?v=${encodeURIComponent(generation)}` : "";
+      const request = fetchJson(`${getIndexBaseUrl()}/${fileName}${version}`).catch((error) => {
+        shardCache.delete(cacheKey);
         throw error;
       });
-      shardCache.set(fileName, request);
+      shardCache.set(cacheKey, request);
     }
-    return shardCache.get(fileName);
+    return shardCache.get(cacheKey);
   }
 
   function getTimeline(episodeKey) {
@@ -1125,6 +1137,9 @@ export function createGlobalSearch({
     transcriptStatus = "loading";
     transcriptLoadingMore = false;
     coverageStats = null;
+    // Drop memoized index so a newly uploaded manifest/shards are picked up
+    // without requiring a full tab restart.
+    manifestPromise = null;
     collapsedEpisodeKeys.clear();
     renderedTranscriptKeys.clear();
     optionCounter = 0;
