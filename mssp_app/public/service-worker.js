@@ -1,4 +1,4 @@
-const RELEASE_ID = "v435";
+const RELEASE_ID = "v436";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -31,7 +31,7 @@ const SHELL_PATHS = [
   "./css/global-search.css?v=share-moment-i",
   "./css/share-moment.css?v=share-moment-i",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=share-moment-i",
+  "./js/main.js?v=share-short-a",
   "./js/a2hsModal.js?v=splash-ready-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
@@ -46,13 +46,13 @@ const SHELL_PATHS = [
   "./js/collectionsView.js?v=splash-ready-a",
   "./js/dom.js?v=peaks-secret-a",
   "./js/episodeDetails.js?v=poll-cut-a",
-  "./js/episodeRow.js?v=share-moment-a",
-  "./js/episodeList.js?v=share-moment-a",
+  "./js/episodeRow.js?v=share-short-a",
+  "./js/episodeList.js?v=share-short-a",
   "./js/filters.js",
   "./js/favoritesStore.js",
   "./js/fullCalendarModal.js?v=scroll-bottom-b",
-  "./js/globalSearch.js?v=share-moment-i",
-  "./js/shareMoment.js?v=share-moment-i",
+  "./js/globalSearch.js?v=share-short-a",
+  "./js/shareMoment.js?v=share-short-a",
   "./js/sealedStoneModal.js",
   "./js/statsPageView.js",
   "./js/libraryView.js?v=mini-scroll-a",
@@ -61,9 +61,9 @@ const SHELL_PATHS = [
   "./js/player/coverAmbient.js?v=ambient-stamp-c",
   "./js/player/mediaSessionController.js",
   "./js/player/playerState.js",
-  "./js/player/playerView.js?v=share-moment-i",
+  "./js/player/playerView.js?v=share-short-a",
   "./js/player/sourceStatus.js",
-  "./js/player/transcriptView.js?v=share-moment-i",
+  "./js/player/transcriptView.js?v=share-short-a",
   "./js/player/transcriptSearch.js?v=search-ops-a",
   "./js/pwa.js?v=splash-failsafe-a",
   "./js/search.js",

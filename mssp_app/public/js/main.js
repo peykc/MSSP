@@ -11,8 +11,15 @@ import {
 import { createViewProgress } from "./community/viewProgress.js";
 import { dom } from "./dom.js?v=peaks-secret-a";
 import { createEpisodeDetails } from "./episodeDetails.js?v=poll-cut-a";
-import { createEpisodeList } from "./episodeList.js?v=share-moment-a";
-import { EPISODE_SHARE_PARAM, EPISODE_SHARE_TIME_PARAM } from "./episodeRow.js?v=share-moment-a";
+import { createEpisodeList } from "./episodeList.js?v=share-short-a";
+import {
+  EPISODE_SHARE_PARAM,
+  EPISODE_SHARE_SHORT_PARAM,
+  EPISODE_SHARE_TIME_PARAM,
+  resolveEpisodeByShortCode,
+  setEpisodeShareCatalog,
+  setEpisodeShareTimeResolver,
+} from "./episodeRow.js?v=share-short-a";
 import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js?v=mini-scroll-a";
@@ -21,7 +28,7 @@ import { createMediaSessionController } from "./player/mediaSessionController.js
 import { createPatreonRssModal } from "./patreonRssModal.js?v=splash-ready-a";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
-import { createPlayerView } from "./player/playerView.js?v=share-moment-i";
+import { createPlayerView } from "./player/playerView.js?v=share-short-a";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=splash-ready-a";
 import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=splash-failsafe-a";
@@ -31,6 +38,10 @@ import { createPatreonRssSources } from "./sources/patreonRssSources.js?v=dirty-
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js?v=search-no-tip-a";
 import { dismissLaunchSplash } from "./launchSplash.js";
+
+function readSharedEpisodeShortCode() {
+  return new URLSearchParams(window.location.search).get(EPISODE_SHARE_SHORT_PARAM)?.trim() || "";
+}
 
 function readSharedEpisodeKey() {
   return new URLSearchParams(window.location.search).get(EPISODE_SHARE_PARAM)?.trim() || "";
@@ -47,13 +58,11 @@ function readSharedEpisodeTime() {
 function clearSharedEpisodeParams() {
   const url = new URL(window.location.href);
   let changed = false;
-  if (url.searchParams.has(EPISODE_SHARE_PARAM)) {
-    url.searchParams.delete(EPISODE_SHARE_PARAM);
-    changed = true;
-  }
-  if (url.searchParams.has(EPISODE_SHARE_TIME_PARAM)) {
-    url.searchParams.delete(EPISODE_SHARE_TIME_PARAM);
-    changed = true;
+  for (const key of [EPISODE_SHARE_SHORT_PARAM, EPISODE_SHARE_PARAM, EPISODE_SHARE_TIME_PARAM]) {
+    if (url.searchParams.has(key)) {
+      url.searchParams.delete(key);
+      changed = true;
+    }
   }
   if (!changed) return;
   const next = `${url.pathname}${url.search}${url.hash}`;
@@ -426,6 +435,18 @@ async function init() {
     }),
   });
   createMediaSessionController({ playerState, audioController });
+  let inboundShareAnchor = null;
+  setEpisodeShareTimeResolver((episode) => {
+    const snapshot = playerState.getState();
+    const selectedKey = snapshot.selectedEpisode?.episodeKey || "";
+    if (!episode?.episodeKey || selectedKey !== episode.episodeKey) return null;
+    const live = Number(audioController.getCurrentTime?.() ?? snapshot.currentTime) || 0;
+    if (live > 0) return live;
+    if (inboundShareAnchor?.episodeKey === episode.episodeKey) {
+      return inboundShareAnchor.t;
+    }
+    return null;
+  });
   const playerView = createPlayerView({
     dom,
     playerState,
@@ -566,7 +587,7 @@ async function init() {
   let episodesByKey = null;
   let globalSearchPromise = null;
   function ensureGlobalSearch() {
-    globalSearchPromise ||= import("./globalSearch.js?v=share-moment-i").then(({ createGlobalSearch }) => {
+    globalSearchPromise ||= import("./globalSearch.js?v=share-short-a").then(({ createGlobalSearch }) => {
       createGlobalSearch({
         dom,
         searchEpisodes: (query) => apiClient.getEpisodes({ collection: "anthology", query }),
@@ -668,6 +689,7 @@ async function init() {
 
     if (archiveResult.value) {
       archiveEpisodes = archiveResult.value.episodes || [];
+      setEpisodeShareCatalog(archiveEpisodes);
       communitySignals.setKnownEpisodeKeys(archiveEpisodes.map((episode) => episode.episodeKey));
       favoritesStore.retain(new Set(archiveEpisodes.map((episode) => episode.episodeKey)));
       archiveStatsView.setEpisodes(archiveEpisodes);
@@ -691,26 +713,34 @@ async function init() {
     console.error("[MSSP] Failed to finish deferred launch bootstrap.", error);
   }
 
+  const sharedEpisodeShortCode = readSharedEpisodeShortCode();
   const sharedEpisodeKey = readSharedEpisodeKey();
   const sharedEpisodeTime = readSharedEpisodeTime();
-  if (sharedEpisodeKey) {
+  if (sharedEpisodeShortCode || sharedEpisodeKey) {
     clearSharedEpisodeParams();
-    const sharedEpisode = archiveEpisodes.find((episode) => episode.episodeKey === sharedEpisodeKey);
+    const sharedEpisode = sharedEpisodeShortCode
+      ? resolveEpisodeByShortCode(sharedEpisodeShortCode, archiveEpisodes)
+      : archiveEpisodes.find((episode) => episode.episodeKey === sharedEpisodeKey);
     if (sharedEpisode) {
       try {
         if (sharedEpisodeTime != null) {
+          inboundShareAnchor = { episodeKey: sharedEpisode.episodeKey, t: sharedEpisodeTime };
           await playEpisodeAtTime(sharedEpisode, sharedEpisodeTime, {
             openTranscript: true,
             playbackIntent: false,
           });
         } else {
+          inboundShareAnchor = null;
           await libraryView.openEpisode(sharedEpisode);
         }
       } catch (error) {
         console.warn("[MSSP] Could not open shared episode.", error);
       }
     } else {
-      console.warn("[MSSP] Shared episode not found.", sharedEpisodeKey);
+      console.warn(
+        "[MSSP] Shared episode not found.",
+        sharedEpisodeShortCode || sharedEpisodeKey,
+      );
     }
   }
 }

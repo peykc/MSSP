@@ -1,4 +1,4 @@
-import { bindShareMoment } from "../shareMoment.js?v=share-moment-i";
+import { bindShareMoment } from "../shareMoment.js?v=share-short-a";
 
 const SILENCE_THRESHOLD_SECONDS = 3;
 const SPOKEN_HOLD_SECONDS = 0.5;

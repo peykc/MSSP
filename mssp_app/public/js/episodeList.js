@@ -5,7 +5,7 @@ import {
   updateEpisodeRowMarquee,
   updateEpisodeRowPlayButton,
   updateEpisodeRowSignals,
-} from "./episodeRow.js?v=share-moment-a";
+} from "./episodeRow.js?v=share-short-a";
 
 const OVERSCAN = 8;
 

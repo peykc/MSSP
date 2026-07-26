@@ -1,4 +1,4 @@
-import { SHARE_ICON, shareEpisode } from "./episodeRow.js?v=share-moment-a";
+import { SHARE_ICON, shareEpisode } from "./episodeRow.js?v=share-short-a";
 
 const LONG_PRESS_MS = 450;
 const MOVE_CANCEL_PX = 8;

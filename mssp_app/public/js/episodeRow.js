@@ -56,7 +56,17 @@ export const SHARE_ICON = `
 `;
 
 export const EPISODE_SHARE_PARAM = "episode";
+export const EPISODE_SHARE_SHORT_PARAM = "e";
 export const EPISODE_SHARE_TIME_PARAM = "t";
+
+const COLL_TO_CODE = Object.freeze({ MSSPOT: "ot", MSSP: "nt" });
+const CODE_TO_COLL = Object.freeze({ ot: "MSSPOT", nt: "MSSP" });
+const NUMBERED_SHORT_RE = /^(ot|nt)-(\d+(?:\.\d+)?)(?:-(p))?$/i;
+const EX_SHORT_BODY_RE = /^(ot|nt)-ex-(\d{8})(?:-([b-z]))?$/i;
+
+const shortCodeByKey = new Map();
+const episodeByShortCode = new Map();
+let shareTimeResolver = null;
 
 export function formatShareTimestamp(seconds) {
   const total = Math.max(0, Math.floor(Number(seconds) || 0));
@@ -74,6 +84,138 @@ function normalizeShareTime(t) {
   return Math.floor(seconds);
 }
 
+function isPaytchEpisode(episode) {
+  return episode?.paytch === "PAYTCH" || episode?.collectionKind === "paytch";
+}
+
+function collectionCodeForEpisode(episode) {
+  return COLL_TO_CODE[episode?.type] || "";
+}
+
+function buildNumberedShortCode(episode) {
+  const coll = collectionCodeForEpisode(episode);
+  const number = String(episode?.episode ?? "");
+  if (!coll || !/^\d+(?:\.\d+)?$/.test(number)) return null;
+  return isPaytchEpisode(episode) ? `${coll}-${number}-p` : `${coll}-${number}`;
+}
+
+function buildExShortCode(episode, dayRank = 0) {
+  const coll = collectionCodeForEpisode(episode);
+  const date = String(episode?.date || "").replace(/-/g, "");
+  if (!coll || !/^\d{8}$/.test(date)) return null;
+  const parts = [coll, "ex", date];
+  if (dayRank > 0) {
+    parts.push(String.fromCharCode(98 + dayRank - 1)); // b, c, ...
+  }
+  if (isPaytchEpisode(episode)) parts.push("p");
+  return parts.join("-");
+}
+
+/** Index archive episodes for short share codes (`?e=`). Call after anthology load. */
+export function setEpisodeShareCatalog(episodes) {
+  shortCodeByKey.clear();
+  episodeByShortCode.clear();
+  const list = Array.isArray(episodes) ? episodes : [];
+  const exGroups = new Map();
+
+  for (const episode of list) {
+    if (!episode?.episodeKey) continue;
+    if (String(episode.episode || "").toUpperCase() === "EX") {
+      const groupKey = `${episode.type}|${episode.date}|${isPaytchEpisode(episode) ? 1 : 0}`;
+      const group = exGroups.get(groupKey);
+      if (group) group.push(episode);
+      else exGroups.set(groupKey, [episode]);
+      continue;
+    }
+    const code = buildNumberedShortCode(episode);
+    if (!code) continue;
+    shortCodeByKey.set(episode.episodeKey, code);
+    if (!episodeByShortCode.has(code)) episodeByShortCode.set(code, episode);
+  }
+
+  for (const group of exGroups.values()) {
+    group.sort((a, b) => {
+      const ai = Number(a.globalIndex) || 0;
+      const bi = Number(b.globalIndex) || 0;
+      if (ai !== bi) return ai - bi;
+      return String(a.episodeKey).localeCompare(String(b.episodeKey));
+    });
+    group.forEach((episode, index) => {
+      const code = buildExShortCode(episode, index);
+      if (!code) return;
+      shortCodeByKey.set(episode.episodeKey, code);
+      if (!episodeByShortCode.has(code)) episodeByShortCode.set(code, episode);
+    });
+  }
+}
+
+export function buildEpisodeShortCode(episode) {
+  if (!episode?.episodeKey) return null;
+  return shortCodeByKey.get(episode.episodeKey) || buildNumberedShortCode(episode) || (
+    String(episode.episode || "").toUpperCase() === "EX" ? buildExShortCode(episode, 0) : null
+  );
+}
+
+export function resolveEpisodeByShortCode(code, catalog = null) {
+  const normalized = String(code || "").trim().toLowerCase();
+  if (!normalized) return null;
+
+  const indexed = episodeByShortCode.get(normalized);
+  if (indexed) return indexed;
+
+  const list = Array.isArray(catalog) ? catalog : null;
+  if (!list?.length) return null;
+
+  const numbered = NUMBERED_SHORT_RE.exec(normalized);
+  if (numbered) {
+    const type = CODE_TO_COLL[numbered[1].toLowerCase()];
+    const episodeNumber = numbered[2];
+    const paytch = numbered[3]?.toLowerCase() === "p";
+    return list.find((episode) => (
+      episode.type === type
+      && String(episode.episode) === episodeNumber
+      && isPaytchEpisode(episode) === paytch
+    )) || null;
+  }
+
+  // Strip trailing -p first so it never collides with day-letter -b/-c.
+  let exBody = normalized;
+  let exPaytch = false;
+  if (exBody.endsWith("-p")) {
+    exPaytch = true;
+    exBody = exBody.slice(0, -2);
+  }
+  const ex = EX_SHORT_BODY_RE.exec(exBody);
+  if (ex) {
+    const type = CODE_TO_COLL[ex[1].toLowerCase()];
+    const yyyymmdd = ex[2];
+    const date = `${yyyymmdd.slice(0, 4)}-${yyyymmdd.slice(4, 6)}-${yyyymmdd.slice(6, 8)}`;
+    const dayLetter = (ex[3] || "").toLowerCase();
+    const dayRank = dayLetter ? dayLetter.charCodeAt(0) - 97 : 0; // b → 1
+    const peers = list
+      .filter((episode) => (
+        episode.type === type
+        && episode.date === date
+        && String(episode.episode || "").toUpperCase() === "EX"
+        && isPaytchEpisode(episode) === exPaytch
+      ))
+      .sort((a, b) => {
+        const ai = Number(a.globalIndex) || 0;
+        const bi = Number(b.globalIndex) || 0;
+        if (ai !== bi) return ai - bi;
+        return String(a.episodeKey).localeCompare(String(b.episodeKey));
+      });
+    return peers[dayRank] || null;
+  }
+
+  return null;
+}
+
+/** Optional `(episode) => seconds` used when share is invoked without an explicit `t`. */
+export function setEpisodeShareTimeResolver(resolver) {
+  shareTimeResolver = typeof resolver === "function" ? resolver : null;
+}
+
 function buildShareText(episode, { t } = {}) {
   const label = formatEpisodeLabel(episode);
   const title = episode.title || "Untitled episode";
@@ -87,7 +229,11 @@ export function buildEpisodeShareUrl(episode, { t } = {}) {
   const url = new URL(window.location.href);
   url.search = "";
   url.hash = "";
-  if (episode?.episodeKey) {
+  const shortCode = buildEpisodeShortCode(episode);
+  if (shortCode) {
+    url.searchParams.set(EPISODE_SHARE_SHORT_PARAM, shortCode);
+  } else if (episode?.episodeKey) {
+    // Permanent long-form failsafe if short-code can't be built.
     url.searchParams.set(EPISODE_SHARE_PARAM, episode.episodeKey);
   }
   const seconds = normalizeShareTime(t);
@@ -469,8 +615,16 @@ export function createEpisodeRowMenuManager({ scrollRoot } = {}) {
 }
 
 export async function shareEpisode(episode, { t } = {}) {
-  const text = buildShareText(episode, { t });
-  const url = buildEpisodeShareUrl(episode, { t });
+  let seconds = normalizeShareTime(t);
+  if (seconds == null && shareTimeResolver) {
+    try {
+      seconds = normalizeShareTime(shareTimeResolver(episode));
+    } catch {
+      seconds = null;
+    }
+  }
+  const text = buildShareText(episode, { t: seconds });
+  const url = buildEpisodeShareUrl(episode, { t: seconds });
   const shareData = {
     title: text,
     text,
