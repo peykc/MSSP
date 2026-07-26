@@ -383,7 +383,7 @@ p {
   display: block;
   min-width: 0;
   overflow: hidden;
-  padding: 14px 16px 20px;
+  padding: 14px 16px 0;
   color: #f0ebe3;
   background: #0f0f0f;
   border: 1px solid rgba(255, 255, 255, 0.055);
@@ -499,11 +499,12 @@ p {
 
 .collection-hero__open {
   display: flex;
-  width: 100%;
+  box-sizing: border-box;
+  width: calc(100% + 32px);
   align-items: center;
   justify-content: flex-start;
   gap: 14px;
-  margin-top: 22px;
+  margin: 22px -16px 0;
   padding: 18px 20px;
   color: #1c1a17;
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
@@ -514,8 +515,10 @@ p {
   cursor: pointer;
   background: linear-gradient(180deg, #e3dac9, #e3d3bb);
   border: 0;
-  border-radius: 10px;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 16px 34px -16px rgba(0, 0, 0, 0.6);
+  border-radius: 0;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
+    inset 0 1px 0 rgba(0, 0, 0, 0.08);
   transition: filter 180ms ease, transform 180ms ease;
 }
 
@@ -523,7 +526,6 @@ p {
 .collection-hero__open:focus-visible {
   filter: brightness(1.03);
   outline: none;
-  transform: translateY(-1px);
 }
 
 .collection-hero__open:focus-visible {
@@ -555,10 +557,10 @@ p {
   overflow: hidden;
   padding: 15px 16px 16px;
   color: #f0ebe3;
-  background: linear-gradient(180deg, #111 0%, #0a0908 100%);
-  border: 1px solid rgba(227, 217, 195, 0.14);
-  border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(227, 217, 195, 0.05), 0 24px 60px -40px rgba(0, 0, 0, 0.9);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .collection-hero__book-rule {
@@ -685,6 +687,7 @@ p {
     min-height: 0;
     column-gap: clamp(22px, 3vw, 38px);
     align-items: stretch;
+    padding-bottom: 20px;
   }
 
   .collection-hero__art {
@@ -732,7 +735,15 @@ p {
     grid-column: 2;
     grid-row: 2;
     align-self: end;
-    margin-top: 0;
+    width: 100%;
+    margin: 0;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), 0 16px 34px -16px rgba(0, 0, 0, 0.6);
+  }
+
+  .collection-hero__open:hover,
+  .collection-hero__open:focus-visible {
+    transform: translateY(-1px);
   }
 }
 
@@ -850,10 +861,10 @@ p {
   min-width: 0;
   padding: 14px 16px 16px;
   color: #f0ebe3;
-  background: linear-gradient(180deg, #111 0%, #0a0908 100%);
-  border: 1px solid rgba(227, 217, 195, 0.14);
-  border-radius: 16px;
-  box-shadow: inset 0 1px 0 rgba(227, 217, 195, 0.05), 0 24px 60px -40px rgba(0, 0, 0, 0.9);
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .explore-total__rule {
@@ -1943,6 +1954,8 @@ p {
 
   .collection-hero__open {
     gap: 10px;
+    width: calc(100% + 24px);
+    margin-inline: -12px;
     padding-inline: 15px;
     font-size: 16px;
   }
