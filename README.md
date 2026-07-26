@@ -37,3 +37,9 @@ The public player source map is intentionally split by collection:
 - `MSSPOT` / The Old Testament uses an archival R2 mirror.
 - `MSSP` / The New Testament uses the official public Megaphone RSS feed.
 - `PAYTCH` / The PAYTCH uses the official Patreon RSS feed; *playback requires your own private Patreon RSS feed.*
+
+## License
+
+Source code in this repository is licensed under the [GNU Affero General Public License v3.0](LICENSE) (AGPL-3.0).
+
+The license in `LICENSE` applies to source code only. Episode audio, artwork, titles, descriptions, and transcripts belong to their respective rights holders and are not licensed under it. Transcripts are machine-generated from publicly available audio for search and archival use.
