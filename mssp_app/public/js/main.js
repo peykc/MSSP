@@ -24,7 +24,7 @@ import { createCoverFilters } from "./filters.js";
 import { createFavoritesStore } from "./favoritesStore.js";
 import { createLibraryView } from "./libraryView.js?v=mini-scroll-a";
 import { createAudioController } from "./player/audioController.js?v=playback-speed-p";
-import { createMediaSessionController } from "./player/mediaSessionController.js";
+import { createMediaSessionController } from "./player/mediaSessionController.js?v=lock-play-a";
 import { createPatreonRssModal } from "./patreonRssModal.js?v=splash-ready-a";
 import { createPlaybackProgressStore } from "./player/playbackProgressStore.js";
 import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";

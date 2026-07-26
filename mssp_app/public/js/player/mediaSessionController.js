@@ -6,6 +6,7 @@ const DEFAULT_FORWARD_SECONDS = 30;
 export function createMediaSessionController({ playerState, audioController }) {
   if (!("mediaSession" in navigator)) return null;
   let metadataKey = null;
+  let lastPlaybackState = "none";
 
   registerAction("play", () => audioController.play());
   registerAction("pause", () => audioController.pause());
@@ -16,6 +17,26 @@ export function createMediaSessionController({ playerState, audioController }) {
   });
   clearAction("previoustrack");
   clearAction("nexttrack");
+
+  // iOS Now Playing can latch the first paused glyph; re-assert playing when the
+  // screen turns off so the lock-screen control matches real audio.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "hidden") return;
+    const state = playerState.getState();
+    if (!state.selectedEpisode || !state.source?.url) return;
+    if (resolveMediaPlaybackState(state) !== "playing") return;
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({
+        title: getMediaTitle(state.selectedEpisode),
+        artist: state.selectedEpisode.type || "",
+        album: getAlbum(state.selectedEpisode),
+        artwork: getArtwork(state.selectedEpisode),
+      });
+    } catch {
+      // Metadata refresh is best-effort.
+    }
+    applyPlaybackState("playing");
+  });
 
   return playerState.subscribe(syncMediaSession);
 
@@ -29,8 +50,12 @@ export function createMediaSessionController({ playerState, audioController }) {
       state.selectedEpisode.episodeKey,
       state.selectedEpisode.coverKind || state.selectedEpisode.collectionKind || "anthology",
     ].join("|");
+    const nextPlaybackState = resolveMediaPlaybackState(state);
+    const metadataChanged = metadataKey !== nextMetadataKey;
+    // Re-bind metadata when entering playing so iOS doesn't keep a pre-play "paused" glyph.
+    const enteringPlaying = nextPlaybackState === "playing" && lastPlaybackState !== "playing";
 
-    if (metadataKey !== nextMetadataKey) {
+    if (metadataChanged || enteringPlaying) {
       metadataKey = nextMetadataKey;
       try {
         navigator.mediaSession.metadata = new MediaMetadata({
@@ -44,17 +69,7 @@ export function createMediaSessionController({ playerState, audioController }) {
       }
     }
 
-    try {
-      const isContinuingPlayback = state.playbackRequested && [
-        PLAYBACK_STATUSES.LOADING_SOURCE,
-        PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
-      ].includes(state.playbackStatus);
-      navigator.mediaSession.playbackState = (
-        state.playbackStatus === PLAYBACK_STATUSES.PLAYING || isContinuingPlayback
-      ) ? "playing" : "paused";
-    } catch {
-      // Playback state support varies across browsers.
-    }
+    applyPlaybackState(nextPlaybackState);
 
     if (Number.isFinite(state.duration) && state.duration > 0 && Number.isFinite(state.currentTime)) {
       try {
@@ -69,11 +84,21 @@ export function createMediaSessionController({ playerState, audioController }) {
     }
   }
 
+  function applyPlaybackState(nextPlaybackState) {
+    try {
+      navigator.mediaSession.playbackState = nextPlaybackState;
+      lastPlaybackState = nextPlaybackState;
+    } catch {
+      // Playback state support varies across browsers.
+    }
+  }
+
   function clearMediaSession() {
     metadataKey = null;
     try {
       navigator.mediaSession.metadata = null;
       navigator.mediaSession.playbackState = "none";
+      lastPlaybackState = "none";
     } catch {
       // Media Session is best-effort.
     }
@@ -94,6 +119,31 @@ export function createMediaSessionController({ playerState, audioController }) {
       // Unsupported actions should not affect in-app playback.
     }
   }
+}
+
+function resolveMediaPlaybackState(state) {
+  const status = state.playbackStatus;
+  const requested = state.playbackRequested;
+
+  // Treat play-intent through load/buffer (including brief ready) as playing so
+  // iOS never latches a pre-play "paused" control on first session paint.
+  if (
+    status === PLAYBACK_STATUSES.PLAYING
+    || (requested && [
+      PLAYBACK_STATUSES.READY,
+      PLAYBACK_STATUSES.LOADING_SOURCE,
+      PLAYBACK_STATUSES.BUFFERING_PLAYBACK,
+    ].includes(status))
+  ) {
+    return "playing";
+  }
+
+  if (status === PLAYBACK_STATUSES.PAUSED || status === PLAYBACK_STATUSES.ENDED) {
+    return "paused";
+  }
+
+  // idle / ready / error / unavailable without an active pause — don't teach iOS "paused"
+  return "none";
 }
 
 function getMediaTitle(episode) {
