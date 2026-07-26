@@ -1,4 +1,4 @@
-const RELEASE_ID = "v438";
+const RELEASE_ID = "v439";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -31,7 +31,7 @@ const SHELL_PATHS = [
   "./css/global-search.css?v=share-moment-i",
   "./css/share-moment.css?v=share-moment-i",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=lock-play-a",
+  "./js/main.js?v=lock-play-b",
   "./js/a2hsModal.js?v=splash-ready-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
@@ -57,9 +57,9 @@ const SHELL_PATHS = [
   "./js/statsPageView.js",
   "./js/libraryView.js?v=mini-scroll-a",
   "./js/launchSplash.js",
-  "./js/player/audioController.js?v=playback-speed-p",
+  "./js/player/audioController.js?v=lock-play-b",
   "./js/player/coverAmbient.js?v=ambient-stamp-c",
-  "./js/player/mediaSessionController.js?v=lock-play-a",
+  "./js/player/mediaSessionController.js?v=lock-play-b",
   "./js/player/playerState.js",
   "./js/player/playerView.js?v=share-short-a",
   "./js/player/sourceStatus.js",

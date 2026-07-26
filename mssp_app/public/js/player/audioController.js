@@ -2,6 +2,8 @@ import { PLAYBACK_STATUSES } from "./playerState.js";
 
 const BUFFERING_GRACE_MS = 900;
 const SAVE_INTERVAL_MS = 5000;
+// Keep standby unloaded briefly so iOS Now Playing binds to the single active deck.
+const STANDBY_MEDIA_SESSION_SETTLE_MS = 2500;
 const HAVE_CURRENT_DATA = 2;
 const HAVE_FUTURE_DATA = 3;
 const HAVE_ENOUGH_DATA = 4;
@@ -49,6 +51,9 @@ export function createAudioController({
   let pendingHandoff = null;
   let destroyed = false;
   let lastContextFingerprint = contextFingerprint();
+  let standbyPrepTimer = null;
+  let standbyPrepSettled = false;
+  const mediaElementListeners = new Set();
   const diagnostics = [];
   const debugPlayback = isPlaybackDebugEnabled();
   applyPreferredPlaybackRate(audio);
@@ -121,7 +126,7 @@ export function createAudioController({
       }
     }
     if (playbackIntent && !pendingHandoff && playerState.getState().playbackStatus === PLAYBACK_STATUSES.PLAYING) {
-      prepareStandby();
+      schedulePrepareStandby();
     }
   });
 
@@ -405,7 +410,8 @@ export function createAudioController({
       if (!targetAudio.paused && !targetAudio.ended) {
         if (playbackIntent) {
           if (!pendingHandoff) playerState.setPlaybackStatus(PLAYBACK_STATUSES.PLAYING);
-          if (!pendingHandoff) prepareStandby();
+          notifyMediaElementEvent("playing");
+          if (!pendingHandoff) schedulePrepareStandby();
         } else {
           targetAudio.pause();
         }
@@ -423,6 +429,7 @@ export function createAudioController({
       }
       if (playbackIntent && pendingPlayToken === null) setPlaybackIntent(false);
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.PAUSED);
+      notifyMediaElementEvent("pause");
     }), options);
     targetAudio.addEventListener("ended", current(handleActiveEnded), options);
     targetAudio.addEventListener("error", current(handleError), options);
@@ -446,6 +453,7 @@ export function createAudioController({
     if (!advanced) {
       setPlaybackIntent(false);
       playerState.setPlaybackStatus(PLAYBACK_STATUSES.ENDED);
+      notifyMediaElementEvent("pause");
     }
   }
 
@@ -552,12 +560,13 @@ export function createAudioController({
     playerState.setPlaybackRequested(true);
     playerState.setPlaybackError("");
     playerState.setPlaybackStatus(PLAYBACK_STATUSES.PLAYING);
+    notifyMediaElementEvent("playing");
     recordDiagnostic("handoff-advanced", {
       episodeKey: loadedEpisodeKey,
       timeToFirstAdvanceMs: Math.max(0, now() - handoff.startedAt),
       ...mediaSnapshot(audio),
     });
-    prepareStandby();
+    schedulePrepareStandby();
   }
 
   async function retryPendingHandoff(reason) {
@@ -586,6 +595,23 @@ export function createAudioController({
   function stageCompletedEpisode(episodeKey) {
     playbackProgressStore?.markCompletedInMemory(episodeKey);
     scheduleTask(() => playbackProgressStore?.flushPending());
+  }
+
+  function schedulePrepareStandby() {
+    if (!standbyEnabled || destroyed || !standbyDeck || !playbackIntent || pendingHandoff || !loadedEpisodeKey) return;
+    if (standbyDeck.token && tokenMatchesContext(standbyDeck.token) && standbyDeck.token.fromEpisodeKey === loadedEpisodeKey) return;
+    // First play: keep a single media element warm long enough for iOS Now Playing /
+    // Control Center to bind play/pause to the active deck before standby loads.
+    if (!standbyPrepSettled) {
+      window.clearTimeout(standbyPrepTimer);
+      standbyPrepTimer = window.setTimeout(() => {
+        standbyPrepTimer = null;
+        standbyPrepSettled = true;
+        prepareStandby();
+      }, STANDBY_MEDIA_SESSION_SETTLE_MS);
+      return;
+    }
+    prepareStandby();
   }
 
   function prepareStandby() {
@@ -872,6 +898,25 @@ export function createAudioController({
     };
   }
 
+  function getActiveAudioElement() {
+    return audio;
+  }
+
+  function subscribeMediaElementEvents(listener) {
+    mediaElementListeners.add(listener);
+    return () => mediaElementListeners.delete(listener);
+  }
+
+  function notifyMediaElementEvent(type) {
+    for (const listener of mediaElementListeners) {
+      try {
+        listener(type, audio);
+      } catch (error) {
+        console.warn("[MSSP] Media element listener failed.", error);
+      }
+    }
+  }
+
   function getCurrentTime() {
     return Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
   }
@@ -934,6 +979,9 @@ export function createAudioController({
   function destroy() {
     destroyed = true;
     window.clearInterval(saveInterval);
+    window.clearTimeout(standbyPrepTimer);
+    standbyPrepTimer = null;
+    mediaElementListeners.clear();
     document.removeEventListener("visibilitychange", onVisibilityChange);
     window.removeEventListener("pageshow", restorePlaybackContext);
     window.removeEventListener("focus", restorePlaybackContext);
@@ -949,6 +997,7 @@ export function createAudioController({
 
   return {
     destroy,
+    getActiveAudioElement,
     getAudioSnapshot,
     getCurrentTime,
     getPlaybackDiagnostics,
@@ -961,6 +1010,7 @@ export function createAudioController({
     seek,
     seekBy,
     setPlaybackRate,
+    subscribeMediaElementEvents,
     toggle,
   };
 }
