@@ -94,6 +94,24 @@
     <div class="launch-splash" id="launchSplash" aria-hidden="false">
       <img class="launch-splash__mark" src="./apple-touch-icon.png" alt="">
     </div>
+    <script>
+      (function () {
+        var FAILSAFE_MS = 4500;
+        function forceDismissLaunchSplash() {
+          var splash = document.getElementById("launchSplash");
+          document.body.classList.remove("launch-loading");
+          if (!splash || splash.getAttribute("data-dismissed") === "true") return;
+          splash.setAttribute("data-dismissed", "true");
+          splash.classList.add("is-hidden");
+          splash.setAttribute("aria-hidden", "true");
+          window.setTimeout(function () {
+            splash.classList.add("is-removed");
+          }, 500);
+        }
+        window.setTimeout(forceDismissLaunchSplash, FAILSAFE_MS);
+        window.__msspForceDismissSplash = forceDismissLaunchSplash;
+      })();
+    </script>
     <main class="app" id="app">
       <section class="launch" id="launchView" aria-label="Collections">
         <div class="launch__top-bar">
@@ -801,6 +819,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=splash-ready-a"></script>
+    <script type="module" src="./js/main.js?v=splash-ready-b"></script>
   </body>
 </html>

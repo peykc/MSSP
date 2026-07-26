@@ -333,7 +333,11 @@ export function initLaunchPullToRefresh({
   document.body.classList.add("pwa-pull-enabled");
 
   function launchIsEligible() {
+    const splash = document.getElementById("launchSplash");
+    const splashCleared = !document.body.classList.contains("launch-loading")
+      && (!splash || splash.dataset.dismissed === "true" || splash.classList.contains("is-removed"));
     return document.visibilityState === "visible"
+      && splashCleared
       && !launchView.classList.contains("is-covered")
       && !document.body.matches(".library-open, .stats-open, .calendar-open, .patreon-rss-open, .a2hs-open, .player-expanded, .search-results-open")
       && scroller.scrollTop <= 1;

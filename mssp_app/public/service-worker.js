@@ -1,4 +1,4 @@
-const RELEASE_ID = "v425";
+const RELEASE_ID = "v426";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -30,18 +30,20 @@ const SHELL_PATHS = [
   "./css/transcript.css?v=cover-ambient-g",
   "./css/global-search.css?v=hydrate-ready-a",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=splash-ready-a",
+  "./js/main.js?v=splash-ready-b",
   "./js/a2hsModal.js?v=splash-ready-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",
-  "./js/community/communitySignals.js?v=poll-cut-a",
+  "./js/community/communitySignals.js?v=peaks-secret-a",
+  "./js/community/pitchCounter.js?v=pitch-d",
+  "./js/community/presencePeaksChart.js?v=peaks-secret-a",
   "./js/community/viewProgress.js",
   "./js/patreonRssModal.js?v=splash-ready-a",
   "./js/archiveStats.js",
   "./js/calendarModal.js?v=heatmap-full-labels-a",
   "./js/collectionGlyphs.js",
   "./js/collectionsView.js?v=splash-ready-a",
-  "./js/dom.js?v=playback-speed-l",
+  "./js/dom.js?v=peaks-secret-a",
   "./js/episodeDetails.js?v=poll-cut-a",
   "./js/episodeRow.js?v=poll-cut-a",
   "./js/episodeList.js?v=poll-cut-a",
@@ -61,7 +63,7 @@ const SHELL_PATHS = [
   "./js/player/sourceStatus.js",
   "./js/player/transcriptView.js?v=scroll-hydrate-m",
   "./js/player/transcriptSearch.js?v=search-ops-a",
-  "./js/pwa.js?v=pull-overscroll-a",
+  "./js/pwa.js?v=splash-failsafe-a",
   "./js/search.js",
   "./js/sources/publicSources.js",
   "./js/sources/patreonRssMatcher.js?v=dirty-r2-a",

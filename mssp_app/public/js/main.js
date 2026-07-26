@@ -24,7 +24,7 @@ import { createPlayerState, PLAYBACK_STATUSES } from "./player/playerState.js";
 import { createPlayerView } from "./player/playerView.js?v=ambient-stamp-c";
 import { getSourceStatus, SOURCE_STATUSES } from "./player/sourceStatus.js";
 import { createA2hsModal, initAddToHomeScreen } from "./a2hsModal.js?v=splash-ready-a";
-import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=pull-overscroll-a";
+import { registerServiceWorker, initLaunchPullToRefresh, initPwaUpdates } from "./pwa.js?v=splash-failsafe-a";
 import { initSearch } from "./search.js";
 import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSources.js";
 import { createPatreonRssSources } from "./sources/patreonRssSources.js?v=dirty-r2-a";
@@ -63,6 +63,24 @@ function waitFrames(count = 2) {
       requestAnimationFrame(step);
     };
     requestAnimationFrame(step);
+  });
+}
+
+function withTimeout(promise, ms, label) {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => {
+      reject(new Error(`[MSSP] Timed out waiting for ${label}.`));
+    }, ms);
+    Promise.resolve(promise).then(
+      (value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      },
+      (error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      },
+    );
   });
 }
 
@@ -177,7 +195,11 @@ async function init() {
 
   const archiveStatsView = createArchiveStatsView({ dom, state });
   const dismissGlobalTooltip = initGlobalTooltip();
-  await loadPublicSources();
+  try {
+    await withTimeout(loadPublicSources(), 3500, "public sources");
+  } catch (error) {
+    console.warn("[MSSP] Public sources load timed out; continuing launch.", error);
+  }
   const patreonSources = createPatreonRssSources();
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
@@ -576,7 +598,7 @@ async function init() {
   });
 
   try {
-    const data = await apiClient.getCollections();
+    const data = await withTimeout(apiClient.getCollections(), 4000, "collections");
     console.info("[MSSP] Data mode:", apiClient.getMode());
     state.collections = data.collections;
     collectionsView.renderCollections();
@@ -678,4 +700,7 @@ async function logMetadataDiagnostics(apiClient) {
   }
 }
 
-init();
+init().catch((error) => {
+  console.error("[MSSP] Fatal startup error.", error);
+  dismissLaunchSplash();
+});
