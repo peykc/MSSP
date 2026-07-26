@@ -36,4 +36,4 @@ The public player source map is intentionally split by collection:
 
 - `MSSPOT` / The Old Testament uses an archival R2 mirror.
 - `MSSP` / The New Testament uses the official public Megaphone RSS feed.
-- `PAYTCH` episodes are not included in the public source export; playback requires your own private Patreon RSS feed.
+- `PAYTCH` / The PAYTCH uses the official Patreon RSS feed; *playback requires your own private Patreon RSS feed.*
