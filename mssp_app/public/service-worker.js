@@ -1,4 +1,4 @@
-const RELEASE_ID = "v436";
+const RELEASE_ID = "v437";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -31,7 +31,7 @@ const SHELL_PATHS = [
   "./css/global-search.css?v=share-moment-i",
   "./css/share-moment.css?v=share-moment-i",
   "./js/apiClient.js?v=static-first-data",
-  "./js/main.js?v=share-short-a",
+  "./js/main.js?v=patreon-restore-a",
   "./js/a2hsModal.js?v=splash-ready-a",
   "./js/community/communityIdentity.js",
   "./js/community/communityPresence.js?v=poll-cut-a",

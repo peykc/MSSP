@@ -41,6 +41,7 @@ export function createAudioController({
   let playbackCommandToken = 0;
   let pendingPlayToken = null;
   let restoredLoadToken = null;
+  let pendingRestoredTime = null;
   let fallbackTriedToken = null;
   let standbyGeneration = 0;
   let playbackSettingsVersion = 0;
@@ -279,10 +280,16 @@ export function createAudioController({
 
   function seek(value, { persist = true } = {}) {
     if (!Number.isFinite(audio.duration) || audio.duration <= 0) return null;
-    audio.currentTime = Math.max(0, Math.min(Number(value) || 0, audio.duration));
-    updateTimeline();
-    if (persist) savePlaybackPositionNow();
-    return audio.currentTime;
+    const clamped = Math.max(0, Math.min(Number(value) || 0, audio.duration));
+    clearPendingRestoredTime();
+    audio.currentTime = clamped;
+    // Browsers may keep audio.currentTime at 0 until seek completes; seed UI with the target.
+    playerState.setTimeline({
+      currentTime: clamped,
+      duration: audio.duration,
+    });
+    if (persist) savePlaybackPositionNow({ currentTime: clamped });
+    return clamped;
   }
 
   function seekBy(offset) {
@@ -291,8 +298,29 @@ export function createAudioController({
 
   function seekToRestoredPosition(time) {
     if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
-    audio.currentTime = Math.max(0, Math.min(Number(time) || 0, audio.duration));
-    updateTimeline();
+    const clamped = Math.max(0, Math.min(Number(time) || 0, audio.duration));
+    pendingRestoredTime = clamped;
+    audio.currentTime = clamped;
+    // Seed timeline from the intended restore time — audio.currentTime often stays 0 until seeked.
+    playerState.setTimeline({
+      currentTime: clamped,
+      duration: audio.duration,
+    });
+  }
+
+  function clearPendingRestoredTime() {
+    pendingRestoredTime = null;
+  }
+
+  function resolveDisplayedCurrentTime() {
+    const audioTime = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    if (pendingRestoredTime === null) return audioTime;
+    // Keep showing the restore target until the media element reports the seek.
+    if (Math.abs(audioTime - pendingRestoredTime) < 0.5) {
+      clearPendingRestoredTime();
+      return audioTime;
+    }
+    return pendingRestoredTime;
   }
 
   function restoreSavedPosition() {
@@ -301,13 +329,14 @@ export function createAudioController({
     if (savedTime !== null) seekToRestoredPosition(savedTime);
   }
 
-  function savePlaybackPositionNow({ episodeKey } = {}) {
+  function savePlaybackPositionNow({ episodeKey, currentTime } = {}) {
     if (!playbackProgressStore) return;
     const key = episodeKey || playerState.getState().selectedEpisode?.episodeKey;
     if (!key) return;
     if (!episodeKey && !isCurrentSource()) return;
-    if (audio.ended || !Number.isFinite(audio.duration) || audio.duration <= 0 || !Number.isFinite(audio.currentTime)) return;
-    playbackProgressStore.savePosition({ episodeKey: key, currentTime: audio.currentTime, duration: audio.duration });
+    const time = Number.isFinite(currentTime) ? currentTime : audio.currentTime;
+    if (audio.ended || !Number.isFinite(audio.duration) || audio.duration <= 0 || !Number.isFinite(time)) return;
+    playbackProgressStore.savePosition({ episodeKey: key, currentTime: time, duration: audio.duration });
   }
 
   function loadSource(episodeKey, source, shouldPlay) {
@@ -359,6 +388,10 @@ export function createAudioController({
       }
     }), options);
     targetAudio.addEventListener("durationchange", current(updateTimeline), options);
+    targetAudio.addEventListener("seeked", current(() => {
+      clearPendingRestoredTime();
+      updateTimeline();
+    }), options);
     targetAudio.addEventListener("timeupdate", current(() => {
       clearBufferingTimer();
       updateTimeline();
@@ -775,7 +808,7 @@ export function createAudioController({
 
   function updateTimeline() {
     playerState.setTimeline({
-      currentTime: Number.isFinite(audio.currentTime) ? audio.currentTime : 0,
+      currentTime: resolveDisplayedCurrentTime(),
       duration: Number.isFinite(audio.duration) ? audio.duration : 0,
     });
   }
@@ -791,11 +824,13 @@ export function createAudioController({
     activeDeck.assignedSourceUrl = null;
     pendingHandoff = null;
     setPlaybackIntent(false);
+    clearPendingRestoredTime();
     playerState.setTimeline({ currentTime: 0, duration: 0 });
   }
 
   function invalidateLoad() {
     clearBufferingTimer();
+    clearPendingRestoredTime();
     playbackCommandToken += 1;
     pendingPlayToken = null;
     loadToken += 1;

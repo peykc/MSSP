@@ -111,7 +111,9 @@
     <script>
       (function () {
         var FAILSAFE_MS = 4500;
+        var failsafeId = null;
         function forceDismissLaunchSplash() {
+          failsafeId = null;
           var splash = document.getElementById("launchSplash");
           document.body.classList.remove("launch-loading");
           if (!splash || splash.getAttribute("data-dismissed") === "true") return;
@@ -122,8 +124,14 @@
             splash.classList.add("is-removed");
           }, 500);
         }
-        window.setTimeout(forceDismissLaunchSplash, FAILSAFE_MS);
+        function cancelSplashFailsafe() {
+          if (failsafeId == null) return;
+          window.clearTimeout(failsafeId);
+          failsafeId = null;
+        }
+        failsafeId = window.setTimeout(forceDismissLaunchSplash, FAILSAFE_MS);
         window.__msspForceDismissSplash = forceDismissLaunchSplash;
+        window.__msspCancelSplashFailsafe = cancelSplashFailsafe;
       })();
     </script>
     <main class="app" id="app">
@@ -833,6 +841,6 @@
     </section>
     <div id="global-tooltip" class="global-tooltip"></div>
     <script src="./js/apiClient.js?v=static-first-data"></script>
-    <script type="module" src="./js/main.js?v=share-short-a"></script>
+    <script type="module" src="./js/main.js?v=patreon-restore-a"></script>
   </body>
 </html>

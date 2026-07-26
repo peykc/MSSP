@@ -13,7 +13,9 @@ class FakeAudio extends EventTarget {
     this.dataset = {};
     this.preload = "metadata";
     this.controls = false;
-    this.currentTime = 0;
+    this._currentTime = 0;
+    this.deferSeek = false;
+    this._pendingSeek = null;
     this.duration = 120;
     this.readyState = 0;
     this.networkState = 0;
@@ -32,6 +34,27 @@ class FakeAudio extends EventTarget {
       start: () => 0,
       end: () => 12,
     };
+  }
+
+  get currentTime() {
+    return this._currentTime;
+  }
+
+  set currentTime(value) {
+    const next = Number(value) || 0;
+    if (this.deferSeek) {
+      this._pendingSeek = next;
+      return;
+    }
+    this._currentTime = next;
+  }
+
+  completeSeek() {
+    if (this._pendingSeek !== null) {
+      this._currentTime = this._pendingSeek;
+      this._pendingSeek = null;
+    }
+    this.dispatchEvent(new Event("seeked"));
   }
 
   get src() {
@@ -83,14 +106,14 @@ class FakeAudio extends EventTarget {
   }
 
   finish() {
-    this.currentTime = this.duration;
+    this._currentTime = this.duration;
     this.paused = true;
     this.ended = true;
     this.dispatchEvent(new Event("ended"));
   }
 
   advance(time = 0.25) {
-    this.currentTime += time;
+    this._currentTime += time;
     this.dispatchEvent(new Event("timeupdate"));
   }
 
@@ -178,7 +201,8 @@ function createHarness({ standby = true, resetStorage = true } = {}) {
   const context = { queueVersion: 1, resolverVersion: 1, completionVersion: 0 };
   const completed = new Set();
   const progress = {
-    getRestorablePosition: () => null,
+    restorablePosition: null,
+    getRestorablePosition: () => progress.restorablePosition,
     savePosition() {},
     markCompletedInMemory(key) {
       completed.add(key);
@@ -216,8 +240,28 @@ function createHarness({ standby = true, resetStorage = true } = {}) {
       return false;
     },
   });
-  return { audios, completed, context, controller, events, first, playerState, tasks };
+  return { audios, completed, context, controller, events, first, playerState, progress, tasks };
 }
+
+test("seeds timeline from saved position before seek completes", async () => {
+  const harness = createHarness({ standby: false });
+  harness.progress.restorablePosition = 42;
+  harness.audios[0].deferSeek = true;
+
+  await harness.controller.loadSelected({ playbackIntent: false });
+
+  assert.equal(harness.audios[0].currentTime, 0);
+  assert.equal(harness.playerState.state.currentTime, 42);
+  assert.equal(harness.playerState.state.duration, 120);
+
+  // durationchange (and similar) must not clobber the seeded restore time
+  harness.audios[0].dispatchEvent(new Event("durationchange"));
+  assert.equal(harness.playerState.state.currentTime, 42);
+
+  harness.audios[0].completeSeek();
+  assert.equal(harness.audios[0].currentTime, 42);
+  assert.equal(harness.playerState.state.currentTime, 42);
+});
 
 test("creates both decks before first play and keeps standby events isolated", async () => {
   const harness = createHarness();

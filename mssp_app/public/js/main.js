@@ -37,7 +37,7 @@ import { getPublicSourceForEpisode, loadPublicSources } from "./sources/publicSo
 import { createPatreonRssSources } from "./sources/patreonRssSources.js?v=dirty-r2-a";
 import { createAppState } from "./state.js";
 import { initGlobalTooltip } from "./tooltip.js?v=search-no-tip-a";
-import { dismissLaunchSplash } from "./launchSplash.js";
+import { cancelSplashFailsafe, dismissLaunchSplash } from "./launchSplash.js";
 
 function readSharedEpisodeShortCode() {
   return new URLSearchParams(window.location.search).get(EPISODE_SHARE_SHORT_PARAM)?.trim() || "";
@@ -229,8 +229,11 @@ async function init() {
   const getSourceForEpisode = (episode) => patreonSources.getSourceForEpisode(episode) || getPublicSourceForEpisode(episode);
   const getSourceStatusForEpisode = (episode) => getSourceStatus(episode, getSourceForEpisode(episode));
   const playerState = createPlayerState({ getPublicSourceForEpisode: getSourceForEpisode });
-  // Sync-read player persist before splash dismiss (network restore runs later).
-  void playerState.hasPersistedState();
+  // Hold splash when a restored player sheet would otherwise paint PAYTCH as locked
+  // before the private feed map is hydrated from the stored Patreon URL.
+  const shouldHoldSplashForPatreonRestore =
+    playerState.hasPersistedState() && Boolean(patreonSources.getStoredUrl());
+  if (shouldHoldSplashForPatreonRestore) cancelSplashFailsafe();
   playerState.subscribe((snapshot) => {
     const listening = snapshot.playbackStatus === PLAYBACK_STATUSES.PLAYING;
     communitySignals.setListeningActive(listening);
@@ -653,7 +656,7 @@ async function init() {
   } catch (error) {
     console.error("[MSSP] Failed to start frontend.", error);
   } finally {
-    dismissLaunchSplash();
+    if (!shouldHoldSplashForPatreonRestore) dismissLaunchSplash();
   }
 
   // Let the browser accept the first scroll before deferred heavy work.
@@ -701,16 +704,31 @@ async function init() {
     }
 
     await yieldToMain();
-    await playerState.restore(apiClient);
 
-    if (patreonSources.getStoredUrl()) {
-      void patreonSources.reconnect(archiveEpisodes)
-        .then(() => refreshPrivateSources())
-        .catch(() => {})
-        .finally(() => patreonRssModal?.syncLaunchButton?.());
+    // When a player sheet will restore, hydrate Patreon sources first so a PAYTCH
+    // episode does not flash the locked "Connect Patreon RSS" state.
+    if (shouldHoldSplashForPatreonRestore) {
+      try {
+        await withTimeout(patreonSources.reconnect(archiveEpisodes), 8000, "patreon reconnect");
+      } catch (error) {
+        console.warn("[MSSP] Patreon reconnect during launch failed; player may stay locked.", error);
+      } finally {
+        patreonRssModal?.syncLaunchButton?.();
+      }
+      await playerState.restore(apiClient);
+    } else {
+      await playerState.restore(apiClient);
+      if (patreonSources.getStoredUrl()) {
+        void patreonSources.reconnect(archiveEpisodes)
+          .then(() => refreshPrivateSources())
+          .catch(() => {})
+          .finally(() => patreonRssModal?.syncLaunchButton?.());
+      }
     }
   } catch (error) {
     console.error("[MSSP] Failed to finish deferred launch bootstrap.", error);
+  } finally {
+    if (shouldHoldSplashForPatreonRestore) dismissLaunchSplash();
   }
 
   const sharedEpisodeShortCode = readSharedEpisodeShortCode();

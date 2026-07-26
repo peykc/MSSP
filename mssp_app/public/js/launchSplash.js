@@ -1,6 +1,11 @@
 const SPLASH_FADE_MS = 420;
 
+export function cancelSplashFailsafe() {
+  window.__msspCancelSplashFailsafe?.();
+}
+
 export function dismissLaunchSplash() {
+  cancelSplashFailsafe();
   const splash = document.getElementById("launchSplash");
   document.body.classList.remove("launch-loading");
   if (!splash || splash.dataset.dismissed === "true") return;
