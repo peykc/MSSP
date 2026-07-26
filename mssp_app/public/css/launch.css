@@ -478,7 +478,7 @@ p {
 
 .collection-hero h2 {
   margin: 0;
-  color: #f2ede5;
+  color: #e3d9c3;
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
   font-size: 54px;
   font-weight: 700;
@@ -951,7 +951,7 @@ p {
   grid-column: 3;
   grid-row: 1;
   justify-self: center;
-  color: var(--text);
+  color: #e3d9c3;
   font-family: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, "Times New Roman", serif;
   font-size: clamp(1rem, 2.1vw, 1.45rem);
   font-weight: 600;

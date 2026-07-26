@@ -1,4 +1,4 @@
-const RELEASE_ID = "v424";
+const RELEASE_ID = "v425";
 const CACHE_PREFIX = "mssp-";
 const SHELL_CACHE_PREFIX = `${CACHE_PREFIX}shell-`;
 const DATA_CACHE_PREFIX = `${CACHE_PREFIX}data-`;
@@ -14,7 +14,7 @@ const SHELL_PATHS = [
   "./site.webmanifest",
   "./css/base.css?v=list-unify-a",
   "./css/layout.css?v=a2hs-b",
-  "./css/launch.css?v=open-bar-a",
+  "./css/launch.css?v=bone-titles-a",
   "./css/archive.css?v=tip-nav-c",
   "./css/sealed-stone.css",
   "./css/library.css?v=archive-iowan-a",
