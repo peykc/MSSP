@@ -364,7 +364,14 @@ export function createTranscriptView({
         finished = true;
         break;
       }
-      entryHeights[index] = measureEntryHeightDom(timeline[index], index);
+      const measured = measureEntryHeightDom(timeline[index], index);
+      if (measured <= 0) continue;
+      // Background hydration must not move rows during a native smooth scroll.
+      if (dom.fullPlayerTranscriptViewport.classList.contains("is-auto-scrolling")) {
+        deferredHeightUpdates.set(index, measured);
+        continue;
+      }
+      entryHeights[index] = measured;
       entryMeasured[index] = true;
       changed = true;
     }
@@ -1505,6 +1512,9 @@ export function createTranscriptView({
     programmaticScrollTimer = window.setTimeout(() => {
       viewport.classList.remove("is-auto-scrolling");
       flushDeferredHeightUpdates();
+      // Heights and active font weight can settle after the scroll target was
+      // calculated. Correct the final position even when no resize was queued.
+      if (shouldMaintainFollowScroll()) maintainFollowScroll({ instant: true });
       scheduleRenderVisibleEntries();
     }, 520);
     return true;
